@@ -22,11 +22,11 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
 
     private readonly StringBuilder StringBuilder = new();
 
-    public HjsonStream(Stream Stream) : this(Stream, HjsonStreamOptions.Hjson) {
+    public HjsonStream(Stream Stream) : this(Stream, new HjsonStreamOptions()) {
     }
     public HjsonStream(string String, HjsonStreamOptions Options) : this(new MemoryStream(Encoding.UTF8.GetBytes(String)), Options) {
     }
-    public HjsonStream(string String) : this(String, HjsonStreamOptions.Hjson) {
+    public HjsonStream(string String) : this(String, new HjsonStreamOptions()) {
     }
     public T? ParseElement<T>() {
         return ParseNode().Deserialize<T>();

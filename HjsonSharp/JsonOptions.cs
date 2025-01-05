@@ -9,15 +9,10 @@ public static class JsonOptions {
         AllowTrailingCommas = true,
         IncludeFields = true,
         NewLine = "\n",
-        ReadCommentHandling = JsonCommentHandling.Allow,
+        ReadCommentHandling = JsonCommentHandling.Skip,
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
     public static JsonSerializerOptions Pretty { get; } = new(Mini) {
         WriteIndented = true,
     };
-
-    static JsonOptions() {
-        Mini.MakeReadOnly();
-        Pretty.MakeReadOnly();
-    }
 }

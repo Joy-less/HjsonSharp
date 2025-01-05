@@ -1,7 +1,11 @@
 ﻿namespace HjsonSharp;
 
-public record struct HjsonStreamOptions {
-    public int BufferSize { get; set; }
+public record struct HjsonStreamOptions() {
+    public int BufferSize { get; set; } = 4096;
+    public JsonSyntaxOptions Syntax { get; set; } = JsonSyntaxOptions.Hjson;
+}
+
+public record struct JsonSyntaxOptions {
     /// <summary>
     /// Enables/disables hash-style comments.
     /// <code>
@@ -120,14 +124,13 @@ public record struct HjsonStreamOptions {
     /// The standard, strict JSON format.
     /// See <see href="https://json.org"/>.
     /// </summary>
-    public static HjsonStreamOptions Json => new() {
-        BufferSize = 4096,
+    public static JsonSyntaxOptions Json => new() {
     };
     /// <summary>
     /// A variant of JSON allowing line-style comments, block-style comments, and trailing commas.
     /// See <see href="https://code.visualstudio.com/docs/languages/json#_json-with-comments"/>.
     /// </summary>
-    public static HjsonStreamOptions Jsonc => Json with {
+    public static JsonSyntaxOptions Jsonc => Json with {
         LineStyleComments = true,
         BlockStyleComments = true,
         TrailingCommas = true,
@@ -138,7 +141,7 @@ public record struct HjsonStreamOptions {
     /// and all whitespace characters.
     /// See <see href="https://json5.org"/>.
     /// </summary>
-    public static HjsonStreamOptions Json5 => Json with {
+    public static JsonSyntaxOptions Json5 => Json with {
         UnquotedPropertyNames = true,
         TrailingCommas = true,
         SingleQuotedStrings = true,
@@ -152,7 +155,7 @@ public record struct HjsonStreamOptions {
         BlockStyleComments = true,
         AllWhitespace = true,
     };
-    public static HjsonStreamOptions Hjson => Json with {
+    public static JsonSyntaxOptions Hjson => Json with {
 
     };
 }
