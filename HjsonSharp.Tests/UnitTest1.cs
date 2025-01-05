@@ -1,4 +1,6 @@
-﻿namespace HjsonSharp.Tests;
+﻿using System.Text.Json;
+
+namespace HjsonSharp.Tests;
 
 public class UnitTest1 {
     [Fact]
@@ -10,7 +12,8 @@ public class UnitTest1 {
             }
             """;
         using HjsonStream HjsonStream = new(Text);
-        HjsonStream.ReadObject();
+        JsonElement Element = HjsonStream.ParseElement<JsonElement>();
+        Assert.Equal(2, Element.GetPropertyCount());
     }
 }
 

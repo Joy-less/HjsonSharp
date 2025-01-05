@@ -27,19 +27,8 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
     }
     public HjsonStream(string String) : this(String, HjsonStreamOptions.Hjson) {
     }
-    public void ReadWhitespace() {
-        while (true) {
-            int Byte = PeekByte();
-
-            // Whitespace
-            if (Byte is ' ' or '\n' or '\r' or '\t' or '\v' or '\f') {
-                ReadByte();
-            }
-            // End of whitespace
-            else {
-                return;
-            }
-        }
+    public T ParseElement<T>() {
+        throw new NotImplementedException();
     }
     public IEnumerable<Token> ReadElement() {
         // Whitespace
@@ -64,10 +53,55 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
             return [ReadPrimitiveElement()];
         }
     }
-    public T ParseElement<T>() {
-        throw new NotImplementedException();
+    public bool FindPath(IEnumerable<string> Path) {
+        if (!Path.Any()) {
+            return true;
+        }
+
+        Stack<string> CurrentPath = [];
+        string? CurrentPropertyName = null;
+
+        foreach (Token Token in ReadElement()) {
+            if (Token.Type is JsonTokenType.StartObject) {
+                CurrentPath.Push(CurrentPropertyName!);
+
+                if (CurrentPath.SequenceEqual(Path)) {
+                    return true;
+                }
+            }
+            else if (Token.Type is JsonTokenType.EndObject) {
+                CurrentPath.Pop();
+            }
+            else if (Token.Type is JsonTokenType.PropertyName) {
+                CurrentPropertyName = StringBuilder!.ToString();
+            }
+            else if (Token.Type is JsonTokenType.Comment) {
+                // Pass
+            }
+            else {
+                CurrentPropertyName = null;
+            }
+        }
+
+        // Path not found
+        return false;
     }
-    public Token ReadPrimitiveElement() {
+
+    private void ReadWhitespace() {
+        while (true) {
+            int Byte = PeekByte();
+
+            // Whitespace
+            if (Byte is ' ' or '\n' or '\r' or '\t' or '\v' or '\f') {
+                ReadByte();
+            }
+            // End of whitespace
+            else {
+                return;
+            }
+        }
+    }
+    private Token ReadPrimitiveElement() {
         // Whitespace
         ReadWhitespace();
 
@@ -102,10 +136,19 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
             throw new HjsonException($"Invalid character in JSON: `{(char)Byte}`");
         }
     }
-    public T ParsePrimitiveElement<T>() {
-        throw new NotImplementedException();
+    private Token ReadNull() {
+        // Null
+        return ReadLiteralToken(JsonTokenType.Null, "null");
     }
-    public Token ReadBoolean() {
+    private Token ReadTrue() {
+        // True
+        return ReadLiteralToken(JsonTokenType.True, "true");
+    }
+    private Token ReadFalse() {
+        // False
+        return ReadLiteralToken(JsonTokenType.False, "false");
+    }
+    private Token ReadBoolean() {
         // Whitespace
         ReadWhitespace();
 
@@ -120,10 +163,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
             return ReadFalse();
         }
     }
-    public bool ParseBoolean() {
-        return ReadBoolean().Type is JsonTokenType.True;
-    }
-    public Token ReadString() {
+    private Token ReadString() {
         // Whitespace
         ReadWhitespace();
         long TokenPosition = Position;
@@ -202,49 +242,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
             }
         }
     }
-    public string ParseString() {
-        return ReadString().Value;
-    }
-    public Token ReadInteger() {
-        // Whitespace
-        ReadWhitespace();
-        long TokenPosition = Position;
-
-        // Start token
-        StringBuilder.Clear();
-
-        // Sign
-        bool HasSign = false;
-        if (TryReadLiteralByte('-')) {
-            StringBuilder.Append('-');
-            HasSign = true;
-        }
-        else if (TryReadLiteralByte('+')) {
-            StringBuilder.Append('+');
-            HasSign = true;
-        }
-
-        // Integer
-        bool TrailingSign = HasSign;
-        while (true) {
-            int Byte = PeekByte();
-
-            // Digit
-            if (Byte is >= '0' and <= '9') {
-                TrailingSign = false;
-                StringBuilder.Append((char)Byte);
-                ReadByte();
-            }
-            // End of number
-            else {
-                if (TrailingSign) {
-                    throw new HjsonException($"Expected digit after `+`/`-`");
-                }
-                return new Token(this, JsonTokenType.Number, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
-            }
-        }
-    }
-    public Token ReadNumber() {
+    private Token ReadNumber() {
         // Whitespace
         ReadWhitespace();
         long TokenPosition = Position;
@@ -307,24 +305,46 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
             }
         }
     }
-    public Token ReadPropertyName() {
+    private Token ReadInteger() {
         // Whitespace
         ReadWhitespace();
         long TokenPosition = Position;
 
-        // String
-        Token String = ReadString();
+        // Start token
+        StringBuilder.Clear();
 
-        // Whitespace
-        ReadWhitespace();
-
-        // Colon
-        if (!TryReadLiteralByte(':')) {
-            throw new HjsonException("Expected `:` after property name in object");
+        // Sign
+        bool HasSign = false;
+        if (TryReadLiteralByte('-')) {
+            StringBuilder.Append('-');
+            HasSign = true;
         }
-        return new Token(this, JsonTokenType.PropertyName, TokenPosition, Position - TokenPosition, String.Value);
+        else if (TryReadLiteralByte('+')) {
+            StringBuilder.Append('+');
+            HasSign = true;
+        }
+
+        // Integer
+        bool TrailingSign = HasSign;
+        while (true) {
+            int Byte = PeekByte();
+
+            // Digit
+            if (Byte is >= '0' and <= '9') {
+                TrailingSign = false;
+                StringBuilder.Append((char)Byte);
+                ReadByte();
+            }
+            // End of number
+            else {
+                if (TrailingSign) {
+                    throw new HjsonException($"Expected digit after `+`/`-`");
+                }
+                return new Token(this, JsonTokenType.Number, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
+            }
+        }
     }
-    public IEnumerable<Token> ReadObject() {
+    private IEnumerable<Token> ReadObject() {
         // Whitespace
         ReadWhitespace();
 
@@ -378,7 +398,24 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
             }
         }
     }
-    public IEnumerable<Token> ReadArray() {
+    private Token ReadPropertyName() {
+        // Whitespace
+        ReadWhitespace();
+        long TokenPosition = Position;
+
+        // String
+        Token String = ReadString();
+
+        // Whitespace
+        ReadWhitespace();
+
+        // Colon
+        if (!TryReadLiteralByte(':')) {
+            throw new HjsonException("Expected `:` after property name in object");
+        }
+        return new Token(this, JsonTokenType.PropertyName, TokenPosition, Position - TokenPosition, String.Value);
+    }
+    private IEnumerable<Token> ReadArray() {
         // Whitespace
         ReadWhitespace();
 
@@ -430,70 +467,6 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
                 CurrentIndex++;
             }
         }
-    }
-    /*public T ReadValue<T>(int ValueLength) {
-        // Create buffer for bytes in range
-        byte[] Buffer = ArrayPool<byte>.Shared.Rent(ValueLength);
-        try {
-            // Read all bytes in range
-            ReadExactly(Buffer, 0, ValueLength);
-
-            // Deserialize element
-            return JsonSerializer.Deserialize<T>(Buffer.AsSpan(0, ValueLength))!;
-        }
-        finally {
-            // Return buffer
-            ArrayPool<byte>.Shared.Return(Buffer);
-        }
-    }
-    public JsonElement ReadValue(int ValueLength) {
-        return ReadValue<JsonElement>(ValueLength);
-    }*/
-    public bool FindPath(IEnumerable<string> Path) {
-        if (!Path.Any()) {
-            return true;
-        }
-
-        Stack<string> CurrentPath = [];
-        string? CurrentPropertyName = null;
-
-        foreach (Token Token in ReadElement()) {
-            if (Token.Type is JsonTokenType.StartObject) {
-                CurrentPath.Push(CurrentPropertyName!);
-
-                if (CurrentPath.SequenceEqual(Path)) {
-                    return true;
-                }
-            }
-            else if (Token.Type is JsonTokenType.EndObject) {
-                CurrentPath.Pop();
-            }
-            else if (Token.Type is JsonTokenType.PropertyName) {
-                CurrentPropertyName = StringBuilder!.ToString();
-            }
-            else if (Token.Type is JsonTokenType.Comment) {
-                // Pass
-            }
-            else {
-                CurrentPropertyName = null;
-            }
-        }
-
-        // Path not found
-        return false;
-    }
-
-    private Token ReadNull() {
-        // Null
-        return ReadLiteralToken(JsonTokenType.Null, "null");
-    }
-    private Token ReadTrue() {
-        // True
-        return ReadLiteralToken(JsonTokenType.True, "true");
-    }
-    private Token ReadFalse() {
-        // False
-        return ReadLiteralToken(JsonTokenType.False, "false");
     }
     private Token ReadLiteralToken(JsonTokenType TokenType, string Literal) {
         // Whitespace
