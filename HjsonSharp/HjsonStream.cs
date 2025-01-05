@@ -18,186 +18,9 @@ namespace HjsonSharp;
 /// </list>
 /// </remarks>
 public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stream, BufferSize) {
-    public StringBuilder? StringBuilder = new();
+    private readonly StringBuilder StringBuilder = new();
 
     public HjsonStream(string String) : this(new MemoryStream(Encoding.UTF8.GetBytes(String))) {
-    }
-    public T DeserializeValue<T>(int ValueLength) {
-        // Create buffer for bytes in range
-        byte[] Buffer = ArrayPool<byte>.Shared.Rent(ValueLength);
-        try {
-            // Read all bytes in range
-            ReadExactly(Buffer, 0, ValueLength);
-
-            // Deserialize element
-            return JsonSerializer.Deserialize<T>(Buffer.AsSpan(0, ValueLength))!;
-        }
-        finally {
-            // Return buffer
-            ArrayPool<byte>.Shared.Return(Buffer);
-        }
-    }
-    public JsonElement DeserializeValue(int ValueLength) {
-        return DeserializeValue<JsonElement>(ValueLength);
-    }
-    public T DeserializeValueAt<T>(long StartPosition, long EndPosition) {
-        // Get length of value
-        int ValueLength = (int)(EndPosition - StartPosition + 1);
-
-        // Seek value start position
-        long OriginalPosition = Position;
-        Position = StartPosition;
-
-        try {
-            // Deserialize value
-            return DeserializeValue<T>(ValueLength);
-        }
-        finally {
-            // Seek original position
-            Position = OriginalPosition;
-        }
-    }
-    public JsonElement DeserializeValueAt(long StartPosition, long EndPosition) {
-        return DeserializeValueAt<JsonElement>(StartPosition, EndPosition);
-    }
-    public IEnumerable<JsonStreamMemberRef> FindMembers(IList<JsonStreamKey> TargetPath, Func<JsonStreamKey, bool>? KeyPredicate) {
-        List<JsonStreamKey> Path = [];
-        (long Position, JsonStreamKey Key)? CurrentMember = null;
-
-        bool IsDirectChildOfTargetPath() {
-            // Ensure path depth is one more than target path depth
-            if (Path.Count != TargetPath.Count + 1) {
-                return false;
-            }
-            // Ensure path is inside target path
-            for (int Index = 0; Index < TargetPath.Count; Index++) {
-                if (Path[Index] != TargetPath[Index]) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        bool IsAtTargetPath() {
-            return Path.SequenceEqual(TargetPath);
-        }
-
-        foreach (JsonStreamToken Token in ReadValue(Path)) {
-            if (Token.Type is JsonTokenType.StartObject or JsonTokenType.StartArray) {
-                // Ensure child of target path
-                if (!IsDirectChildOfTargetPath()) {
-                    continue;
-                }
-
-                // Found a member (name/index) in target path
-                JsonStreamKey Key = Path[^1];
-                // Ensure member key matches predicate
-                if (KeyPredicate is not null && !KeyPredicate(Key)) {
-                    continue;
-                }
-
-                // Start member
-                CurrentMember = (Token.Position, Key);
-            }
-            else if (Token.Type is JsonTokenType.EndObject or JsonTokenType.EndArray) {
-                // Skip tokens after target path
-                if (IsAtTargetPath()) {
-                    break;
-                }
-
-                // Ensure child of target path
-                if (!IsDirectChildOfTargetPath()) {
-                    continue;
-                }
-                // Ensure token ends a started member
-                if (CurrentMember is null) {
-                    continue;
-                }
-
-                // Output member reference
-                yield return new JsonStreamMemberRef(CurrentMember.Value.Key, CurrentMember.Value.Position, Token.Position);
-
-                // End member
-                CurrentMember = null;
-            }
-            else if (Token.Type is JsonTokenType.PropertyName or JsonTokenType.Comment) {
-                // Ignore
-                continue;
-            }
-            else if (Token.Type is JsonTokenType.String or JsonTokenType.Number or JsonTokenType.True or JsonTokenType.False or JsonTokenType.Null) {
-                // Ensure child of target path
-                if (!IsDirectChildOfTargetPath()) {
-                    continue;
-                }
-
-                // Found a member (name/index) in target path
-                JsonStreamKey Key = Path[^1];
-                // Ensure member key matches predicate
-                if (KeyPredicate is not null && !KeyPredicate(Key)) {
-                    continue;
-                }
-
-                // Output member reference
-                yield return new JsonStreamMemberRef(Key, Token.Position, Position);
-            }
-            else {
-                // Not implemented
-                throw new NotImplementedException($"Token not handled: '{Token.Type}'");
-            }
-        }
-    }
-    public bool InsertMember(IList<JsonStreamKey> TargetPath, long MemberIndex, JsonStreamMember Member) {
-        // Ensure member index is positive
-        if (MemberIndex < 0) {
-            throw new ArgumentException("Member index must be positive (pass 0 to insert at beginning)");
-        }
-
-        // Serialize member to insert
-        byte[] SerializedMember = Member.SerializeToUtf8Bytes(AppendComma: true);
-
-        // Find target index
-        long CurrentIndex = 0;
-        foreach (JsonStreamMemberRef CurrentMember in FindMembers(TargetPath, null)) {
-            // Found target index
-            if (CurrentIndex == MemberIndex) {
-                Write(SerializedMember);
-                return true;
-            }
-            // Next index
-            CurrentIndex++;
-        }
-
-        // Target index not found in target path; append to the end of the collection
-        if (PeekByte() is '}' or ']') {
-            Write(SerializedMember);
-            return true;
-        }
-
-        // Target path not found
-        return false;
-    }
-    public bool InsertProperty(IList<JsonStreamKey> TargetPath, long PropertyIndex, string PropertyName, JsonElement Element) {
-        return InsertMember(TargetPath, PropertyIndex, new JsonStreamMember(PropertyName, Element));
-    }
-    public bool InsertItem(IList<JsonStreamKey> TargetPath, long ItemIndex, JsonElement Element) {
-        return InsertMember(TargetPath, ItemIndex, new JsonStreamMember(ItemIndex, Element));
-    }
-    public long DeleteMembers(IList<JsonStreamKey> TargetPath, Func<JsonStreamKey, bool>? KeyPredicate, Func<JsonStreamMember, bool>? Predicate, long MaxDeletions = long.MaxValue) {
-        long CurrentDeletions = 0;
-        foreach (JsonStreamMemberRef Member in FindMembers(TargetPath, KeyPredicate)) {
-            // Ensure member matches predicate
-            if (Predicate is not null && !Predicate(Member.Deserialize(this))) {
-                continue;
-            }
-
-            // 
-            Position = Member.StartValuePosition;
-
-            // Ensure limit not reached
-            if (CurrentDeletions >= MaxDeletions) {
-                break;
-            }
-        }
-        return CurrentDeletions;
     }
     public void ReadWhitespace() {
         while (true) {
@@ -213,7 +36,7 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
             }
         }
     }
-    public IEnumerable<JsonStreamToken> ReadValue(IList<JsonStreamKey>? Path) {
+    public IEnumerable<Token> ReadValue() {
         // Whitespace
         ReadWhitespace();
 
@@ -225,18 +48,18 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
         }
         // Object
         else if (Byte is '{') {
-            return ReadObject(Path);
+            return ReadObject();
         }
         // Array
         else if (Byte is '[') {
-            return ReadArray(Path);
+            return ReadArray();
         }
         // Primitive
         else {
             return [ReadPrimitiveValue()];
         }
     }
-    public JsonStreamToken ReadPrimitiveValue() {
+    public Token ReadPrimitiveValue() {
         // Whitespace
         ReadWhitespace();
 
@@ -271,19 +94,19 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
             throw new JsonException($"Invalid character in JSON: `{(char)Byte}`");
         }
     }
-    public JsonStreamToken ReadNull() {
+    public Token ReadNull() {
         // Null
         return ReadLiteralToken(JsonTokenType.Null, "null");
     }
-    public JsonStreamToken ReadTrue() {
+    public Token ReadTrue() {
         // True
         return ReadLiteralToken(JsonTokenType.True, "true");
     }
-    public JsonStreamToken ReadFalse() {
+    public Token ReadFalse() {
         // False
         return ReadLiteralToken(JsonTokenType.False, "false");
     }
-    public JsonStreamToken ReadBoolean() {
+    public Token ReadBoolean() {
         // Whitespace
         ReadWhitespace();
 
@@ -298,7 +121,7 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
             return ReadFalse();
         }
     }
-    public JsonStreamToken ReadString() {
+    public Token ReadString() {
         // Whitespace
         ReadWhitespace();
         long TokenPosition = Position;
@@ -309,7 +132,7 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
         }
 
         // Start token
-        StringBuilder?.Clear();
+        StringBuilder.Clear();
 
         while (true) {
             int Byte = ReadByte();
@@ -320,7 +143,7 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
             }
             // Closing quote
             else if (Byte is '"') {
-                return new JsonStreamToken(TokenPosition, JsonTokenType.String);
+                return new Token(this, JsonTokenType.String, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
             }
             // Escape
             else if (Byte is '\\') {
@@ -332,39 +155,39 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
                 }
                 // Quote
                 else if (EscapedByte is '"') {
-                    StringBuilder?.Append('"');
+                    StringBuilder.Append('"');
                 }
                 // Backslash
                 else if (EscapedByte is '\\') {
-                    StringBuilder?.Append('\\');
+                    StringBuilder.Append('\\');
                 }
                 // Slash
                 else if (EscapedByte is '/') {
-                    StringBuilder?.Append('/');
+                    StringBuilder.Append('/');
                 }
                 // Backspace
                 else if (EscapedByte is 'b') {
-                    StringBuilder?.Append('\b');
+                    StringBuilder.Append('\b');
                 }
                 // Form feed
                 else if (EscapedByte is 'f') {
-                    StringBuilder?.Append('\f');
+                    StringBuilder.Append('\f');
                 }
                 // New line
                 else if (EscapedByte is 'n') {
-                    StringBuilder?.Append('\n');
+                    StringBuilder.Append('\n');
                 }
                 // Carriage return
                 else if (EscapedByte is 'r') {
-                    StringBuilder?.Append('\r');
+                    StringBuilder.Append('\r');
                 }
                 // Tab
                 else if (EscapedByte is 't') {
-                    StringBuilder?.Append('\t');
+                    StringBuilder.Append('\t');
                 }
                 // Unicode
                 else if (EscapedByte is 'u') {
-                    StringBuilder?.Append(ReadUnicodeCharacterFromHexadecimalSequence());
+                    StringBuilder.Append(ReadCharFromHexadecimalSequence());
                 }
                 // Byte
                 else {
@@ -377,22 +200,22 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
             }
         }
     }
-    public JsonStreamToken ReadInteger() {
+    public Token ReadInteger() {
         // Whitespace
         ReadWhitespace();
         long TokenPosition = Position;
 
         // Start token
-        StringBuilder?.Clear();
+        StringBuilder.Clear();
 
         // Sign
         bool HasSign = false;
         if (TryReadLiteralByte('-')) {
-            StringBuilder?.Append('-');
+            StringBuilder.Append('-');
             HasSign = true;
         }
         else if (TryReadLiteralByte('+')) {
-            StringBuilder?.Append('+');
+            StringBuilder.Append('+');
             HasSign = true;
         }
 
@@ -404,7 +227,7 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
             // Digit
             if (Byte is >= '0' and <= '9') {
                 TrailingSign = false;
-                StringBuilder?.Append((char)Byte);
+                StringBuilder.Append((char)Byte);
                 ReadByte();
             }
             // End of number
@@ -412,21 +235,21 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
                 if (TrailingSign) {
                     throw new JsonException($"Expected digit after `+`/`-`");
                 }
-                return new JsonStreamToken(TokenPosition, JsonTokenType.Number);
+                return new Token(this, JsonTokenType.Number, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
             }
         }
     }
-    public JsonStreamToken ReadNumber() {
+    public Token ReadNumber() {
         // Whitespace
         ReadWhitespace();
         long TokenPosition = Position;
 
         // Integer
-        ReadInteger();
+        Token Integer = ReadInteger();
 
         // Decimal point
         if (!TryReadLiteralByte('.')) {
-            return new JsonStreamToken(TokenPosition, JsonTokenType.Number);
+            return new Token(this, JsonTokenType.Number, TokenPosition, Position - TokenPosition, Integer.Value);
         }
 
         // Fraction
@@ -448,15 +271,15 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
                 }
 
                 TrailingExponent = true;
-                StringBuilder?.Append((char)Byte);
+                StringBuilder.Append((char)Byte);
                 ReadByte();
 
                 // Exponent sign
                 if (TryReadLiteralByte('-')) {
-                    StringBuilder?.Append('-');
+                    StringBuilder.Append('-');
                 }
                 else if (TryReadLiteralByte('+')) {
-                    StringBuilder?.Append('+');
+                    StringBuilder.Append('+');
                 }
             }
             // Digit
@@ -464,7 +287,7 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
                 TrailingDecimalPoint = false;
                 TrailingExponent = false;
 
-                StringBuilder?.Append((char)Byte);
+                StringBuilder.Append((char)Byte);
                 ReadByte();
             }
             // End of number
@@ -475,17 +298,17 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
                 if (TrailingExponent) {
                     throw new JsonException("Expected digit after `e`/`E`");
                 }
-                return new JsonStreamToken(TokenPosition, JsonTokenType.Number);
+                return new Token(this, JsonTokenType.Number, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
             }
         }
     }
-    public JsonStreamToken ReadPropertyName() {
+    public Token ReadPropertyName() {
         // Whitespace
         ReadWhitespace();
         long TokenPosition = Position;
 
         // String
-        ReadString();
+        Token String = ReadString();
 
         // Whitespace
         ReadWhitespace();
@@ -494,9 +317,9 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
         if (!TryReadLiteralByte(':')) {
             throw new JsonException("Expected `:` after property name in object");
         }
-        return new JsonStreamToken(TokenPosition, JsonTokenType.PropertyName);
+        return new Token(this, JsonTokenType.PropertyName, TokenPosition, Position - TokenPosition, String.Value);
     }
-    public IEnumerable<JsonStreamToken> ReadObject(IList<JsonStreamKey>? Path) {
+    public IEnumerable<Token> ReadObject() {
         // Whitespace
         ReadWhitespace();
 
@@ -504,7 +327,7 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
         if (!TryPeekLiteralByte('{')) {
             throw new JsonException("Expected `{` to start object");
         }
-        yield return new JsonStreamToken(Position, JsonTokenType.StartObject);
+        yield return new Token(this, JsonTokenType.StartObject, Position, 1, "");
         ReadByte();
         // Whitespace
         ReadWhitespace();
@@ -516,7 +339,7 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
 
             // Closing bracket
             if (Byte is '}') {
-                yield return new JsonStreamToken(Position, JsonTokenType.EndObject);
+                yield return new Token(this, JsonTokenType.EndObject, Position, 1, "");
                 ReadByte();
                 yield break;
             }
@@ -532,22 +355,12 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
                 // Whitespace
                 ReadWhitespace();
 
-                // Add property name to path
-                if (StringBuilder is not null) {
-                    Path?.Add(new JsonStreamKey(StringBuilder.ToString()));
-                }
-
                 // Property value
-                foreach (JsonStreamToken Token in ReadValue(Path)) {
+                foreach (Token Token in ReadValue()) {
                     yield return Token;
                 }
                 // Whitespace
                 ReadWhitespace();
-
-                // Remove property name from path
-                if (StringBuilder is not null) {
-                    Path?.RemoveLast();
-                }
 
                 // Comma
                 AllowProperty = TryReadLiteralByte(',');
@@ -560,7 +373,7 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
             }
         }
     }
-    public IEnumerable<JsonStreamToken> ReadArray(IList<JsonStreamKey>? Path) {
+    public IEnumerable<Token> ReadArray() {
         // Whitespace
         ReadWhitespace();
 
@@ -568,7 +381,7 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
         if (!TryPeekLiteralByte('[')) {
             throw new JsonException("Expected `[` to start array");
         }
-        yield return new JsonStreamToken(Position, JsonTokenType.StartArray);
+        yield return new Token(this, JsonTokenType.StartArray, Position, 1, "");
         ReadByte();
         // Whitespace
         ReadWhitespace();
@@ -585,7 +398,7 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
             }
             // Closing bracket
             else if (Byte is ']') {
-                yield return new JsonStreamToken(Position, JsonTokenType.EndArray);
+                yield return new Token(this, JsonTokenType.EndArray, Position, 1, "");
                 ReadByte();
                 yield break;
             }
@@ -596,22 +409,12 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
                     throw new JsonException("Expected `,` before item in array");
                 }
 
-                // Add item to path
-                if (StringBuilder is not null) {
-                    Path?.Add(new JsonStreamKey(CurrentIndex));
-                }
-
                 // Item
-                foreach (JsonStreamToken Token in ReadValue(Path)) {
+                foreach (Token Token in ReadValue()) {
                     yield return Token;
                 }
                 // Whitespace
                 ReadWhitespace();
-
-                // Remove item from path
-                if (StringBuilder is not null) {
-                    Path?.RemoveLast();
-                }
 
                 // Comma
                 AllowItem = TryReadLiteralByte(',');
@@ -623,8 +426,59 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
             }
         }
     }
+    public T ReadValue<T>(int ValueLength) {
+        // Create buffer for bytes in range
+        byte[] Buffer = ArrayPool<byte>.Shared.Rent(ValueLength);
+        try {
+            // Read all bytes in range
+            ReadExactly(Buffer, 0, ValueLength);
 
-    private JsonStreamToken ReadLiteralToken(JsonTokenType TokenType, ReadOnlySpan<char> Literal) {
+            // Deserialize element
+            return JsonSerializer.Deserialize<T>(Buffer.AsSpan(0, ValueLength))!;
+        }
+        finally {
+            // Return buffer
+            ArrayPool<byte>.Shared.Return(Buffer);
+        }
+    }
+    public JsonElement ReadValue(int ValueLength) {
+        return ReadValue<JsonElement>(ValueLength);
+    }
+    public bool FindPath(IEnumerable<string> Path) {
+        if (!Path.Any()) {
+            return true;
+        }
+
+        Stack<string> CurrentPath = [];
+        string? CurrentPropertyName = null;
+
+        foreach (Token Token in ReadValue()) {
+            if (Token.Type is JsonTokenType.StartObject) {
+                CurrentPath.Push(CurrentPropertyName!);
+
+                if (CurrentPath.SequenceEqual(Path)) {
+                    return true;
+                }
+            }
+            else if (Token.Type is JsonTokenType.EndObject) {
+                CurrentPath.Pop();
+            }
+            else if (Token.Type is JsonTokenType.PropertyName) {
+                CurrentPropertyName = StringBuilder!.ToString();
+            }
+            else if (Token.Type is JsonTokenType.Comment) {
+                // Pass
+            }
+            else {
+                CurrentPropertyName = null;
+            }
+        }
+
+        // Path not found
+        return false;
+    }
+
+    private Token ReadLiteralToken(JsonTokenType TokenType, string Literal) {
         // Whitespace
         ReadWhitespace();
         long TokenPosition = Position;
@@ -635,14 +489,14 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
                 throw new JsonException($"Expected `{Char}` in `{TokenType}`");
             }
         }
-        return new JsonStreamToken(TokenPosition, TokenType);
+        return new Token(this, TokenType, TokenPosition, Literal.Length, Literal);
     }
     private bool TryPeekLiteralByte(char Literal) {
         int Byte = PeekByte();
         return Byte == Literal;
     }
-    private bool TryReadLiteralByte(char Literal) {
-        if (TryPeekLiteralByte(Literal)) {
+    private bool TryReadLiteralByte(char LiteralByte) {
+        if (TryPeekLiteralByte(LiteralByte)) {
             ReadByte();
             return true;
         }
@@ -651,14 +505,13 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
     private void ReadCharacter(byte FirstByte) {
         // ASCII character
         if (FirstByte <= 127) {
-            StringBuilder?.Append((char)FirstByte);
+            StringBuilder.Append((char)FirstByte);
         }
         // Multi-byte UTF8 character
         else {
             ReadUtf8Sequence(FirstByte);
         }
     }
-    
     private void ReadCharacter() {
         int FirstByte = ReadByte();
 
@@ -671,7 +524,7 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
             ReadCharacter((byte)FirstByte);
         }
     }
-    private char ReadUnicodeCharacterFromHexadecimalSequence() {
+    private char ReadCharFromHexadecimalSequence() {
         Span<byte> HexBytes = stackalloc byte[4];
 
         for (int Index = 0; Index < HexBytes.Length; Index++) {
@@ -679,7 +532,7 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
 
             // End of stream
             if (Byte < 0) {
-                throw new JsonException("Incomplete unicode character escape sequence");
+                throw new JsonException("Incomplete unicode escape sequence");
             }
             // Hexadecimal byte
             else if (Byte is (>= '0' and <= '9') or (>= 'A' and <= 'F') or (>= 'a' and <= 'f')) {
@@ -687,7 +540,7 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
             }
             // Unexpected byte
             else {
-                throw new JsonException("Expected 4 hexadecimal digits for unicode character escape sequence");
+                throw new JsonException("Expected 4 hexadecimal digits for unicode escape sequence");
             }
         }
 
@@ -722,7 +575,7 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
             throw new JsonException("Malformed bytes in UTF8 character sequence");
         }
         // Append character bytes
-        StringBuilder?.Append(Chars[..CharCount]);
+        StringBuilder.Append(Chars[..CharCount]);
     }
     /// <summary>
     /// Gets the length of a single UTF8 character from its first byte.
@@ -731,10 +584,16 @@ public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stre
         // https://codegolf.stackexchange.com/a/173577
         return (FirstByte - 160 >> 20 - FirstByte / 16) + 2;
     }
+
+    public readonly record struct Token(HjsonStream HjsonStream, JsonTokenType Type, long Position, long Length, string Value) {
+        public T ToElement<T>() {
+            return HjsonStream.ReadValue<T>((int)Length);
+        }
+    }
 }
 
-public readonly record struct JsonStreamToken(long Position, JsonTokenType Type);
-public readonly record struct JsonStreamMember(JsonStreamKey Key, JsonElement Value) {
+/*public readonly record struct JsonStreamToken(long Position, JsonTokenType Type);
+public readonly record struct JsonStreamMember(HjsonKey Key, JsonElement Value) {
     public byte[] SerializeToUtf8Bytes(bool AppendComma) {
         if (Key.PropertyName is not null) {
             return [
@@ -755,8 +614,8 @@ public readonly record struct JsonStreamMember(JsonStreamKey Key, JsonElement Va
             throw new InvalidOperationException("Key is empty");
         }
     }
-}
-public readonly record struct JsonStreamMemberRef(JsonStreamKey Key, long StartValuePosition, long EndValuePosition) {
+}*/
+/*public readonly record struct JsonStreamMemberRef(HjsonKey Key, long StartValuePosition, long EndValuePosition) {
     public T DeserializeValue<T>(HjsonStream JsonStream) {
         return JsonStream.DeserializeValueAt<T>(StartValuePosition, EndValuePosition);
     }
@@ -766,20 +625,20 @@ public readonly record struct JsonStreamMemberRef(JsonStreamKey Key, long StartV
     public JsonStreamMember Deserialize(HjsonStream JsonStream) {
         return new JsonStreamMember(Key, DeserializeValue(JsonStream));
     }
-}
-public readonly record struct JsonStreamKey {
+}*/
+/*public readonly record struct HjsonKey {
     public readonly string? PropertyName;
     public readonly long? ArrayIndex;
 
-    public JsonStreamKey(string PropertyName) {
+    public HjsonKey(string PropertyName) {
         this.PropertyName = PropertyName;
     }
-    public JsonStreamKey(long ArrayIndex) {
+    public HjsonKey(long ArrayIndex) {
         this.ArrayIndex = ArrayIndex;
     }
 
-    public static implicit operator JsonStreamKey(string PropertyName)
+    public static implicit operator HjsonKey(string PropertyName)
         => new(PropertyName);
-    public static implicit operator JsonStreamKey(long ArrayIndex)
+    public static implicit operator HjsonKey(long ArrayIndex)
         => new(ArrayIndex);
-}
+}*/

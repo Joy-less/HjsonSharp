@@ -10,7 +10,7 @@ public class UnitTest1 {
             }
             """;
         using HjsonStream HjsonStream = new(Text);
-        HjsonStream.ReadObject([]);
+        HjsonStream.ReadObject();
     }
 }
 

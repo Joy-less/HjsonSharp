@@ -55,7 +55,7 @@ Stopwatch.Restart();*/
 // Parse the string using IntegrityDB
 Stream.Position = 0;
 using HjsonStream JsonStream = new(Stream);
-JsonStreamToken Token = JsonStream.ReadString();
+HjsonStream.Token Token = JsonStream.ReadString();
 Console.WriteLine($"IntegrityDB parsed string in {Stopwatch.Elapsed}");
 Stopwatch.Restart();
 
