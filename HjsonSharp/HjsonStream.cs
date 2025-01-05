@@ -17,10 +17,16 @@ namespace HjsonSharp;
 ///   <item>Numbers starting with a positive sign (<c>+</c>)</item>
 /// </list>
 /// </remarks>
-public class HjsonStream(Stream Stream, int BufferSize = 4096) : ByteStream(Stream, BufferSize) {
+public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream(Stream, Options.BufferSize) {
+    public HjsonStreamOptions Options { get; set; } = Options;
+
     private readonly StringBuilder StringBuilder = new();
 
-    public HjsonStream(string String) : this(new MemoryStream(Encoding.UTF8.GetBytes(String))) {
+    public HjsonStream(Stream Stream) : this(Stream, HjsonStreamOptions.Hjson) {
+    }
+    public HjsonStream(string String, HjsonStreamOptions Options) : this(new MemoryStream(Encoding.UTF8.GetBytes(String)), Options) {
+    }
+    public HjsonStream(string String) : this(String, HjsonStreamOptions.Hjson) {
     }
     public void ReadWhitespace() {
         while (true) {
