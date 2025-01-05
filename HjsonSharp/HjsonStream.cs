@@ -1,14 +1,13 @@
-﻿using System.Buffers;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 using System.Text.Json;
 
 namespace HjsonSharp;
 
+/*
 /// <summary>
 /// A buffered layer for a <see cref="Stream"/> that can read and write UTF8-encoded JSON matching the <see href="https://json.org"/> specification.
 /// </summary>
-/// <remarks>
 /// Supports parsing the following extra syntax:
 /// <list type="bullet">
 ///   <item>Trailing commas (<c>,</c>)</item>
@@ -16,7 +15,7 @@ namespace HjsonSharp;
 ///   <item>Numbers starting with zero (<c>0</c>)</item>
 ///   <item>Numbers starting with a positive sign (<c>+</c>)</item>
 /// </list>
-/// </remarks>
+*/
 public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream(Stream, Options.BufferSize) {
     public HjsonStreamOptions Options { get; set; } = Options;
 
@@ -42,7 +41,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
             }
         }
     }
-    public IEnumerable<Token> ReadValue() {
+    public IEnumerable<Token> ReadElement() {
         // Whitespace
         ReadWhitespace();
 
@@ -50,7 +49,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
 
         // End of stream
         if (Byte < 0) {
-            throw new JsonException("Expected value");
+            throw new HjsonException("Expected value");
         }
         // Object
         else if (Byte is '{') {
@@ -62,10 +61,13 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
         }
         // Primitive
         else {
-            return [ReadPrimitiveValue()];
+            return [ReadPrimitiveElement()];
         }
     }
-    public Token ReadPrimitiveValue() {
+    public T ParseElement<T>() {
+        throw new NotImplementedException();
+    }
+    public Token ReadPrimitiveElement() {
         // Whitespace
         ReadWhitespace();
 
@@ -73,7 +75,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
 
         // End of stream
         if (Byte < 0) {
-            throw new JsonException("Expected value");
+            throw new HjsonException("Expected value");
         }
         // Null
         else if (Byte is 'n') {
@@ -97,20 +99,11 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
         }
         // Unexpected byte
         else {
-            throw new JsonException($"Invalid character in JSON: `{(char)Byte}`");
+            throw new HjsonException($"Invalid character in JSON: `{(char)Byte}`");
         }
     }
-    public Token ReadNull() {
-        // Null
-        return ReadLiteralToken(JsonTokenType.Null, "null");
-    }
-    public Token ReadTrue() {
-        // True
-        return ReadLiteralToken(JsonTokenType.True, "true");
-    }
-    public Token ReadFalse() {
-        // False
-        return ReadLiteralToken(JsonTokenType.False, "false");
+    public T ParsePrimitiveElement<T>() {
+        throw new NotImplementedException();
     }
     public Token ReadBoolean() {
         // Whitespace
@@ -127,6 +120,9 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
             return ReadFalse();
         }
     }
+    public bool ParseBoolean() {
+        return ReadBoolean().Type is JsonTokenType.True;
+    }
     public Token ReadString() {
         // Whitespace
         ReadWhitespace();
@@ -134,7 +130,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
 
         // Opening quote
         if (!TryReadLiteralByte('"')) {
-            throw new JsonException("Expected `\"` to start string");
+            throw new HjsonException("Expected `\"` to start string");
         }
 
         // Start token
@@ -145,7 +141,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
 
             // End of stream
             if (Byte < 0) {
-                throw new JsonException("Expected `\"` to end string");
+                throw new HjsonException("Expected `\"` to end string");
             }
             // Closing quote
             else if (Byte is '"') {
@@ -157,7 +153,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
 
                 // End of stream
                 if (EscapedByte < 0) {
-                    throw new JsonException("Expected escape character after `\\`");
+                    throw new HjsonException("Expected escape character after `\\`");
                 }
                 // Quote
                 else if (EscapedByte is '"') {
@@ -197,7 +193,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
                 }
                 // Byte
                 else {
-                    throw new JsonException($"Expected valid escape character after `\\` (got `{(char)EscapedByte}`)");
+                    throw new HjsonException($"Expected valid escape character after `\\` (got `{(char)EscapedByte}`)");
                 }
             }
             // Character
@@ -205,6 +201,9 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
                 ReadCharacter((byte)Byte);
             }
         }
+    }
+    public string ParseString() {
+        return ReadString().Value;
     }
     public Token ReadInteger() {
         // Whitespace
@@ -239,7 +238,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
             // End of number
             else {
                 if (TrailingSign) {
-                    throw new JsonException($"Expected digit after `+`/`-`");
+                    throw new HjsonException($"Expected digit after `+`/`-`");
                 }
                 return new Token(this, JsonTokenType.Number, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
             }
@@ -268,12 +267,12 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
             // Exponent
             if (Byte is 'e' or 'E') {
                 if (IsExponent) {
-                    throw new JsonException($"Duplicate exponent: `{(char)Byte}`");
+                    throw new HjsonException($"Duplicate exponent: `{(char)Byte}`");
                 }
                 IsExponent = true;
 
                 if (TrailingDecimalPoint) {
-                    throw new JsonException($"Expected digit before `{(char)Byte}`");
+                    throw new HjsonException($"Expected digit before `{(char)Byte}`");
                 }
 
                 TrailingExponent = true;
@@ -299,10 +298,10 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
             // End of number
             else {
                 if (TrailingDecimalPoint) {
-                    throw new JsonException("Expected digit after `.`");
+                    throw new HjsonException("Expected digit after `.`");
                 }
                 if (TrailingExponent) {
-                    throw new JsonException("Expected digit after `e`/`E`");
+                    throw new HjsonException("Expected digit after `e`/`E`");
                 }
                 return new Token(this, JsonTokenType.Number, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
             }
@@ -321,7 +320,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
 
         // Colon
         if (!TryReadLiteralByte(':')) {
-            throw new JsonException("Expected `:` after property name in object");
+            throw new HjsonException("Expected `:` after property name in object");
         }
         return new Token(this, JsonTokenType.PropertyName, TokenPosition, Position - TokenPosition, String.Value);
     }
@@ -331,7 +330,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
 
         // Opening bracket
         if (!TryPeekLiteralByte('{')) {
-            throw new JsonException("Expected `{` to start object");
+            throw new HjsonException("Expected `{` to start object");
         }
         yield return new Token(this, JsonTokenType.StartObject, Position, 1, "");
         ReadByte();
@@ -353,7 +352,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
             else if (Byte is '"') {
                 // Unexpected property name
                 if (!AllowProperty) {
-                    throw new JsonException("Expected `,` before property name in object");
+                    throw new HjsonException("Expected `,` before property name in object");
                 }
 
                 // Property name
@@ -362,7 +361,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
                 ReadWhitespace();
 
                 // Property value
-                foreach (Token Token in ReadValue()) {
+                foreach (Token Token in ReadElement()) {
                     yield return Token;
                 }
                 // Whitespace
@@ -375,7 +374,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
             }
             // Unexpected character
             else {
-                throw new JsonException("Expected `}` to end object");
+                throw new HjsonException("Expected `}` to end object");
             }
         }
     }
@@ -385,7 +384,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
 
         // Opening bracket
         if (!TryPeekLiteralByte('[')) {
-            throw new JsonException("Expected `[` to start array");
+            throw new HjsonException("Expected `[` to start array");
         }
         yield return new Token(this, JsonTokenType.StartArray, Position, 1, "");
         ReadByte();
@@ -400,7 +399,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
 
             // End of stream
             if (Byte < 0) {
-                throw new JsonException("Expected `]` to end array");
+                throw new HjsonException("Expected `]` to end array");
             }
             // Closing bracket
             else if (Byte is ']') {
@@ -412,11 +411,11 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
             else {
                 // Unexpected item
                 if (!AllowItem) {
-                    throw new JsonException("Expected `,` before item in array");
+                    throw new HjsonException("Expected `,` before item in array");
                 }
 
                 // Item
-                foreach (Token Token in ReadValue()) {
+                foreach (Token Token in ReadElement()) {
                     yield return Token;
                 }
                 // Whitespace
@@ -432,7 +431,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
             }
         }
     }
-    public T ReadValue<T>(int ValueLength) {
+    /*public T ReadValue<T>(int ValueLength) {
         // Create buffer for bytes in range
         byte[] Buffer = ArrayPool<byte>.Shared.Rent(ValueLength);
         try {
@@ -449,7 +448,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
     }
     public JsonElement ReadValue(int ValueLength) {
         return ReadValue<JsonElement>(ValueLength);
-    }
+    }*/
     public bool FindPath(IEnumerable<string> Path) {
         if (!Path.Any()) {
             return true;
@@ -458,7 +457,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
         Stack<string> CurrentPath = [];
         string? CurrentPropertyName = null;
 
-        foreach (Token Token in ReadValue()) {
+        foreach (Token Token in ReadElement()) {
             if (Token.Type is JsonTokenType.StartObject) {
                 CurrentPath.Push(CurrentPropertyName!);
 
@@ -484,6 +483,18 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
         return false;
     }
 
+    private Token ReadNull() {
+        // Null
+        return ReadLiteralToken(JsonTokenType.Null, "null");
+    }
+    private Token ReadTrue() {
+        // True
+        return ReadLiteralToken(JsonTokenType.True, "true");
+    }
+    private Token ReadFalse() {
+        // False
+        return ReadLiteralToken(JsonTokenType.False, "false");
+    }
     private Token ReadLiteralToken(JsonTokenType TokenType, string Literal) {
         // Whitespace
         ReadWhitespace();
@@ -492,10 +503,10 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
         // Literal
         foreach (char Char in Literal) {
             if (!TryReadLiteralByte(Char)) {
-                throw new JsonException($"Expected `{Char}` in `{TokenType}`");
+                throw new HjsonException($"Expected `{Char}` in `{TokenType}`");
             }
         }
-        return new Token(this, TokenType, TokenPosition, Literal.Length, Literal);
+        return new Token(this, TokenType, TokenPosition, Literal.Length, "");
     }
     private bool TryPeekLiteralByte(char Literal) {
         int Byte = PeekByte();
@@ -523,7 +534,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
 
         // End of stream
         if (FirstByte < 0) {
-            throw new JsonException("Expected UTF8 character in string");
+            throw new HjsonException("Expected UTF8 character in string");
         }
         // Character
         else {
@@ -538,7 +549,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
 
             // End of stream
             if (Byte < 0) {
-                throw new JsonException("Incomplete unicode escape sequence");
+                throw new HjsonException("Incomplete unicode escape sequence");
             }
             // Hexadecimal byte
             else if (Byte is (>= '0' and <= '9') or (>= 'A' and <= 'F') or (>= 'a' and <= 'f')) {
@@ -546,7 +557,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
             }
             // Unexpected byte
             else {
-                throw new JsonException("Expected 4 hexadecimal digits for unicode escape sequence");
+                throw new HjsonException("Expected 4 hexadecimal digits for unicode escape sequence");
             }
         }
 
@@ -568,7 +579,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
 
             // End of stream
             if (Byte < 0) {
-                throw new JsonException("Expected byte in UTF8 character sequence in string");
+                throw new HjsonException("Expected byte in UTF8 character sequence in string");
             }
             // Add byte
             else {
@@ -578,7 +589,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
         // Parse up to 2 characters (to support surrogate pairs)
         Span<char> Chars = stackalloc char[2];
         if (!Encoding.UTF8.TryGetChars(Bytes, Chars, out int CharCount)) {
-            throw new JsonException("Malformed bytes in UTF8 character sequence");
+            throw new HjsonException("Malformed bytes in UTF8 character sequence");
         }
         // Append character bytes
         StringBuilder.Append(Chars[..CharCount]);
@@ -593,58 +604,18 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
 
     public readonly record struct Token(HjsonStream HjsonStream, JsonTokenType Type, long Position, long Length, string Value) {
         public T ToElement<T>() {
-            return HjsonStream.ReadValue<T>((int)Length);
+            // Go to token position
+            long OriginalPosition = HjsonStream.Position;
+            HjsonStream.Position = Position;
+
+            try {
+                // Parse element
+                return HjsonStream.ParseElement<T>();
+            }
+            finally {
+                // Return to original position
+                HjsonStream.Position = OriginalPosition;
+            }
         }
     }
 }
-
-/*public readonly record struct JsonStreamToken(long Position, JsonTokenType Type);
-public readonly record struct JsonStreamMember(HjsonKey Key, JsonElement Value) {
-    public byte[] SerializeToUtf8Bytes(bool AppendComma) {
-        if (Key.PropertyName is not null) {
-            return [
-                .. Encoding.UTF8.GetBytes("\""),
-                .. JsonSerializer.SerializeToUtf8Bytes(Key.PropertyName),
-                .. Encoding.UTF8.GetBytes("\":"),
-                .. JsonSerializer.SerializeToUtf8Bytes(Value),
-                .. Encoding.UTF8.GetBytes(AppendComma ? "," : "")
-            ];
-        }
-        else if (Key.ArrayIndex is not null) {
-            return [
-                .. JsonSerializer.SerializeToUtf8Bytes(Key.ArrayIndex.Value),
-                .. Encoding.UTF8.GetBytes(AppendComma ? "," : "")
-            ];
-        }
-        else {
-            throw new InvalidOperationException("Key is empty");
-        }
-    }
-}*/
-/*public readonly record struct JsonStreamMemberRef(HjsonKey Key, long StartValuePosition, long EndValuePosition) {
-    public T DeserializeValue<T>(HjsonStream JsonStream) {
-        return JsonStream.DeserializeValueAt<T>(StartValuePosition, EndValuePosition);
-    }
-    public JsonElement DeserializeValue(HjsonStream JsonStream) {
-        return DeserializeValue<JsonElement>(JsonStream);
-    }
-    public JsonStreamMember Deserialize(HjsonStream JsonStream) {
-        return new JsonStreamMember(Key, DeserializeValue(JsonStream));
-    }
-}*/
-/*public readonly record struct HjsonKey {
-    public readonly string? PropertyName;
-    public readonly long? ArrayIndex;
-
-    public HjsonKey(string PropertyName) {
-        this.PropertyName = PropertyName;
-    }
-    public HjsonKey(long ArrayIndex) {
-        this.ArrayIndex = ArrayIndex;
-    }
-
-    public static implicit operator HjsonKey(string PropertyName)
-        => new(PropertyName);
-    public static implicit operator HjsonKey(long ArrayIndex)
-        => new(ArrayIndex);
-}*/

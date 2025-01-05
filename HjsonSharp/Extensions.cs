@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace HjsonSharp;
+﻿namespace HjsonSharp;
 
 internal static class Extensions {
     /*public static void RemoveLast<T>(this IList<T> List) {
