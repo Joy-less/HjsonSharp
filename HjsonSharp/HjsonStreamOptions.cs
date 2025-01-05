@@ -3,40 +3,118 @@
 public record struct HjsonStreamOptions {
     public int BufferSize { get; set; }
     /// <summary>
-    /// Enables/disables triple-quoted multi-line string literals:<br/>
-    /// <c>'''string'''</c>.
-    /// </summary>
-    public bool RawStringLiterals { get; set; }
-    /// <summary>
-    /// Enables/disables hash-style comments:<br/>
-    /// <c># comment</c>.
+    /// Enables/disables hash-style comments.
+    /// <code>
+    /// # comment
+    /// </code>
     /// </summary>
     public bool HashStyleComments { get; set; }
     /// <summary>
-    /// Enables/disables line-style comments:<br/>
-    /// <c>// comment</c>.
+    /// Enables/disables line-style comments.
+    /// <code>
+    /// // comment
+    /// </code>
     /// </summary>
     public bool LineStyleComments { get; set; }
     /// <summary>
-    /// Enables/disables block-style comments:<br/>
-    /// <c>/* comment */</c>.
+    /// Enables/disables block-style comments.
+    /// <code>
+    /// /* comment */
+    /// </code>
     /// </summary>
     public bool BlockStyleComments { get; set; }
     /// <summary>
-    /// Enables/disables a single trailing comma in arrays and objects:<br/>
-    /// <c>[1, 2, 3,]</c>.
+    /// Enables/disables a single trailing comma in arrays and objects.
+    /// <code>
+    /// [1, 2, 3,]
+    /// </code>
     /// </summary>
     public bool TrailingCommas { get; set; }
     /// <summary>
-    /// Enables/disables leading 0's in numbers:<br/>
-    /// <c>012</c>.
+    /// Enables/disables all unicode whitespace characters.
+    /// <code>
+    /// \v
+    /// \f
+    /// \u200A
+    /// </code>
+    /// </summary>
+    public bool AllWhitespace { get; set; }
+    /// <summary>
+    /// Enables/disables unquoted property names:
+    /// <code>
+    /// { a: "b" }
+    /// </code>
+    /// </summary>
+    public bool UnquotedPropertyNames { get; set; }
+    /// <summary>
+    /// Enables/disables single-quoted strings:
+    /// <code>
+    /// 'string'
+    /// </code>
+    /// </summary>
+    public bool SingleQuotedStrings { get; set; }
+    /// <summary>
+    /// Enables/disables triple-quoted multi-line strings:
+    /// <code>
+    /// '''
+    /// string
+    /// '''
+    /// </code>
+    /// </summary>
+    public bool TripleQuotedStrings { get; set; }
+    /// <summary>
+    /// Enables/disables escaped multi-line strings:
+    /// <code>
+    /// "hello \
+    /// world"
+    /// </code>
+    /// </summary>
+    public bool EscapedMultiLineStrings { get; set; }
+    /// <summary>
+    /// Enables/disables numbers with leading 0's:
+    /// <code>
+    /// 012
+    /// </code>
     /// </summary>
     public bool LeadingZeroes { get; set; }
     /// <summary>
-    /// Enables/disables all unicode whitespace characters:<br/>
-    /// <c>\v</c>, <c>\f</c>, <c>\u200A</c>.
+    /// Enables/disables numbers starting with a decimal point:
+    /// <code>
+    /// .5
+    /// </code>
     /// </summary>
-    public bool AllWhitespace { get; set; }
+    public bool LeadingDecimalPoints { get; set; }
+    /// <summary>
+    /// Enables/disables numbers ending with a decimal point:
+    /// <code>
+    /// 5.
+    /// </code>
+    /// </summary>
+    public bool TrailingDecimalPoints { get; set; }
+    /// <summary>
+    /// Enables/disables numbers starting with an explicit plus-sign:
+    /// <code>
+    /// +5
+    /// </code>
+    /// </summary>
+    public bool ExplicitPlusSigns { get; set; }
+    /// <summary>
+    /// Enables/disables named literals for numbers:
+    /// <code>
+    /// Infinity
+    /// -Infinity
+    /// NaN
+    /// -NaN
+    /// </code>
+    /// </summary>
+    public bool NamedFloatingPointLiterals { get; set; }
+    /// <summary>
+    /// Enables/disables hexadecimal for numbers:
+    /// <code>
+    /// 0xDEADCAFE
+    /// </code>
+    /// </summary>
+    public bool HexadecimalNumbers { get; set; }
 
     /// <summary>
     /// The standard, strict JSON format.
@@ -61,7 +139,18 @@ public record struct HjsonStreamOptions {
     /// See <see href="https://json5.org"/>.
     /// </summary>
     public static HjsonStreamOptions Json5 => Json with {
-
+        UnquotedPropertyNames = true,
+        TrailingCommas = true,
+        SingleQuotedStrings = true,
+        EscapedMultiLineStrings = true,
+        HexadecimalNumbers = true,
+        LeadingDecimalPoints = true,
+        TrailingDecimalPoints = true,
+        NamedFloatingPointLiterals = true,
+        ExplicitPlusSigns = true,
+        LineStyleComments = true,
+        BlockStyleComments = true,
+        AllWhitespace = true,
     };
     public static HjsonStreamOptions Hjson => Json with {
 
