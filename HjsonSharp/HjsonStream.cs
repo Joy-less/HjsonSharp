@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace HjsonSharp;
 
@@ -27,8 +28,8 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
     }
     public HjsonStream(string String) : this(String, HjsonStreamOptions.Hjson) {
     }
-    public T ParseElement<T>() {
-        throw new NotImplementedException();
+    public T? ParseElement<T>() {
+        return ParseNode().Deserialize<T>();
     }
     public IEnumerable<Token> ReadElement() {
         // Whitespace
@@ -63,8 +64,9 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
 
         foreach (Token Token in ReadElement()) {
             if (Token.Type is JsonTokenType.StartObject) {
-                CurrentPath.Push(CurrentPropertyName!);
-
+                if (CurrentPropertyName is not null) {
+                    CurrentPath.Push(CurrentPropertyName);
+                }
                 if (CurrentPath.SequenceEqual(Path)) {
                     return true;
                 }
@@ -73,7 +75,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
                 CurrentPath.Pop();
             }
             else if (Token.Type is JsonTokenType.PropertyName) {
-                CurrentPropertyName = StringBuilder!.ToString();
+                CurrentPropertyName = StringBuilder.ToString();
             }
             else if (Token.Type is JsonTokenType.Comment) {
                 // Pass
@@ -87,6 +89,105 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
         return false;
     }
 
+    private JsonNode? ParseNode() {
+        JsonNode? CurrentNode = null;
+        string? CurrentPropertyName = null;
+
+        bool SubmitNode(JsonNode? Node) {
+            // Root value
+            if (CurrentNode is null) {
+                return true;
+            }
+            // Array item
+            else if (CurrentPropertyName is null) {
+                CurrentNode.AsArray().Add(Node);
+                return false;
+            }
+            // Object property
+            else {
+                CurrentNode.AsObject().Add(CurrentPropertyName, Node);
+                CurrentPropertyName = null;
+                return false;
+            }
+        }
+
+        foreach (Token Token in ReadElement()) {
+            // Null
+            if (Token.Type is JsonTokenType.Null) {
+                JsonValue? Node = null;
+                if (SubmitNode(Node)) {
+                    return null;
+                }
+            }
+            // True
+            if (Token.Type is JsonTokenType.True) {
+                JsonValue Node = JsonValue.Create(true);
+                if (SubmitNode(Node)) {
+                    return null;
+                }
+            }
+            // False
+            if (Token.Type is JsonTokenType.False) {
+                JsonValue Node = JsonValue.Create(false);
+                if (SubmitNode(Node)) {
+                    return null;
+                }
+            }
+            // String
+            else if (Token.Type is JsonTokenType.String) {
+                JsonValue Node = JsonValue.Create(Token.Value);
+                if (SubmitNode(Node)) {
+                    return Node;
+                }
+            }
+            // Number
+            else if (Token.Type is JsonTokenType.Number) {
+                JsonValue Node = JsonValue.Create(Token.Value);
+                if (SubmitNode(Node)) {
+                    return Node;
+                }
+            }
+            // Start Object
+            else if (Token.Type is JsonTokenType.StartObject) {
+                CurrentNode = new JsonObject();
+            }
+            // End Object
+            else if (Token.Type is JsonTokenType.EndObject) {
+                JsonObject Node = CurrentNode!.AsObject();
+                CurrentNode = CurrentNode.Parent;
+                if (SubmitNode(Node)) {
+                    return Node;
+                }
+            }
+            // Start Array
+            else if (Token.Type is JsonTokenType.StartArray) {
+                CurrentNode = new JsonArray();
+            }
+            // End Array
+            else if (Token.Type is JsonTokenType.EndArray) {
+                JsonArray Node = CurrentNode!.AsArray();
+                CurrentNode = CurrentNode.Parent;
+                if (SubmitNode(Node)) {
+                    return Node;
+                }
+            }
+            // Property Name
+            else if (Token.Type is JsonTokenType.PropertyName) {
+                CurrentPropertyName = Token.Value;
+            }
+            // Comment
+            else if (Token.Type is JsonTokenType.Comment) {
+                // Pass
+            }
+            // Not implemented
+            else {
+                throw new NotImplementedException(Token.Type.ToString());
+            }
+        }
+
+        // End of stream
+        throw new HjsonException("Expected token");
+    }
     private void ReadWhitespace() {
         while (true) {
             int Byte = PeekByte();
@@ -576,7 +677,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
     }
 
     public readonly record struct Token(HjsonStream HjsonStream, JsonTokenType Type, long Position, long Length, string Value) {
-        public T ToElement<T>() {
+        public T? ToElement<T>() {
             // Go to token position
             long OriginalPosition = HjsonStream.Position;
             HjsonStream.Position = Position;
