@@ -359,14 +359,14 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
                 else if (EscapedByte is 'u') {
                     StringBuilder.Append(ReadCharFromHexadecimalSequence());
                 }
-                // Byte
+                // Invalid escape character
                 else {
                     throw new HjsonException($"Expected valid escape character after `\\` (got `{(char)EscapedByte}`)");
                 }
             }
             // Character
             else {
-                ReadCharacter((byte)Byte);
+                ReadUtf8Character((byte)Byte);
             }
         }
     }
@@ -620,28 +620,6 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
         }
         return false;
     }
-    private void ReadCharacter(byte FirstByte) {
-        // ASCII character
-        if (FirstByte <= 127) {
-            StringBuilder.Append((char)FirstByte);
-        }
-        // Multi-byte UTF8 character
-        else {
-            ReadUtf8Sequence(FirstByte);
-        }
-    }
-    private void ReadCharacter() {
-        int FirstByte = ReadByte();
-
-        // End of stream
-        if (FirstByte < 0) {
-            throw new HjsonException("Expected UTF8 character in string");
-        }
-        // Character
-        else {
-            ReadCharacter((byte)FirstByte);
-        }
-    }
     private char ReadCharFromHexadecimalSequence() {
         Span<byte> HexBytes = stackalloc byte[4];
 
@@ -666,7 +644,13 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
         char UnicodeCharacter = (char)ushort.Parse(HexBytes, NumberStyles.AllowHexSpecifier);
         return UnicodeCharacter;
     }
-    private void ReadUtf8Sequence(byte FirstByte) {
+    private void ReadUtf8Character(byte FirstByte) {
+        // Single-byte ASCII character
+        if (FirstByte <= 127) {
+            StringBuilder.Append((char)FirstByte);
+            return;
+        }
+
         // Get number of bytes in UTF8 character
         int SequenceLength = GetUtf8SequenceLength(FirstByte);
 
