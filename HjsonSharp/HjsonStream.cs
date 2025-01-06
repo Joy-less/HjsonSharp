@@ -55,6 +55,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
         }
     }
     public bool FindPath(IEnumerable<string> Path) {
+        // Already at path if empty
         if (!Path.Any()) {
             return true;
         }
@@ -63,25 +64,50 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
         string? CurrentPropertyName = null;
 
         foreach (Token Token in ReadElement()) {
-            if (Token.Type is JsonTokenType.StartObject) {
+            // Start structure
+            if (Token.Type is JsonTokenType.StartObject or JsonTokenType.StartArray) {
+                // Property value
                 if (CurrentPropertyName is not null) {
+                    // Enter path
                     CurrentPath.Push(CurrentPropertyName);
-                }
-                if (CurrentPath.SequenceEqual(Path)) {
-                    return true;
+
+                    // Path found
+                    if (CurrentPath.SequenceEqual(Path)) {
+                        return true;
+                    }
+
+                    // Reset property name
+                    CurrentPropertyName = null;
                 }
             }
-            else if (Token.Type is JsonTokenType.EndObject) {
+            // End structure
+            else if (Token.Type is JsonTokenType.EndObject or JsonTokenType.EndArray) {
                 CurrentPath.Pop();
             }
+            // Primitive value
+            else if (Token.Type is JsonTokenType.String or JsonTokenType.Number or JsonTokenType.True or JsonTokenType.False or JsonTokenType.Null) {
+                // Property value
+                if (CurrentPropertyName is not null) {
+                    // Path found
+                    if (CurrentPath.Append(CurrentPropertyName).SequenceEqual(Path)) {
+                        return true;
+                    }
+
+                    // Reset property name
+                    CurrentPropertyName = null;
+                }
+            }
+            // Property name
             else if (Token.Type is JsonTokenType.PropertyName) {
                 CurrentPropertyName = StringBuilder.ToString();
             }
+            // Comment
             else if (Token.Type is JsonTokenType.Comment) {
                 // Pass
             }
+            // Not implemented
             else {
-                CurrentPropertyName = null;
+                throw new NotImplementedException(Token.Type.ToString());
             }
         }
 
@@ -99,7 +125,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
                 return true;
             }
             // Array item
-            else if (CurrentPropertyName is null) {
+            if (CurrentPropertyName is null) {
                 CurrentNode.AsArray().Add(Node);
                 return false;
             }
@@ -109,6 +135,10 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
                 CurrentPropertyName = null;
                 return false;
             }
+        }
+        void SetNewCurrentNode(JsonNode NewCurrentNode) {
+            SubmitNode(NewCurrentNode);
+            CurrentNode = NewCurrentNode;
         }
 
         foreach (Token Token in ReadElement()) {
@@ -149,26 +179,23 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
             }
             // Start Object
             else if (Token.Type is JsonTokenType.StartObject) {
-                CurrentNode = new JsonObject();
-            }
-            // End Object
-            else if (Token.Type is JsonTokenType.EndObject) {
-                JsonObject Node = CurrentNode!.AsObject();
-                CurrentNode = CurrentNode.Parent;
-                if (SubmitNode(Node)) {
-                    return Node;
-                }
+                JsonObject Node = [];
+                SetNewCurrentNode(Node);
             }
             // Start Array
             else if (Token.Type is JsonTokenType.StartArray) {
-                CurrentNode = new JsonArray();
+                JsonArray Node = [];
+                SetNewCurrentNode(Node);
             }
-            // End Array
-            else if (Token.Type is JsonTokenType.EndArray) {
-                JsonArray Node = CurrentNode!.AsArray();
-                CurrentNode = CurrentNode.Parent;
-                if (SubmitNode(Node)) {
-                    return Node;
+            // End Object/Array
+            else if (Token.Type is JsonTokenType.EndObject or JsonTokenType.EndArray) {
+                // Nested node
+                if (CurrentNode?.Parent is not null) {
+                    CurrentNode = CurrentNode.Parent;
+                }
+                // Root node
+                else {
+                    return CurrentNode;
                 }
             }
             // Property Name
