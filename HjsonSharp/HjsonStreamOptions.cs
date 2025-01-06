@@ -65,15 +65,29 @@ public record struct JsonSyntaxOptions {
     /// '''
     /// </code>
     /// </summary>
-    public bool TripleQuotedStrings { get; set; }
+    public bool TripleQuotedMultiLineStrings { get; set; }
     /// <summary>
-    /// Enables/disables escaped multi-line strings:
+    /// Enables/disables unquoted strings:
+    /// <code>
+    /// string
+    /// </code>
+    /// </summary>
+    public bool UnquotedStrings { get; set; }
+    /// <summary>
+    /// Enables/disables escaped newlines in strings:
     /// <code>
     /// "hello \
     /// world"
     /// </code>
     /// </summary>
-    public bool EscapedMultiLineStrings { get; set; }
+    public bool EscapedStringNewlines { get; set; }
+    /// <summary>
+    /// Enables/disables escaped single quotes in strings:
+    /// <code>
+    /// "\'"
+    /// </code>
+    /// </summary>
+    public bool EscapedStringSingleQuotes { get; set; }
     /// <summary>
     /// Enables/disables numbers with leading 0's:
     /// <code>
@@ -119,6 +133,14 @@ public record struct JsonSyntaxOptions {
     /// </code>
     /// </summary>
     public bool HexadecimalNumbers { get; set; }
+    /// <summary>
+    /// Enables/disables omitted braces for root objects:
+    /// <code>
+    /// a: 5,
+    /// b: "..."
+    /// </code>
+    /// </summary>
+    public bool OmittedRootObjectBraces { get; set; }
 
     /// <summary>
     /// The standard, strict JSON format.
@@ -136,7 +158,7 @@ public record struct JsonSyntaxOptions {
         TrailingCommas = true,
     };
     /// <summary>
-    /// A variant of JSON allowing unquoted property names, trailing commas, single-quoted strings, escaped multi-line strings, hexadecimal numbers,
+    /// A variant of JSON allowing unquoted property names, trailing commas, single-quoted strings, escaped string newlines, hexadecimal numbers,
     /// leading decimal points, trailing decimal points, named floating-point literals, explicit plus-signs, line-style comments, block-style comments,
     /// and all whitespace characters.
     /// See <see href="https://json5.org"/>.
@@ -145,7 +167,7 @@ public record struct JsonSyntaxOptions {
         UnquotedPropertyNames = true,
         TrailingCommas = true,
         SingleQuotedStrings = true,
-        EscapedMultiLineStrings = true,
+        EscapedStringNewlines = true,
         HexadecimalNumbers = true,
         LeadingDecimalPoints = true,
         TrailingDecimalPoints = true,
@@ -155,7 +177,20 @@ public record struct JsonSyntaxOptions {
         BlockStyleComments = true,
         AllWhitespace = true,
     };
+    /// <summary>
+    /// A variant of JSON allowing unquoted property names, trailing commas, single-quoted strings, triple-quoted multi-line strings, unquoted strings,
+    /// escaped string single quotes, line-style comments, block-style comments, hash-style comments, and omitted root object braces.
+    /// </summary>
     public static JsonSyntaxOptions Hjson => Json with {
-
+        UnquotedPropertyNames = true,
+        TrailingCommas = true,
+        SingleQuotedStrings = true,
+        TripleQuotedMultiLineStrings = true,
+        UnquotedStrings = true,
+        EscapedStringSingleQuotes = true,
+        LineStyleComments = true,
+        BlockStyleComments = true,
+        HashStyleComments = true,
+        OmittedRootObjectBraces = true,
     };
 }

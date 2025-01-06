@@ -18,7 +18,3 @@ public class UnitTest1 {
         Assert.Equal(2, Element.GetProperty("second").Deserialize<int>(JsonOptions.Mini));
     }
 }
-
-public class Player {
-    public required string Name;
-}
