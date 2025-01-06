@@ -357,7 +357,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
                 }
                 // Unicode
                 else if (EscapedByte is 'u') {
-                    StringBuilder.Append(ReadCharFromHexadecimalSequence());
+                    StringBuilder.Append(ReadCharFromHexSequence());
                 }
                 // Invalid escape character
                 else {
@@ -620,7 +620,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
         }
         return false;
     }
-    private char ReadCharFromHexadecimalSequence() {
+    private char ReadCharFromHexSequence() {
         Span<byte> HexBytes = stackalloc byte[4];
 
         for (int Index = 0; Index < HexBytes.Length; Index++) {
