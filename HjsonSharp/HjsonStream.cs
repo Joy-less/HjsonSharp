@@ -452,6 +452,13 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
             HasSign = true;
         }
 
+        // Ensure number does not start with 0
+        if (!Options.Syntax.LeadingZeroes) {
+            if (TryPeekLiteralByte('0')) {
+                throw new HjsonException("Number cannot start with zero.");
+            }
+        }
+
         // Integer
         bool TrailingSign = HasSign;
         while (true) {

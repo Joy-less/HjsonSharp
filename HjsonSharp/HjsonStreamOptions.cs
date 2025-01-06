@@ -1,18 +1,22 @@
 ﻿namespace HjsonSharp;
 
 public record struct HjsonStreamOptions() {
+    /// <summary>
+    /// The size in bytes of the buffer used to read the stream.<br/>
+    /// Default: 4096
+    /// </summary>
+    /// <remarks>
+    /// This is passed to the underlying <see cref="ByteStream"/> and cannot be changed after the <see cref="HjsonStream"/> is created.
+    /// </remarks>
     public int BufferSize { get; set; } = 4096;
+    /// <summary>
+    /// The syntax options to use when parsing the stream.<br/>
+    /// Default: <see cref="JsonSyntaxOptions.Hjson"/>
+    /// </summary>
     public JsonSyntaxOptions Syntax { get; set; } = JsonSyntaxOptions.Hjson;
 }
 
 public record struct JsonSyntaxOptions {
-    /// <summary>
-    /// Enables/disables hash-style comments.
-    /// <code>
-    /// # comment
-    /// </code>
-    /// </summary>
-    public bool HashStyleComments { get; set; }
     /// <summary>
     /// Enables/disables line-style comments.
     /// <code>
@@ -27,6 +31,13 @@ public record struct JsonSyntaxOptions {
     /// </code>
     /// </summary>
     public bool BlockStyleComments { get; set; }
+    /// <summary>
+    /// Enables/disables hash-style comments.
+    /// <code>
+    /// # comment
+    /// </code>
+    /// </summary>
+    public bool HashStyleComments { get; set; }
     /// <summary>
     /// Enables/disables a single trailing comma in arrays and objects.
     /// <code>
