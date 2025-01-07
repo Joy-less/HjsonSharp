@@ -428,13 +428,17 @@ public class HjsonStream : ByteStream {
             if (!Options.Syntax.LeadingDecimalPoints) {
                 throw new HjsonException("Leading decimal points are not allowed");
             }
+            StringBuilder.Append('.');
         }
         else {
             // Integer
             Token Integer = ReadInteger();
 
             // Decimal point
-            if (!TryReadLiteralByte('.', out _)) {
+            if (TryReadLiteralByte('.', out _)) {
+                StringBuilder.Append('.');
+            }
+            else {
                 return new Token(this, JsonTokenType.Number, TokenPosition, Position - TokenPosition, Integer.Value);
             }
         }
@@ -480,7 +484,9 @@ public class HjsonStream : ByteStream {
             // End of number
             else {
                 if (TrailingDecimalPoint) {
-                    throw new HjsonException("Expected digit after `.`");
+                    if (!Options.Syntax.TrailingDecimalPoints) {
+                        throw new HjsonException("Expected digit after `.`");
+                    }
                 }
                 if (TrailingExponent) {
                     throw new HjsonException("Expected digit after `e`/`E`");
