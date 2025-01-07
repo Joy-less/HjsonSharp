@@ -17,17 +17,40 @@ namespace HjsonSharp;
 ///   <item>Numbers starting with a positive sign (<c>+</c>)</item>
 /// </list>
 */
-public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream(Stream, Options.BufferSize) {
-    public HjsonStreamOptions Options { get; set; } = Options;
+public class HjsonStream : ByteStream {
+    public HjsonStreamOptions Options { get; set; }
 
     private readonly StringBuilder StringBuilder = new();
 
+    public HjsonStream(Stream Stream, HjsonStreamOptions Options) : base(Stream, Options.BufferSize) {
+        this.Options = Options;
+    }
     public HjsonStream(Stream Stream) : this(Stream, new HjsonStreamOptions()) {
     }
-    public HjsonStream(string String, HjsonStreamOptions Options) : this(new MemoryStream(Encoding.UTF8.GetBytes(String)), Options) {
+    public HjsonStream(byte[] Utf8Bytes, HjsonStreamOptions Options) : this(new MemoryStream(Utf8Bytes), Options) {
+    }
+    public HjsonStream(byte[] Utf8Bytes) : this(Utf8Bytes, new HjsonStreamOptions()) {
+    }
+    public HjsonStream(string String, HjsonStreamOptions Options) : this(Encoding.UTF8.GetBytes(String), Options) {
     }
     public HjsonStream(string String) : this(String, new HjsonStreamOptions()) {
     }
+
+    public static T? ParseElement<T>(byte[] Utf8Bytes, HjsonStreamOptions Options) {
+        using HjsonStream HjsonStream = new(Utf8Bytes, Options);
+        return HjsonStream.ParseElement<T>();
+    }
+    public static T? ParseElement<T>(byte[] Utf8Bytes) {
+        return ParseElement<T>(Utf8Bytes, new HjsonStreamOptions());
+    }
+    public static T? ParseElement<T>(string String, HjsonStreamOptions Options) {
+        using HjsonStream HjsonStream = new(String, Options);
+        return HjsonStream.ParseElement<T>();
+    }
+    public static T? ParseElement<T>(string String) {
+        return ParseElement<T>(String, new HjsonStreamOptions());
+    }
+
     public T? ParseElement<T>() {
         return ParseNode().Deserialize<T>();
     }
@@ -52,6 +75,80 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
         // Primitive
         else {
             return [ReadPrimitiveElement()];
+        }
+    }
+    public Token ReadPrimitiveElement() {
+        // Whitespace
+        ReadWhitespace();
+
+        int Byte = PeekByte();
+
+        // End of stream
+        if (Byte < 0) {
+            throw new HjsonException("Expected token, got end of stream");
+        }
+        // Null
+        else if (Byte is 'n') {
+            return ReadNull();
+        }
+        // True
+        else if (Byte is 't') {
+            return ReadTrue();
+        }
+        // False
+        else if (Byte is 'f') {
+            return ReadFalse();
+        }
+        // String
+        else if (Byte is '"') {
+            return ReadString();
+        }
+        // Number
+        else if (Byte is (>= '0' and <= '9') or '.') {
+            return ReadNumber();
+        }
+        // Invalid byte
+        else {
+            throw new HjsonException($"Invalid byte: `{(char)Byte}`");
+        }
+    }
+    public void ReadWhitespace() {
+        while (true) {
+            int Byte = PeekByte();
+
+            // End of stream
+            if (Byte < 0) {
+                return;
+            }
+            // Ascii whitespace
+            else if (Byte is ' ' or '\n' or '\r' or '\t' or '\v' or '\f') {
+                ReadByte();
+            }
+            // Unicode whitespace
+            else if (GetUtf8SequenceLength((byte)Byte) > 1) {
+                // Move to next byte
+                long OriginalPosition = Position;
+                ReadByte();
+
+                // Read the next rune
+                Rune Rune = ReadUtf8Rune((byte)Byte);
+
+                // Check if rune is whitespace
+                if (Rune.IsWhiteSpace(Rune)) {
+                    if (!Options.Syntax.UnicodeWhitespace) {
+                        throw new HjsonException("Unicode whitespace is not allowed");
+                    }
+                }
+                // If not whitespace, return to start of rune
+                else {
+                    Position = OriginalPosition;
+                    return;
+                }
+            }
+            // End of whitespace
+            else {
+                return;
+            }
         }
     }
     public bool FindPath(IEnumerable<string> Path) {
@@ -215,80 +312,6 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
         // End of stream
         throw new HjsonException("Expected token, got end of stream");
     }
-    private void ReadWhitespace() {
-        while (true) {
-            int Byte = PeekByte();
-
-            // End of stream
-            if (Byte < 0) {
-                return;
-            }
-            // Ascii whitespace
-            else if (Byte is ' ' or '\n' or '\r' or '\t' or '\v' or '\f') {
-                ReadByte();
-            }
-            // Unicode whitespace
-            else if (GetUtf8SequenceLength((byte)Byte) > 1) {
-                // Move to next byte
-                long OriginalPosition = Position;
-                ReadByte();
-
-                // Read the next rune
-                Rune Rune = ReadUtf8Rune((byte)Byte);
-
-                // Check if rune is whitespace
-                if (Rune.IsWhiteSpace(Rune)) {
-                    if (!Options.Syntax.UnicodeWhitespace) {
-                        throw new HjsonException("Unicode whitespace is not allowed");
-                    }
-                }
-                // If not whitespace, return to start of rune
-                else {
-                    Position = OriginalPosition;
-                    return;
-                }
-            }
-            // End of whitespace
-            else {
-                return;
-            }
-        }
-    }
-    private Token ReadPrimitiveElement() {
-        // Whitespace
-        ReadWhitespace();
-
-        int Byte = PeekByte();
-
-        // End of stream
-        if (Byte < 0) {
-            throw new HjsonException("Expected token, got end of stream");
-        }
-        // Null
-        else if (Byte is 'n') {
-            return ReadNull();
-        }
-        // True
-        else if (Byte is 't') {
-            return ReadTrue();
-        }
-        // False
-        else if (Byte is 'f') {
-            return ReadFalse();
-        }
-        // String
-        else if (Byte is '"') {
-            return ReadString();
-        }
-        // Number
-        else if (Byte is >= '0' and <= '9') {
-            return ReadNumber();
-        }
-        // Invalid byte
-        else {
-            throw new HjsonException($"Invalid byte: `{(char)Byte}`");
-        }
-    }
     private Token ReadNull() {
         // Null
         return ReadLiteralToken(JsonTokenType.Null, "null");
@@ -400,12 +423,20 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
         ReadWhitespace();
         long TokenPosition = Position;
 
-        // Integer
-        Token Integer = ReadInteger();
+        // Leading decimal point
+        if (TryReadLiteralByte('.', out _)) {
+            if (!Options.Syntax.LeadingDecimalPoints) {
+                throw new HjsonException("Leading decimal points are not allowed");
+            }
+        }
+        else {
+            // Integer
+            Token Integer = ReadInteger();
 
-        // Decimal point
-        if (!TryReadLiteralByte('.', out _)) {
-            return new Token(this, JsonTokenType.Number, TokenPosition, Position - TokenPosition, Integer.Value);
+            // Decimal point
+            if (!TryReadLiteralByte('.', out _)) {
+                return new Token(this, JsonTokenType.Number, TokenPosition, Position - TokenPosition, Integer.Value);
+            }
         }
 
         // Fraction
@@ -480,7 +511,7 @@ public class HjsonStream(Stream Stream, HjsonStreamOptions Options) : ByteStream
         // Ensure number does not start with 0
         if (!Options.Syntax.LeadingZeroes) {
             if (TryPeekLiteralByte('0', out _)) {
-                throw new HjsonException("Number cannot start with zero");
+                throw new HjsonException("Leading zeroes are not allowed");
             }
         }
 

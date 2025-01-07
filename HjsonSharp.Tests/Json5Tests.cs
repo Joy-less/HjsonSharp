@@ -1,5 +1,4 @@
-﻿using System.Text;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace HjsonSharp.Tests;
 
@@ -23,5 +22,14 @@ public class Json5Tests {
         Assert.Equal(2, Element.GetPropertyCount());
         Assert.Equal(1, Element.GetProperty("first").Deserialize<int>(JsonOptions.Mini));
         Assert.Equal(2, Element.GetProperty("second").Deserialize<int>(JsonOptions.Mini));
+    }
+    [Fact]
+    public void LeadingDecimalPointTest() {
+        string Text = ".3";
+
+        using HjsonStream HjsonStream = new(Text, new HjsonStreamOptions() {
+            Syntax = JsonSyntaxOptions.Json5,
+        });
+        JsonElement Element = HjsonStream.ParseElement<JsonElement>();
     }
 }
