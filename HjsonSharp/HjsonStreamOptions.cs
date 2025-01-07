@@ -46,14 +46,12 @@ public record struct JsonSyntaxOptions {
     /// </summary>
     public bool TrailingCommas { get; set; }
     /// <summary>
-    /// Enables/disables all unicode whitespace characters.
+    /// Enables/disables unicode whitespace characters larger than one byte.
     /// <code>
-    /// \v
-    /// \f
     /// \u200A
     /// </code>
     /// </summary>
-    public bool AllWhitespace { get; set; }
+    public bool UnicodeWhitespace { get; set; }
     /// <summary>
     /// Enables/disables unquoted property names:
     /// <code>
@@ -171,7 +169,7 @@ public record struct JsonSyntaxOptions {
     /// <summary>
     /// A variant of JSON allowing unquoted property names, trailing commas, single-quoted strings, escaped string newlines, hexadecimal numbers,
     /// leading decimal points, trailing decimal points, named floating-point literals, explicit plus-signs, line-style comments, block-style comments,
-    /// and all whitespace characters.
+    /// and unicode whitespace.
     /// See <see href="https://json5.org"/>.
     /// </summary>
     public static JsonSyntaxOptions Json5 => Json with {
@@ -186,7 +184,7 @@ public record struct JsonSyntaxOptions {
         ExplicitPlusSigns = true,
         LineStyleComments = true,
         BlockStyleComments = true,
-        AllWhitespace = true,
+        UnicodeWhitespace = true,
     };
     /// <summary>
     /// A variant of JSON allowing unquoted property names, trailing commas, single-quoted strings, triple-quoted multi-line strings, unquoted strings,

@@ -2,9 +2,9 @@
 
 namespace HjsonSharp.Tests;
 
-public class UnitTest1 {
+public class JsonTests {
     [Fact]
-    public void JsonTest() {
+    public void ParseBasicObjectTest() {
         string Text = """
             {
               "first": 1,
@@ -12,14 +12,16 @@ public class UnitTest1 {
             }
             """;
 
-        using HjsonStream HjsonStream = new(Text);
+        using HjsonStream HjsonStream = new(Text, new HjsonStreamOptions() {
+            Syntax = JsonSyntaxOptions.Json,
+        });
         JsonElement Element = HjsonStream.ParseElement<JsonElement>();
         Assert.Equal(2, Element.GetPropertyCount());
         Assert.Equal(1, Element.GetProperty("first").Deserialize<int>(JsonOptions.Mini));
         Assert.Equal(2, Element.GetProperty("second").Deserialize<int>(JsonOptions.Mini));
     }
     [Fact]
-    public void FindTest() {
+    public void FindPathTest() {
         string Text = """
             {
               "first": 1,
@@ -29,7 +31,9 @@ public class UnitTest1 {
             }
             """;
 
-        using HjsonStream HjsonStream = new(Text);
+        using HjsonStream HjsonStream = new(Text, new HjsonStreamOptions() {
+            Syntax = JsonSyntaxOptions.Json,
+        });
         Assert.True(HjsonStream.FindPath(["second"]));
         JsonElement Element = HjsonStream.ParseElement<JsonElement>();
         Assert.Equal(5, Element.GetProperty("third").Deserialize<int>(JsonOptions.Mini));

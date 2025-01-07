@@ -1,11 +1,11 @@
-﻿namespace HjsonSharp;
+﻿using System.Text;
+
+namespace HjsonSharp;
 
 internal static class Extensions {
-    /*public static void RemoveLast<T>(this IList<T> List) {
-        List.RemoveAt(List.Count - 1);
-    }*/
-    /*public static string Submit(this StringBuilder StringBuilder) {
-        StringBuilder.Clear();
-        return StringBuilder.ToString();
-    }*/
+    public static void AppendRune(this StringBuilder StringBuilder, Rune Rune) {
+        Span<char> Chars = stackalloc char[2];
+        int CharsWritten = Rune.EncodeToUtf16(Chars);
+        StringBuilder.Append(Chars[..CharsWritten]);
+    }
 }
