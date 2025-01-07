@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace HjsonSharp;
+namespace Hjson.NET;
 
 internal static class Extensions {
     /// <summary>

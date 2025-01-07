@@ -1,4 +1,4 @@
-﻿namespace HjsonSharp;
+﻿namespace Hjson.NET;
 
 public record struct HjsonStreamOptions() {
     /// <summary>

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Hjson.NET/Hjson.NET.csproj" />
+  <Project Path="Hjson.NET.Tests/Hjson.NET.Tests.csproj" />
+</Solution>

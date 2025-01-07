@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using System.Text.Json;
 
-namespace HjsonSharp;
+namespace Hjson.NET;
 
 public static class JsonOptions {
     public static JsonSerializerOptions Mini { get; } = new() {

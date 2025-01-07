@@ -1,4 +1,4 @@
-﻿namespace HjsonSharp;
+﻿namespace Hjson.NET;
 
 /// <summary>
 /// A buffered layer for a <see cref="Stream"/> designed to read/peek 1 byte at a time.<br/>
