@@ -18,7 +18,7 @@ public class JsonTests {
         Assert.Equal(2, Element.GetProperty("second").Deserialize<int>(JsonOptions.Mini));
     }
     [Fact]
-    public void FindPathTest() {
+    public void FindPropertyNameTest() {
         string Text = """
             {
               "first": 1,
@@ -32,5 +32,20 @@ public class JsonTests {
         Assert.True(HjsonStream.FindPath("second"));
         JsonElement Element = HjsonStream.ParseElement<JsonElement>();
         Assert.Equal(5, Element.GetProperty("third").Deserialize<int>(JsonOptions.Mini));
+    }
+    [Fact]
+    public void FindArrayIndexTest() {
+        string Text = """
+            [
+              1,
+              4,
+              5
+            ]
+            """;
+
+        using HjsonStream HjsonStream = new(Text, HjsonStreamOptions.Json);
+        Assert.True(HjsonStream.FindPath(2));
+        JsonElement Element = HjsonStream.ParseElement<JsonElement>();
+        Assert.Equal(5, Element.Deserialize<int>(JsonOptions.Mini));
     }
 }

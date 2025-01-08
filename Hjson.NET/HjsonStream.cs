@@ -172,15 +172,19 @@ public sealed class HjsonStream : Stream {
 
         // Object
         if (Rune.Value is '{') {
-            return ReadObject();
+            foreach (Token Token in ReadObject()) {
+                yield return Token;
+            }
         }
         // Array
         else if (Rune.Value is '[') {
-            return ReadArray();
+            foreach (Token Token in ReadArray()) {
+                yield return Token;
+            }
         }
         // Primitive
         else {
-            return [ReadPrimitiveElement()];
+            yield return ReadPrimitiveElement();
         }
     }
     public Token ReadPrimitiveElement() {
@@ -237,7 +241,7 @@ public sealed class HjsonStream : Stream {
             }
         }
     }
-    public bool FindPath(string PropertyName, long Depth = 1) {
+    public bool FindPath(string PropertyName) {
         long CurrentDepth = 0;
         foreach (Token Token in ReadElement()) {
             // Start structure
@@ -250,9 +254,41 @@ public sealed class HjsonStream : Stream {
             }
             // Property name
             else if (Token.Type is JsonTokenType.PropertyName) {
-                // Path found
-                if (CurrentDepth == Depth && Token.Value == PropertyName) {
+                if (CurrentDepth == 1 && Token.Value == PropertyName) {
+                    // Path found
                     return true;
+                }
+            }
+        }
+
+        // Path not found
+        return false;
+    }
+    public bool FindPath(long ArrayIndex) {
+        long CurrentDepth = 0;
+        long CurrentIndex = 0;
+        bool IsArray = false;
+        foreach (Token Token in ReadElement()) {
+            // Start structure
+            if (Token.Type is JsonTokenType.StartObject or JsonTokenType.StartArray) {
+                CurrentDepth++;
+                if (CurrentDepth == 1) {
+                    IsArray = Token.Type is JsonTokenType.StartArray;
+                }
+            }
+            // End structure
+            else if (Token.Type is JsonTokenType.EndObject or JsonTokenType.EndArray) {
+                CurrentDepth--;
+            }
+            // Primitive value
+            else if (Token.Type is JsonTokenType.Null or JsonTokenType.True or JsonTokenType.False or JsonTokenType.String or JsonTokenType.Number) {
+                if (CurrentDepth == 1 && IsArray) {
+                    // Path found
+                    if (CurrentIndex == ArrayIndex) {
+                        return true;
+                    }
+
+                    CurrentIndex++;
                 }
             }
         }
@@ -397,11 +433,12 @@ public sealed class HjsonStream : Stream {
         bool TrailingExponent = false;
         while (true) {
             // Read rune
-            long RunePosition = Position;
-            Rune? Rune = ReadRune();
+            Rune? Rune = PeekRune();
 
             // Exponent
             if (Rune?.Value is 'e' or 'E') {
+                ReadRune();
+
                 if (IsExponent) {
                     throw new HjsonException($"Duplicate exponent: `{Rune}`");
                 }
@@ -424,6 +461,8 @@ public sealed class HjsonStream : Stream {
             }
             // Digit
             else if (Rune?.Value is >= '0' and <= '9') {
+                ReadRune();
+
                 TrailingDecimalPoint = false;
                 TrailingExponent = false;
 
@@ -440,8 +479,6 @@ public sealed class HjsonStream : Stream {
                 if (TrailingExponent) {
                     throw new HjsonException("Expected digit after `e`/`E`");
                 }
-
-                Position = RunePosition;
 
                 return new Token(this, JsonTokenType.Number, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
             }
@@ -479,11 +516,12 @@ public sealed class HjsonStream : Stream {
         bool TrailingSign = HasSign;
         while (true) {
             // Read rune
-            long RunePosition = Position;
-            Rune? Rune = ReadRune();
+            Rune? Rune = PeekRune();
 
             // Digit
             if (Rune?.Value is >= '0' and <= '9') {
+                ReadRune();
+
                 TrailingSign = false;
                 StringBuilder.Append(Rune.Value);
             }
@@ -492,8 +530,6 @@ public sealed class HjsonStream : Stream {
                 if (TrailingSign) {
                     throw new HjsonException($"Expected digit after `+`/`-`");
                 }
-
-                Position = RunePosition;
 
                 return new Token(this, JsonTokenType.Number, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
             }
@@ -505,7 +541,6 @@ public sealed class HjsonStream : Stream {
             throw new HjsonException($"Expected `{{` to start object");
         }
         yield return new Token(this, JsonTokenType.StartObject, Position - 1);
-        ReadRune();
         // Whitespace
         ReadWhitespace();
 
@@ -543,12 +578,7 @@ public sealed class HjsonStream : Stream {
                 ReadWhitespace();
 
                 // Comma
-                if (ReadRune(',')) {
-                    AllowProperty = true;
-                }
-                else {
-                    AllowProperty = false;
-                }
+                AllowProperty = ReadRune(',');
                 // Whitespace
                 ReadWhitespace();
             }
@@ -578,8 +608,7 @@ public sealed class HjsonStream : Stream {
         if (!ReadRune('[')) {
             throw new HjsonException($"Expected `[` to start array");
         }
-        yield return new Token(this, JsonTokenType.StartArray, Position);
-        ReadRune();
+        yield return new Token(this, JsonTokenType.StartArray, Position - 1);
         // Whitespace
         ReadWhitespace();
 
@@ -669,8 +698,8 @@ public sealed class HjsonStream : Stream {
             return false;
         }
     }
-    private bool ReadRune(char? Expected) {
-        return ReadRune(Expected is not null ? new Rune(Expected.Value) : null);
+    private bool ReadRune(char Expected) {
+        return ReadRune(new Rune(Expected));
     }
     private Rune? PeekRune() {
         long OriginalPosition = Position;
