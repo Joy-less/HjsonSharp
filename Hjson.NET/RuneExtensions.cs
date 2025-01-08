@@ -7,27 +7,6 @@ namespace Hjson.NET;
 /// Contains methods to efficiently decode runes from byte streams of various encodings.
 /// </summary>
 internal static class RuneExtensions {
-    /*/// <summary>
-    /// Decodes a rune from the beginning of the byte span according to the specified encoding.<br/>
-    /// Supports <see cref="UTF8Encoding"/>, <see cref="UnicodeEncoding"/>, <see cref="UTF32Encoding"/> and <see cref="ASCIIEncoding"/>.
-    /// </summary>
-    public static OperationStatus GetRuneFromBytes(this ReadOnlySpan<byte> Source, Encoding Encoding, out Rune Result, out int BytesConsumed) {
-        // UTF-8 / ASCII
-        if (Encoding is UTF8Encoding or ASCIIEncoding) {
-            return Rune.DecodeFromUtf8(Source, out Result, out BytesConsumed);
-        }
-        // UTF-16
-        else if (Encoding is UnicodeEncoding or UTF32Encoding) {
-            Span<char> Chars = stackalloc char[2];
-            int CharCount = Encoding.GetChars(Source, Chars);
-            BytesConsumed = CharCount * sizeof(char);
-            return Rune.DecodeFromUtf16(Chars[..CharCount], out Result, out _);
-        }
-        // Not implemented
-        else {
-            throw new NotImplementedException(Encoding.ToString());
-        }
-    }*/
     /// <summary>
     /// Decodes a rune from the beginning of the stream according to the specified encoding.<br/>
     /// Supports <see cref="UTF8Encoding"/>, <see cref="UnicodeEncoding"/>, <see cref="UTF32Encoding"/> and <see cref="ASCIIEncoding"/>.<br/>

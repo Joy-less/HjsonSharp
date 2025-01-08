@@ -6,18 +6,6 @@ using System.Text.Json.Nodes;
 
 namespace Hjson.NET;
 
-/*
-/// <summary>
-/// A buffered layer for a <see cref="Stream"/> that can read and write UTF8-encoded JSON matching the <see href="https://json.org"/> specification.
-/// </summary>
-/// Supports parsing the following extra syntax:
-/// <list type="bullet">
-///   <item>Trailing commas (<c>,</c>)</item>
-///   <item>Line breaks in strings (<c>\n</c>, <c>\r</c>)</item>
-///   <item>Numbers starting with zero (<c>0</c>)</item>
-///   <item>Numbers starting with a positive sign (<c>+</c>)</item>
-/// </list>
-*/
 public sealed class HjsonStream : Stream {
     public BufferedStream BufferedStream { get; }
     public HjsonStreamOptions Options { get; }
@@ -250,57 +238,6 @@ public sealed class HjsonStream : Stream {
         }
     }
     public bool FindPath(string PropertyName, long Depth = 1) {
-        /*Stack<string> CurrentPath = [];
-        string? CurrentPropertyName = null;
-
-        foreach (Token Token in ReadElement()) {
-            // Start structure
-            if (Token.Type is JsonTokenType.StartObject or JsonTokenType.StartArray) {
-                // Property value
-                if (CurrentPropertyName is not null) {
-                    // Reset property name
-                    CurrentPropertyName = null;
-                }
-            }
-            // End structure
-            else if (Token.Type is JsonTokenType.EndObject or JsonTokenType.EndArray) {
-                // Exit path
-                CurrentPath.Pop();
-            }
-            // Primitive value
-            else if (Token.Type is JsonTokenType.String or JsonTokenType.Number or JsonTokenType.True or JsonTokenType.False or JsonTokenType.Null) {
-                // Property value
-                if (CurrentPropertyName is not null) {
-                    // Exit path
-                    CurrentPath.Pop();
-
-                    // Reset property name
-                    CurrentPropertyName = null;
-                }
-            }
-            // Property name
-            else if (Token.Type is JsonTokenType.PropertyName) {
-                // Set property name
-                CurrentPropertyName = Token.Value;
-
-                // Enter path
-                CurrentPath.Push(CurrentPropertyName);
-
-                // Path found
-                if (CurrentPath.SequenceEqual(Path)) {
-                    return true;
-                }
-            }
-            // Comment
-            else if (Token.Type is JsonTokenType.Comment) {
-                // Pass
-            }
-            // Not implemented
-            else {
-                throw new NotImplementedException(Token.Type.ToString());
-            }
-        }*/
-
         long CurrentDepth = 0;
         foreach (Token Token in ReadElement()) {
             // Start structure
