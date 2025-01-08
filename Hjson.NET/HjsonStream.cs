@@ -214,6 +214,7 @@ public sealed class HjsonStream : RuneStream {
                 if (CurrentDepth == 1 && IsArray) {
                     // Path found
                     if (CurrentIndex == ArrayIndex) {
+                        Position = Token.Position;
                         return true;
                     }
 
