@@ -6,50 +6,31 @@ using System.Text.Json.Nodes;
 
 namespace Hjson.NET;
 
-public sealed class HjsonStream : Stream {
-    public BufferedStream BufferedStream { get; }
+public sealed class HjsonStream : RuneStream {
     public HjsonStreamOptions Options { get; }
 
-    public HjsonStream(Stream Stream, HjsonStreamOptions? Options = null) {
-        this.BufferedStream = new BufferedStream(Stream);
+    public HjsonStream(Stream Stream, HjsonStreamOptions? Options = null)
+        : base(new BufferedStream(Stream)) {
         this.Options = Options ?? HjsonStreamOptions.Hjson;
     }
-    public HjsonStream(byte[] Utf8Bytes, HjsonStreamOptions? Options = null)
-        : this(new MemoryStream(Utf8Bytes), Options) {
+    public HjsonStream(byte[] Bytes, HjsonStreamOptions? Options = null)
+        : this(new MemoryStream(Bytes), Options) {
     }
     public HjsonStream(string String, HjsonStreamOptions? Options = null)
         : this((Options ?? HjsonStreamOptions.Hjson).StreamEncoding.GetBytes(String), Options) {
     }
 
-    public static T? ParseElement<T>(byte[] Utf8Bytes, HjsonStreamOptions Options) {
-        using HjsonStream HjsonStream = new(Utf8Bytes, Options);
+    public static T? ParseElement<T>(byte[] Bytes, HjsonStreamOptions? Options = null) {
+        using HjsonStream HjsonStream = new(Bytes, Options);
         return HjsonStream.ParseElement<T>();
     }
-    public static T? ParseElement<T>(byte[] Utf8Bytes) {
-        return ParseElement<T>(Utf8Bytes, new HjsonStreamOptions());
-    }
-    public static T? ParseElement<T>(string String, HjsonStreamOptions Options) {
+    public static T? ParseElement<T>(string String, HjsonStreamOptions? Options = null) {
         using HjsonStream HjsonStream = new(String, Options);
         return HjsonStream.ParseElement<T>();
     }
-    public static T? ParseElement<T>(string String) {
-        return ParseElement<T>(String, new HjsonStreamOptions());
-    }
-
-    public override bool CanRead => BufferedStream.CanRead;
-    public override bool CanSeek => BufferedStream.CanSeek;
-    public override bool CanWrite => BufferedStream.CanWrite;
-    public override long Length => BufferedStream.Length;
-    public override long Position { get => BufferedStream.Position; set => BufferedStream.Position = value; }
-
-    public override void Flush() => BufferedStream.Flush();
-    public override int Read(byte[] Buffer, int Offset, int Count) => BufferedStream.Read(Buffer, Offset, Count);
-    public override long Seek(long Offset, SeekOrigin Origin) => BufferedStream.Seek(Offset, Origin);
-    public override void SetLength(long Value) => BufferedStream.SetLength(Value);
-    public override void Write(byte[] Buffer, int Offset, int Count) => BufferedStream.Write(Buffer, Offset, Count);
 
     public T? ParseElement<T>() {
-        return ParseNode().Deserialize<T>();
+        return ParseNode().Deserialize<T>(JsonOptions.Mini);
     }
     public bool ParseElement<T>(out T? Result) {
         try {
@@ -295,6 +276,22 @@ public sealed class HjsonStream : Stream {
 
         // Path not found
         return false;
+    }
+    public Rune? ReadRune() {
+        return ReadRune(Options.StreamEncoding);
+    }
+    public Rune? PeekRune() {
+        return PeekRune(Options.StreamEncoding);
+    }
+    public bool ReadRune(Rune? Expected) {
+        if (PeekRune() != Expected) {
+            return false;
+        }
+        ReadRune();
+        return true;
+    }
+    public bool ReadRune(char Expected) {
+        return ReadRune(new Rune(Expected));
     }
 
     private Token ReadNull() {
@@ -685,30 +682,6 @@ public sealed class HjsonStream : Stream {
         // Parse unicode character from 4 hexadecimal digits
         char UnicodeCharacter = (char)ushort.Parse(HexUtf8Bytes, NumberStyles.AllowHexSpecifier);
         return UnicodeCharacter;
-    }
-    private Rune? ReadRune() {
-        return BufferedStream.GetRuneFromStream(Options.StreamEncoding);
-    }
-    private bool ReadRune(Rune? Expected) {
-        if (PeekRune() == Expected) {
-            ReadRune();
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-    private bool ReadRune(char Expected) {
-        return ReadRune(new Rune(Expected));
-    }
-    private Rune? PeekRune() {
-        long OriginalPosition = Position;
-        try {
-            return ReadRune();
-        }
-        finally {
-            Position = OriginalPosition;
-        }
     }
 
     public readonly record struct Token(HjsonStream HjsonStream, JsonTokenType Type, long Position, long Length = 1, string Value = "") {
