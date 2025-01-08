@@ -172,6 +172,7 @@ public sealed class HjsonStream : RuneStream {
     }
     public bool FindPath(string PropertyName) {
         long CurrentDepth = 0;
+
         foreach (Token Token in ReadElement()) {
             // Start structure
             if (Token.Type is JsonTokenType.StartObject or JsonTokenType.StartArray) {
@@ -195,8 +196,9 @@ public sealed class HjsonStream : RuneStream {
     }
     public bool FindPath(long ArrayIndex) {
         long CurrentDepth = 0;
-        long CurrentIndex = 0;
+        long CurrentIndex = -1;
         bool IsArray = false;
+
         foreach (Token Token in ReadElement()) {
             // Start structure
             if (Token.Type is JsonTokenType.StartObject or JsonTokenType.StartArray) {
@@ -212,13 +214,12 @@ public sealed class HjsonStream : RuneStream {
             // Primitive value
             else if (Token.Type is JsonTokenType.Null or JsonTokenType.True or JsonTokenType.False or JsonTokenType.String or JsonTokenType.Number) {
                 if (CurrentDepth == 1 && IsArray) {
+                    CurrentIndex++;
                     // Path found
                     if (CurrentIndex == ArrayIndex) {
                         Position = Token.Position;
                         return true;
                     }
-
-                    CurrentIndex++;
                 }
             }
         }
