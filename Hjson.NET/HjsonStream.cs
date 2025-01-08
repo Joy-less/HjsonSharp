@@ -143,8 +143,10 @@ public sealed class HjsonStream : RuneStream {
         throw new HjsonException("Expected token, got end of stream");
     }
     public IEnumerable<Token> ReadElement() {
-        // Whitespace
-        ReadWhitespace();
+        // Comments & whitespace
+        foreach (Token Token in ReadCommentsAndWhitespace()) {
+            yield return Token;
+        }
 
         // Peek rune
         if (PeekRune() is not Rune Rune) {
@@ -166,60 +168,6 @@ public sealed class HjsonStream : RuneStream {
         // Primitive
         else {
             yield return ReadPrimitiveElement();
-        }
-    }
-    public Token ReadPrimitiveElement() {
-        // Whitespace
-        ReadWhitespace();
-
-        // Peek rune
-        if (PeekRune() is not Rune Rune) {
-            throw new HjsonException("Expected token, got end of stream");
-        }
-
-        // Null
-        if (Rune.Value is 'n') {
-            return ReadNull();
-        }
-        // Boolean
-        else if (Rune.Value is 't' or 'f') {
-            return ReadBoolean();
-        }
-        // String
-        else if (Rune.Value is '"') {
-            return ReadString();
-        }
-        // Number
-        else if (Rune.Value is (>= '0' and <= '9') or '.') {
-            return ReadNumber();
-        }
-        // Invalid rune
-        else {
-            throw new HjsonException($"Invalid rune: `{Rune}`");
-        }
-    }
-    public void ReadWhitespace() {
-        while (true) {
-            // Peek rune
-            if (PeekRune() is not Rune Rune) {
-                return;
-            }
-
-            // Ascii whitespace
-            if (Rune.Value is ' ' or '\n' or '\r' or '\t' or '\v' or '\f') {
-                ReadRune();
-            }
-            // Unicode whitespace
-            else if (Rune.IsWhiteSpace(Rune)) {
-                if (!Options.UnicodeWhitespace) {
-                    throw new HjsonException("Unicode whitespace is not allowed");
-                }
-                ReadRune();
-            }
-            // End of whitespace
-            else {
-                return;
-            }
         }
     }
     public bool FindPath(string PropertyName) {
@@ -294,6 +242,33 @@ public sealed class HjsonStream : RuneStream {
         return ReadRune(new Rune(Expected));
     }
 
+    private Token ReadPrimitiveElement() {
+        // Peek rune
+        if (PeekRune() is not Rune Rune) {
+            throw new HjsonException("Expected token, got end of stream");
+        }
+
+        // Null
+        if (Rune.Value is 'n') {
+            return ReadNull();
+        }
+        // Boolean
+        else if (Rune.Value is 't' or 'f') {
+            return ReadBoolean();
+        }
+        // String
+        else if (Rune.Value is '"') {
+            return ReadString();
+        }
+        // Number
+        else if (Rune.Value is (>= '0' and <= '9') or '.') {
+            return ReadNumber();
+        }
+        // Invalid rune
+        else {
+            throw new HjsonException($"Invalid rune: `{Rune}`");
+        }
+    }
     private Token ReadNull() {
         // Null
         return ReadLiteralToken(JsonTokenType.Null, "null");
@@ -538,8 +513,11 @@ public sealed class HjsonStream : RuneStream {
             throw new HjsonException($"Expected `{{` to start object");
         }
         yield return new Token(this, JsonTokenType.StartObject, Position - 1);
-        // Whitespace
-        ReadWhitespace();
+
+        // Comments & whitespace
+        foreach (Token Token in ReadCommentsAndWhitespace()) {
+            yield return Token;
+        }
 
         bool AllowProperty = true;
 
@@ -563,21 +541,29 @@ public sealed class HjsonStream : RuneStream {
                 }
 
                 // Property name
-                yield return ReadPropertyName();
-                // Whitespace
-                ReadWhitespace();
+                foreach (Token Token in ReadPropertyName()) {
+                    yield return Token;
+                }
+                // Comments & whitespace
+                foreach (Token Token in ReadCommentsAndWhitespace()) {
+                    yield return Token;
+                }
 
                 // Property value
                 foreach (Token Token in ReadElement()) {
                     yield return Token;
                 }
-                // Whitespace
-                ReadWhitespace();
+                // Comments & whitespace
+                foreach (Token Token in ReadCommentsAndWhitespace()) {
+                    yield return Token;
+                }
 
                 // Comma
                 AllowProperty = ReadRune(',');
-                // Whitespace
-                ReadWhitespace();
+                // Comments & whitespace
+                foreach (Token Token in ReadCommentsAndWhitespace()) {
+                    yield return Token;
+                }
             }
             // Invalid rune
             else {
@@ -585,20 +571,22 @@ public sealed class HjsonStream : RuneStream {
             }
         }
     }
-    private Token ReadPropertyName() {
+    private IEnumerable<Token> ReadPropertyName() {
         long TokenPosition = Position;
 
         // String
         Token String = ReadString();
 
-        // Whitespace
-        ReadWhitespace();
+        // Comments & whitespace
+        foreach (Token Token in ReadCommentsAndWhitespace()) {
+            yield return Token;
+        }
 
         // Colon
         if (!ReadRune(':')) {
             throw new HjsonException($"Expected `:` after property name in object");
         }
-        return new Token(this, JsonTokenType.PropertyName, TokenPosition, Position - TokenPosition, String.Value);
+        yield return new Token(this, JsonTokenType.PropertyName, TokenPosition, Position - TokenPosition, String.Value);
     }
     private IEnumerable<Token> ReadArray() {
         // Opening bracket
@@ -606,8 +594,11 @@ public sealed class HjsonStream : RuneStream {
             throw new HjsonException($"Expected `[` to start array");
         }
         yield return new Token(this, JsonTokenType.StartArray, Position - 1);
-        // Whitespace
-        ReadWhitespace();
+
+        // Comments & whitespace
+        foreach (Token Token in ReadCommentsAndWhitespace()) {
+            yield return Token;
+        }
 
         bool AllowItem = true;
         long CurrentIndex = 0;
@@ -635,16 +626,90 @@ public sealed class HjsonStream : RuneStream {
                 foreach (Token Token in ReadElement()) {
                     yield return Token;
                 }
-                // Whitespace
-                ReadWhitespace();
+
+                // Comments & whitespace
+                foreach (Token Token in ReadCommentsAndWhitespace()) {
+                    yield return Token;
+                }
 
                 // Comma
                 AllowItem = ReadRune(',');
-                // Whitespace
-                ReadWhitespace();
+
+                // Comments & whitespace
+                foreach (Token Token in ReadCommentsAndWhitespace()) {
+                    yield return Token;
+                }
 
                 // Next array index
                 CurrentIndex++;
+            }
+        }
+    }
+    private IEnumerable<Token> ReadCommentsAndWhitespace() {
+        while (true) {
+            // Whitespace
+            ReadWhitespace();
+
+            // Peek rune
+            if (PeekRune() is not Rune Rune) {
+                yield break;
+            }
+
+            // Hash-style comment
+            if (Rune.Value is '#') {
+                yield return ReadHashStyleComment();
+            }
+            // End of comments
+            else {
+                yield break;
+            }
+        }
+    }
+    private Token ReadHashStyleComment() {
+        long TokenPosition = Position;
+
+        // Hashtag
+        if (!ReadRune('#')) {
+            throw new HjsonException($"Expected `#` to start hash-style comment");
+        }
+
+        // Ensure hash-style comments are enabled
+        if (!Options.HashStyleComments) {
+            throw new HjsonException("Hash-style comments are not allowed");
+        }
+
+        // Create string builder
+        ValueStringBuilder StringBuilder = new();
+
+        // Read comment
+        while (ReadRune() is Rune CommentRune && CommentRune.Value is not ('\n' or '\r')) {
+            StringBuilder.Append(CommentRune.Value);
+        }
+
+        // Create comment token
+        return new Token(this, JsonTokenType.Comment, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
+    }
+    private void ReadWhitespace() {
+        while (true) {
+            // Peek rune
+            if (PeekRune() is not Rune Rune) {
+                return;
+            }
+
+            // Ascii whitespace
+            if (Rune.Value is ' ' or '\n' or '\r' or '\t' or '\v' or '\f') {
+                ReadRune();
+            }
+            // Unicode whitespace
+            else if (Rune.IsWhiteSpace(Rune)) {
+                if (!Options.UnicodeWhitespace) {
+                    throw new HjsonException("Unicode whitespace is not allowed");
+                }
+                ReadRune();
+            }
+            // End of whitespace
+            else {
+                return;
             }
         }
     }

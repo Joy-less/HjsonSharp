@@ -18,6 +18,18 @@ public class JsonTests {
         Assert.Equal(2, Element.GetProperty("second").Deserialize<int>(JsonOptions.Mini));
     }
     [Fact]
+    public void ParseBasicArrayTest() {
+        string Text = """
+            [
+                1,
+                2, 3
+            ]
+            """;
+
+        int[] Array = HjsonStream.ParseElement<int[]>(Text, HjsonStreamOptions.Json)!;
+        Assert.Equal([1, 2, 3], Array);
+    }
+    [Fact]
     public void FindPropertyNameTest() {
         string Text = """
             {
