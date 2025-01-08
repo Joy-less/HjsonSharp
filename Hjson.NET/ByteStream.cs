@@ -1,6 +1,6 @@
 ﻿namespace Hjson.NET;
 
-/// <summary>
+/*/// <summary>
 /// A buffered layer for a <see cref="Stream"/> designed to read/peek 1 byte at a time.<br/>
 /// Based on <see href="https://stackoverflow.com/a/73572227"/>.
 /// </summary>
@@ -86,4 +86,4 @@ public class ByteStream(Stream Stream, int BufferSize = 4096) : Stream {
         }
         base.Dispose(Disposing);
     }
-}
+}*/

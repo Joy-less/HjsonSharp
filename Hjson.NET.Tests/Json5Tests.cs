@@ -15,9 +15,7 @@ public class Json5Tests {
             }
             """;
 
-        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, new HjsonStreamOptions() {
-            Syntax = JsonSyntaxOptions.Json5,
-        });
+        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Json5);
         Assert.Equal(2, Element.GetPropertyCount());
         Assert.Equal(1, Element.GetProperty("first").Deserialize<int>(JsonOptions.Mini));
         Assert.Equal(2, Element.GetProperty("second").Deserialize<int>(JsonOptions.Mini));
@@ -26,18 +24,14 @@ public class Json5Tests {
     public void LeadingDecimalPointTest() {
         string Text = ".3";
 
-        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, new HjsonStreamOptions() {
-            Syntax = JsonSyntaxOptions.Json5,
-        });
+        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Json5);
         Assert.Equal(0.3, Element.Deserialize<double>(JsonOptions.Mini));
     }
     [Fact]
     public void TrailingDecimalPointTest() {
         string Text = "3.";
 
-        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, new HjsonStreamOptions() {
-            Syntax = JsonSyntaxOptions.Json5,
-        });
+        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Json5);
         Assert.Equal(3.0, Element.Deserialize<double>(JsonOptions.Mini));
     }
 }

@@ -1,22 +1,63 @@
-﻿namespace Hjson.NET;
+﻿using System.Text;
+
+namespace Hjson.NET;
 
 public record struct HjsonStreamOptions() {
     /// <summary>
-    /// The size in bytes of the buffer used to read the stream.<br/>
-    /// Default: 4096
+    /// The standard, strict JSON format.
+    /// See <see href="https://json.org"/>.
     /// </summary>
-    /// <remarks>
-    /// This is passed to the underlying <see cref="ByteStream"/> and cannot be changed after the <see cref="HjsonStream"/> is created.
-    /// </remarks>
-    public int BufferSize { get; set; } = 4096;
+    public static HjsonStreamOptions Json => new();
     /// <summary>
-    /// The syntax options to use when parsing the stream.<br/>
-    /// Default: <see cref="JsonSyntaxOptions.Hjson"/>
+    /// A variant of JSON allowing line-style comments, block-style comments, and trailing commas.
+    /// See <see href="https://code.visualstudio.com/docs/languages/json#_json-with-comments"/>.
     /// </summary>
-    public JsonSyntaxOptions Syntax { get; set; } = JsonSyntaxOptions.Hjson;
-}
+    public static HjsonStreamOptions Jsonc => Json with {
+        LineStyleComments = true,
+        BlockStyleComments = true,
+        TrailingCommas = true,
+    };
+    /// <summary>
+    /// A variant of JSON allowing unquoted property names, trailing commas, single-quoted strings, escaped string newlines, hexadecimal numbers,
+    /// leading decimal points, trailing decimal points, named floating-point literals, explicit plus-signs, line-style comments, block-style comments,
+    /// and unicode whitespace.
+    /// See <see href="https://json5.org"/>.
+    /// </summary>
+    public static HjsonStreamOptions Json5 => Json with {
+        UnquotedPropertyNames = true,
+        TrailingCommas = true,
+        SingleQuotedStrings = true,
+        EscapedStringNewlines = true,
+        HexadecimalNumbers = true,
+        LeadingDecimalPoints = true,
+        TrailingDecimalPoints = true,
+        NamedFloatingPointLiterals = true,
+        ExplicitPlusSigns = true,
+        LineStyleComments = true,
+        BlockStyleComments = true,
+        UnicodeWhitespace = true,
+    };
+    /// <summary>
+    /// A variant of JSON allowing unquoted property names, trailing commas, single-quoted strings, triple-quoted multi-line strings, unquoted strings,
+    /// escaped string single quotes, line-style comments, block-style comments, hash-style comments, and omitted root object braces.
+    /// </summary>
+    public static HjsonStreamOptions Hjson => Json with {
+        UnquotedPropertyNames = true,
+        TrailingCommas = true,
+        SingleQuotedStrings = true,
+        TripleQuotedMultiLineStrings = true,
+        UnquotedStrings = true,
+        EscapedStringSingleQuotes = true,
+        LineStyleComments = true,
+        BlockStyleComments = true,
+        HashStyleComments = true,
+        OmittedRootObjectBraces = true,
+    };
 
-public record struct JsonSyntaxOptions {
+    /// <summary>
+    /// The text encoding of the wrapped <see cref="Stream"/>.
+    /// </summary>
+    public Encoding StreamEncoding { get; set; } = Encoding.UTF8;
     /// <summary>
     /// Enables/disables line-style comments.
     /// <code>
@@ -150,56 +191,4 @@ public record struct JsonSyntaxOptions {
     /// </code>
     /// </summary>
     public bool OmittedRootObjectBraces { get; set; }
-
-    /// <summary>
-    /// The standard, strict JSON format.
-    /// See <see href="https://json.org"/>.
-    /// </summary>
-    public static JsonSyntaxOptions Json => new() {
-    };
-    /// <summary>
-    /// A variant of JSON allowing line-style comments, block-style comments, and trailing commas.
-    /// See <see href="https://code.visualstudio.com/docs/languages/json#_json-with-comments"/>.
-    /// </summary>
-    public static JsonSyntaxOptions Jsonc => Json with {
-        LineStyleComments = true,
-        BlockStyleComments = true,
-        TrailingCommas = true,
-    };
-    /// <summary>
-    /// A variant of JSON allowing unquoted property names, trailing commas, single-quoted strings, escaped string newlines, hexadecimal numbers,
-    /// leading decimal points, trailing decimal points, named floating-point literals, explicit plus-signs, line-style comments, block-style comments,
-    /// and unicode whitespace.
-    /// See <see href="https://json5.org"/>.
-    /// </summary>
-    public static JsonSyntaxOptions Json5 => Json with {
-        UnquotedPropertyNames = true,
-        TrailingCommas = true,
-        SingleQuotedStrings = true,
-        EscapedStringNewlines = true,
-        HexadecimalNumbers = true,
-        LeadingDecimalPoints = true,
-        TrailingDecimalPoints = true,
-        NamedFloatingPointLiterals = true,
-        ExplicitPlusSigns = true,
-        LineStyleComments = true,
-        BlockStyleComments = true,
-        UnicodeWhitespace = true,
-    };
-    /// <summary>
-    /// A variant of JSON allowing unquoted property names, trailing commas, single-quoted strings, triple-quoted multi-line strings, unquoted strings,
-    /// escaped string single quotes, line-style comments, block-style comments, hash-style comments, and omitted root object braces.
-    /// </summary>
-    public static JsonSyntaxOptions Hjson => Json with {
-        UnquotedPropertyNames = true,
-        TrailingCommas = true,
-        SingleQuotedStrings = true,
-        TripleQuotedMultiLineStrings = true,
-        UnquotedStrings = true,
-        EscapedStringSingleQuotes = true,
-        LineStyleComments = true,
-        BlockStyleComments = true,
-        HashStyleComments = true,
-        OmittedRootObjectBraces = true,
-    };
 }
