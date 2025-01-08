@@ -171,8 +171,8 @@ public class RuneStream : Stream {
             throw new ArgumentException("At least 2 bytes are required.", nameof(Bytes));
         }
         ushort Value = IsBigEndian
-            ? (ushort)((Bytes[0] << 8) | Bytes[1])  // Big-endian: MSB first
-            : (ushort)((Bytes[1] << 8) | Bytes[0]); // Little-endian: LSB first
+            ? (ushort)((Bytes[0] << 8) | Bytes[1])  // Big-endian: Most Significant Byte first
+            : (ushort)((Bytes[1] << 8) | Bytes[0]); // Little-endian: Least Significant Byte first
         bool IsHighSurrogate = char.IsHighSurrogate((char)Value);
         return IsHighSurrogate ? 4 : 2;
     }
