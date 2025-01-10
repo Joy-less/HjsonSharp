@@ -153,6 +153,54 @@ public class RuneStream : Stream {
             Position = OriginalPosition;
         }
     }
+    /// <summary>
+    /// Decodes the preamble (Byte Order Mark / BOM) from the stream.<br/>
+    /// If no preamble is found, <see cref="Encoding.UTF8"/> is assumed.<br/>
+    /// Detects <see cref="Encoding.UTF8"/>, <see cref="Encoding.Unicode"/>, <see cref="Encoding.BigEndianUnicode"/> and
+    /// <see cref="Encoding.UTF32"/>.
+    /// </summary>
+    /// <remarks>
+    /// The stream should be at the beginning, and will be moved after the preamble.
+    /// </remarks>
+    public Encoding DetectEncoding() {
+        long OriginalPosition = Position;
+        int PreambleLength = 0;
+        try {
+            // Read up to 4 bytes
+            Span<byte> LeadingBytes = stackalloc byte[4];
+            int LeadingBytesRead = Read(LeadingBytes);
+            ReadOnlySpan<byte> LeadingBytesReadOnly = LeadingBytes[..LeadingBytesRead];
+
+            // UTF-8
+            if (LeadingBytesReadOnly.StartsWith(Encoding.UTF8.Preamble)) {
+                PreambleLength = Encoding.UTF8.Preamble.Length;
+                return Encoding.UTF8;
+            }
+            // UTF-32
+            else if (LeadingBytesReadOnly.StartsWith(Encoding.UTF32.Preamble)) {
+                PreambleLength = Encoding.UTF32.Preamble.Length;
+                return Encoding.UTF32;
+            }
+            // UTF-16
+            else if (LeadingBytesReadOnly.StartsWith(Encoding.Unicode.Preamble)) {
+                PreambleLength = Encoding.Unicode.Preamble.Length;
+                return Encoding.Unicode;
+            }
+            // Big-endian UTF-16
+            else if (LeadingBytesReadOnly.StartsWith(Encoding.BigEndianUnicode.Preamble)) {
+                PreambleLength = Encoding.BigEndianUnicode.Preamble.Length;
+                return Encoding.BigEndianUnicode;
+            }
+            // Fallback to UTF-8
+            else {
+                return Encoding.UTF8;
+            }
+        }
+        finally {
+            // Move to first byte after preamble
+            Position = OriginalPosition + PreambleLength;
+        }
+    }
 
     /// <summary>
     /// Calculates the length in bytes of a single UTF-8 rune from the bits in its first byte.<br/>

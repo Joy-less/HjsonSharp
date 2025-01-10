@@ -7,7 +7,7 @@ using System.Text.Json.Nodes;
 namespace Hjson.NET;
 
 public sealed class HjsonStream : RuneStream {
-    public HjsonStreamOptions Options { get; }
+    public HjsonStreamOptions Options { get; set; }
 
     public HjsonStream(Stream Stream, HjsonStreamOptions? Options = null)
         : base(new BufferedStream(Stream)) {
@@ -17,9 +17,13 @@ public sealed class HjsonStream : RuneStream {
         : this(new MemoryStream(Bytes), Options) {
     }
     public HjsonStream(string String, HjsonStreamOptions? Options = null)
-        : this((Options ?? HjsonStreamOptions.Hjson).StreamEncoding.GetBytes(String), Options) {
+        : this((Options?.StreamEncoding ?? Encoding.UTF8).GetBytes(String), Options) {
     }
 
+    public static T? ParseElement<T>(Stream Stream, HjsonStreamOptions? Options = null) {
+        using HjsonStream HjsonStream = new(Stream, Options);
+        return HjsonStream.ParseElement<T>();
+    }
     public static T? ParseElement<T>(byte[] Bytes, HjsonStreamOptions? Options = null) {
         using HjsonStream HjsonStream = new(Bytes, Options);
         return HjsonStream.ParseElement<T>();
@@ -228,9 +232,15 @@ public sealed class HjsonStream : RuneStream {
         return false;
     }
     public Rune? ReadRune() {
+        if (Options.StreamEncoding is null) {
+            Options = Options with { StreamEncoding = DetectEncoding() };
+        }
         return ReadRune(Options.StreamEncoding);
     }
     public Rune? PeekRune() {
+        if (Options.StreamEncoding is null) {
+            Options = Options with { StreamEncoding = DetectEncoding() };
+        }
         return PeekRune(Options.StreamEncoding);
     }
     public bool ReadRune(Rune? Expected) {

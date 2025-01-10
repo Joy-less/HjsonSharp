@@ -55,9 +55,10 @@ public record struct HjsonStreamOptions() {
     };
 
     /// <summary>
-    /// The text encoding of the wrapped <see cref="Stream"/>.
+    /// The text encoding of the wrapped <see cref="Stream"/>.<br/>
+    /// If <see langword="null"/>, the encoding will be detected from the stream's preamble.
     /// </summary>
-    public Encoding StreamEncoding { get; set; } = Encoding.UTF8;
+    public Encoding? StreamEncoding { get; set; }
     /// <summary>
     /// Enables/disables line-style comments.
     /// <code>
