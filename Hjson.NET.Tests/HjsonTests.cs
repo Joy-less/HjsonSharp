@@ -68,4 +68,17 @@ public class HjsonTests {
         Assert.Equal(".a", Element.GetProperty("n").Deserialize<string>(JsonOptions.Mini));
         Assert.Equal("5.", Element.GetProperty("o").Deserialize<string>(JsonOptions.Mini));
     }
+    [Fact]
+    public void OneLineOmittedCommasTest() {
+        string Text = """
+            {
+              "a":"b"c:de:f
+            }
+            """;
+
+        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Hjson);
+        Assert.Equal(2, Element.GetPropertyCount());
+        Assert.Equal("b", Element.GetProperty("a").Deserialize<string>(JsonOptions.Mini));
+        Assert.Equal("de:f", Element.GetProperty("c").Deserialize<string>(JsonOptions.Mini));
+    }
 }
