@@ -539,7 +539,8 @@ public sealed class HjsonStream : RuneStream {
             yield return Token;
         }
 
-        bool AllowProperty = true;
+        bool PropertyLegal = true;
+        bool TrailingComma = false;
 
         while (true) {
             // Peek rune
@@ -549,6 +550,13 @@ public sealed class HjsonStream : RuneStream {
 
             // Closing bracket
             if (Rune.Value is '}') {
+                // Trailing comma
+                if (TrailingComma) {
+                    if (!Options.TrailingCommas) {
+                        throw new HjsonException("Trailing commas are not allowed");
+                    }
+                }
+                // End of object
                 yield return new Token(this, JsonTokenType.EndObject, Position);
                 ReadRune();
                 yield break;
@@ -556,7 +564,7 @@ public sealed class HjsonStream : RuneStream {
             // Property name
             else if (Rune.Value is '"') {
                 // Unexpected property name
-                if (!AllowProperty) {
+                if (!PropertyLegal) {
                     throw new HjsonException("Expected `,` before property name in object");
                 }
 
@@ -579,7 +587,8 @@ public sealed class HjsonStream : RuneStream {
                 }
 
                 // Comma
-                AllowProperty = ReadRune(',');
+                TrailingComma = ReadRune(',');
+                PropertyLegal = TrailingComma;
                 // Comments & whitespace
                 foreach (Token Token in ReadCommentsAndWhitespace()) {
                     yield return Token;
@@ -620,8 +629,8 @@ public sealed class HjsonStream : RuneStream {
             yield return Token;
         }
 
-        bool AllowItem = true;
-        long CurrentIndex = 0;
+        bool ItemLegal = true;
+        bool TrailingComma = false;
 
         while (true) {
             // Peek rune
@@ -631,6 +640,13 @@ public sealed class HjsonStream : RuneStream {
 
             // Closing bracket
             if (Rune.Value is ']') {
+                // Trailing comma
+                if (TrailingComma) {
+                    if (!Options.TrailingCommas) {
+                        throw new HjsonException("Trailing commas are not allowed");
+                    }
+                }
+                // End of array
                 yield return new Token(this, JsonTokenType.EndArray, Position);
                 ReadRune();
                 yield break;
@@ -638,7 +654,7 @@ public sealed class HjsonStream : RuneStream {
             // Item
             else {
                 // Unexpected item
-                if (!AllowItem) {
+                if (!ItemLegal) {
                     throw new HjsonException("Expected `,` before item in array");
                 }
 
@@ -653,15 +669,13 @@ public sealed class HjsonStream : RuneStream {
                 }
 
                 // Comma
-                AllowItem = ReadRune(',');
+                TrailingComma = ReadRune(',');
+                ItemLegal = TrailingComma;
 
                 // Comments & whitespace
                 foreach (Token Token in ReadCommentsAndWhitespace()) {
                     yield return Token;
                 }
-
-                // Next array index
-                CurrentIndex++;
             }
         }
     }

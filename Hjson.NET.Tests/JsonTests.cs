@@ -60,4 +60,14 @@ public class JsonTests {
         JsonElement Element = HjsonStream.ParseElement<JsonElement>();
         Assert.Equal(5, Element.Deserialize<int>(JsonOptions.Mini));
     }
+    [Fact]
+    public void TrailingCommasTest() {
+        string Text = """
+            {
+              "a": 1,
+            }
+            """;
+
+        Assert.Throws<HjsonException>(() => HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Json));
+    }
 }
