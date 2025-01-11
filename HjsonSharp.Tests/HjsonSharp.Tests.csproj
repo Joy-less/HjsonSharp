@@ -19,7 +19,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Hjson.NET\Hjson.NET.csproj" />
+    <ProjectReference Include="..\HjsonSharp\HjsonSharp.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />

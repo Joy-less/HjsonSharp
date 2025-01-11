@@ -1,7 +1,7 @@
 ﻿using System.Buffers;
 using System.Text;
 
-namespace Hjson.NET;
+namespace HjsonSharp;
 
 /// <summary>
 /// A stream that can read runes from a byte stream according to a specified encoding.<br/>

@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Hjson.NET;
+namespace HjsonSharp;
 
 public record struct HjsonStreamOptions() {
     /// <summary>

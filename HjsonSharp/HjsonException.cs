@@ -1,4 +1,4 @@
-﻿namespace Hjson.NET;
+﻿namespace HjsonSharp;
 
 /// <summary>
 /// An error occurred when reading or writing HJSON.

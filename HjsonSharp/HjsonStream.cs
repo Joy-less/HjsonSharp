@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace Hjson.NET;
+namespace HjsonSharp;
 
 public sealed class HjsonStream : RuneStream {
     public HjsonStreamOptions Options { get; set; }

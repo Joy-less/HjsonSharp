@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Hjson.NET.Tests;
+namespace HjsonSharp.Tests;
 
 public class EncodingTests {
     [Fact]

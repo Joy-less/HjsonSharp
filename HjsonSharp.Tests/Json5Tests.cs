@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace Hjson.NET.Tests;
+namespace HjsonSharp.Tests;
 
 public class Json5Tests {
     [Fact]
