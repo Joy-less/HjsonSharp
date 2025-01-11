@@ -327,7 +327,7 @@ public sealed class HjsonStream : RuneStream {
 
             // Closing quote
             if (Rune.Value is '"') {
-                return new Token(this, JsonTokenType.String, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
+                break;
             }
             // Escape
             else if (Rune.Value is '\\') {
@@ -376,7 +376,7 @@ public sealed class HjsonStream : RuneStream {
                 else if (EscapedRune.Value is 'v') {
                     StringBuilder.Append('\v');
                 }
-                // Unicode
+                // Unicode hex sequence
                 else if (EscapedRune.Value is 'u') {
                     StringBuilder.Append(ReadCharFromHexSequence());
                 }
@@ -390,6 +390,9 @@ public sealed class HjsonStream : RuneStream {
                 StringBuilder.Append(Rune);
             }
         }
+
+        // End token
+        return new Token(this, JsonTokenType.String, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
     }
     private Token ReadNumber() {
         long TokenPosition = Position;
@@ -562,7 +565,7 @@ public sealed class HjsonStream : RuneStream {
                 yield break;
             }
             // Property name
-            else if (Rune.Value is '"') {
+            else {
                 // Unexpected property name
                 if (!PropertyLegal) {
                     throw new HjsonException("Expected `,` before property name in object");
@@ -572,6 +575,7 @@ public sealed class HjsonStream : RuneStream {
                 foreach (Token Token in ReadPropertyName()) {
                     yield return Token;
                 }
+
                 // Comments & whitespace
                 foreach (Token Token in ReadCommentsAndWhitespace()) {
                     yield return Token;
@@ -581,6 +585,7 @@ public sealed class HjsonStream : RuneStream {
                 foreach (Token Token in ReadElement()) {
                     yield return Token;
                 }
+
                 // Comments & whitespace
                 foreach (Token Token in ReadCommentsAndWhitespace()) {
                     yield return Token;
@@ -589,19 +594,26 @@ public sealed class HjsonStream : RuneStream {
                 // Comma
                 TrailingComma = ReadRune(',');
                 PropertyLegal = TrailingComma;
+
                 // Comments & whitespace
                 foreach (Token Token in ReadCommentsAndWhitespace()) {
                     yield return Token;
                 }
             }
-            // Invalid rune
-            else {
-                throw new HjsonException($"Invalid rune: `{Rune}`");
-            }
         }
     }
     private IEnumerable<Token> ReadPropertyName() {
         long TokenPosition = Position;
+
+        // Unquoted property name
+        if (PeekRune()?.Value is not '"' and not '\'') {
+            if (!Options.EcmaScriptPropertyNames) {
+                throw new HjsonException("ECMAScript property names are not allowed");
+            }
+
+            yield return ReadEcmaScriptPropertyName();
+            yield break;
+        }
 
         // String
         Token String = ReadString();
@@ -616,6 +628,69 @@ public sealed class HjsonStream : RuneStream {
             throw new HjsonException($"Expected `:` after property name in object");
         }
         yield return new Token(this, JsonTokenType.PropertyName, TokenPosition, Position - TokenPosition, String.Value);
+    }
+    private Token ReadEcmaScriptPropertyName() {
+        long TokenPosition = Position;
+
+        // Start token
+        ValueStringBuilder StringBuilder = new();
+
+        while (true) {
+            // Read rune
+            if (ReadRune() is not Rune Rune) {
+                break;
+            }
+
+            // Colon
+            if (Rune.Value is ':') {
+                break;
+            }
+            // Comments & whitespace
+            else if (Rune.Value is '#' or '/' || Rune.IsWhiteSpace(Rune)) {
+                ReadCommentsAndWhitespace();
+
+                // Colon
+                if (!ReadRune(':')) {
+                    throw new HjsonException($"Expected `:` after property name in object");
+                }
+                break;
+            }
+            // Dollar sign
+            else if (Rune.Value is '$') {
+                StringBuilder.Append('$');
+            }
+            // Underscore
+            else if (Rune.Value is '_') {
+                StringBuilder.Append('_');
+            }
+            // Escape
+            else if (Rune.Value is '\\') {
+                // Read escaped rune
+                if (ReadRune() is not Rune EscapedRune) {
+                    throw new HjsonException("Expected escape character after `\\`, got end of stream");
+                }
+
+                // Unicode hex sequence
+                if (EscapedRune.Value is 'u') {
+                    StringBuilder.Append(ReadCharFromHexSequence());
+                }
+                // Invalid escape character
+                else {
+                    throw new HjsonException($"Expected valid escape character after `\\`, got `{EscapedRune}`");
+                }
+            }
+            // Unicode letter
+            else if (Rune.IsLetter(Rune)) {
+                StringBuilder.Append(Rune);
+            }
+            // Invalid rune
+            else {
+                throw new HjsonException($"Unexpected rune in property name: `{Rune}`");
+            }
+        }
+
+        // End token
+        return new Token(this, JsonTokenType.PropertyName, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
     }
     private IEnumerable<Token> ReadArray() {
         // Opening bracket

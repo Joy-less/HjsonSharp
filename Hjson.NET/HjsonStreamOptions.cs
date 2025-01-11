@@ -9,8 +9,8 @@ public record struct HjsonStreamOptions() {
     /// </summary>
     public static HjsonStreamOptions Json => new();
     /// <summary>
-    /// A variant of JSON allowing line-style comments, block-style comments, and trailing commas.
-    /// See <see href="https://code.visualstudio.com/docs/languages/json#_json-with-comments"/>.
+    /// A variant of JSON allowing line-style comments, block-style comments, and trailing commas.<br/>
+    /// <see href="https://code.visualstudio.com/docs/languages/json#_json-with-comments"/>
     /// </summary>
     public static HjsonStreamOptions Jsonc => Json with {
         LineStyleComments = true,
@@ -18,13 +18,13 @@ public record struct HjsonStreamOptions() {
         TrailingCommas = true,
     };
     /// <summary>
-    /// A variant of JSON allowing unquoted property names, trailing commas, single-quoted strings, escaped string newlines, hexadecimal numbers,
+    /// A variant of JSON allowing ECMAScript property names, trailing commas, single-quoted strings, escaped string newlines, hexadecimal numbers,
     /// leading decimal points, trailing decimal points, named floating-point literals, explicit plus-signs, line-style comments, block-style comments,
-    /// and unicode whitespace.
-    /// See <see href="https://json5.org"/>.
+    /// and unicode whitespace.<br/>
+    /// <see href="https://json5.org"/>
     /// </summary>
     public static HjsonStreamOptions Json5 => Json with {
-        UnquotedPropertyNames = true,
+        EcmaScriptPropertyNames = true,
         TrailingCommas = true,
         SingleQuotedStrings = true,
         EscapedStringNewlines = true,
@@ -39,7 +39,8 @@ public record struct HjsonStreamOptions() {
     };
     /// <summary>
     /// A variant of JSON allowing unquoted property names, trailing commas, single-quoted strings, triple-quoted multi-line strings, unquoted strings,
-    /// escaped string single quotes, line-style comments, block-style comments, hash-style comments, and omitted root object braces.
+    /// escaped string single quotes, line-style comments, block-style comments, hash-style comments, and omitted root object braces.<br/>
+    /// <see href="https://hjson.github.io"/>
     /// </summary>
     public static HjsonStreamOptions Hjson => Json with {
         UnquotedPropertyNames = true,
@@ -106,10 +107,21 @@ public record struct HjsonStreamOptions() {
     /// </summary>
     public bool UnquotedPropertyNames { get; set; }
     /// <summary>
+    /// Enables/disables ECMAScript-style property names:
+    /// <code>
+    /// {
+    ///   a$_b\u0065: "b",
+    /// }
+    /// </code>
+    /// 
+    /// </summary>
+    public bool EcmaScriptPropertyNames { get; set; }
+    /// <summary>
     /// Enables/disables single-quoted strings:
     /// <code>
     /// 'string'
     /// </code>
+    /// <see href="https://262.ecma-international.org/5.1/#sec-7.6"/>
     /// </summary>
     public bool SingleQuotedStrings { get; set; }
     /// <summary>

@@ -64,4 +64,16 @@ public class Json5Tests {
         Assert.Equal(1, Element.GetProperty("a").Deserialize<int>(JsonOptions.Mini));
         Assert.Equal([2], Element.GetProperty("b").Deserialize<int[]>(JsonOptions.Mini)!);
     }
+    [Fact]
+    public void EcmaScriptPropertyNamesTest() {
+        string Text = """
+            {
+              a$_b\u0065: "b",
+            }
+            """;
+
+        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Json5);
+        Assert.Equal(1, Element.GetPropertyCount());
+        Assert.Equal("b", Element.GetProperty("a$_b\u0065").Deserialize<string>(JsonOptions.Mini));
+    }
 }
