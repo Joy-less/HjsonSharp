@@ -110,7 +110,7 @@ public record struct HjsonStreamOptions() {
     /// Enables/disables ECMAScript-style property names:
     /// <code>
     /// {
-    ///   a$_b\u0065: "b",
+    ///   a$_b\u0065私: "b",
     /// }
     /// </code>
     /// 

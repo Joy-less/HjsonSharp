@@ -277,7 +277,7 @@ public sealed class HjsonStream : RuneStream {
             return ReadBoolean();
         }
         // String
-        else if (Rune.Value is '"') {
+        else if (Rune.Value is '"' or '\'') {
             return ReadString();
         }
         // Number
@@ -312,8 +312,23 @@ public sealed class HjsonStream : RuneStream {
         long TokenPosition = Position;
 
         // Opening quote
-        if (!ReadRune('"')) {
-            throw new HjsonException($"Expected `\"` to start string");
+        char OpeningQuote;
+        // Double quote
+        if (ReadRune('"')) {
+            OpeningQuote = '"';
+        }
+        else {
+            // Single quote
+            if (ReadRune('\'')) {
+                if (!Options.SingleQuotedStrings) {
+                    throw new HjsonException("Single-quoted strings are not allowed");
+                }
+                OpeningQuote = '\'';
+            }
+            // Invalid quote
+            else {
+                throw new HjsonException($"Expected `\"` to start string");
+            }
         }
 
         // Start token
@@ -322,11 +337,11 @@ public sealed class HjsonStream : RuneStream {
         while (true) {
             // Read rune
             if (ReadRune() is not Rune Rune) {
-                throw new HjsonException("Expected `\"` to end string, got end of stream");
+                throw new HjsonException($"Expected `{OpeningQuote}` to end string, got end of stream");
             }
 
             // Closing quote
-            if (Rune.Value is '"') {
+            if (Rune.Value == OpeningQuote) {
                 break;
             }
             // Escape
@@ -495,7 +510,6 @@ public sealed class HjsonStream : RuneStream {
             if (!Options.ExplicitPlusSigns) {
                 throw new HjsonException("Explicit plus-signs are not allowed");
             }
-
             StringBuilder.Append('+');
             HasSign = true;
         }

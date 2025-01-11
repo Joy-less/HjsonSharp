@@ -29,4 +29,16 @@ public class HjsonTests {
         Assert.Equal(1, Element.GetPropertyCount());
         Assert.Equal("b", Element.GetProperty("abcdef12345_!$%").Deserialize<string>(JsonOptions.Mini));
     }
+    [Fact]
+    public void SingleQuotedStringsTest() {
+        string Text = """
+            {
+              'a': 'b',
+            }
+            """;
+
+        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Hjson);
+        Assert.Equal(1, Element.GetPropertyCount());
+        Assert.Equal("b", Element.GetProperty("a").Deserialize<string>(JsonOptions.Mini));
+    }
 }
