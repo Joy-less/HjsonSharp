@@ -676,8 +676,8 @@ public sealed class HjsonStream : RuneStream {
             }
 
             // Hash-style comment
-            if (Rune.Value is '#') {
-                yield return ReadHashStyleComment();
+            if (Rune.Value is '#' or '/') {
+                yield return ReadComment();
             }
             // End of comments
             else {
@@ -685,24 +685,68 @@ public sealed class HjsonStream : RuneStream {
             }
         }
     }
-    private Token ReadHashStyleComment() {
+    private Token ReadComment() {
         long TokenPosition = Position;
 
-        // Hashtag
-        if (!ReadRune('#')) {
-            throw new HjsonException($"Expected `#` to start hash-style comment");
+        // Comment type
+        bool IsBlockComment = false;
+        if (ReadRune('/')) {
+            // Line-style comment
+            if (ReadRune('/')) {
+                // Ensure line-style comments are enabled
+                if (!Options.LineStyleComments) {
+                    throw new HjsonException("Line-style comments are not allowed");
+                }
+            }
+            // Block-style comment
+            else if (ReadRune('*')) {
+                // Ensure block-style comments are enabled
+                if (!Options.BlockStyleComments) {
+                    throw new HjsonException("Block-style comments are not allowed");
+                }
+                IsBlockComment = true;
+            }
         }
-
-        // Ensure hash-style comments are enabled
-        if (!Options.HashStyleComments) {
-            throw new HjsonException("Hash-style comments are not allowed");
+        // Hash-style comment
+        else if (ReadRune('#')) {
+            // Ensure hash-style comments are enabled
+            if (!Options.HashStyleComments) {
+                throw new HjsonException("Hash-style comments are not allowed");
+            }
+        }
+        // Invalid comment
+        else {
+            throw new HjsonException($"Expected `#` or `//` or `/*` to start comment");
         }
 
         // Create string builder
         ValueStringBuilder StringBuilder = new();
 
         // Read comment
-        while (ReadRune() is Rune CommentRune && CommentRune.Value is not ('\n' or '\r')) {
+        while (true) {
+            // Read rune
+            if (ReadRune() is not Rune CommentRune) {
+                if (IsBlockComment) {
+                    throw new HjsonException("Expected `*/` to end block-style comment, got end of stream");
+                }
+                break;
+            }
+
+            // Check end of block comment
+            if (IsBlockComment) {
+                if (CommentRune.Value is '*' && PeekRune()?.Value is '/') {
+                    ReadRune();
+                    break;
+                }
+            }
+            // Check end of line comment
+            else {
+                if (CommentRune.Value is '\n' or '\r') {
+                    break;
+                }
+            }
+
+            // Append rune to comment
             StringBuilder.Append(CommentRune.Value);
         }
 
