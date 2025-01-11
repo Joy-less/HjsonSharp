@@ -41,4 +41,27 @@ public class HjsonTests {
         Assert.Equal(1, Element.GetPropertyCount());
         Assert.Equal("b", Element.GetProperty("a").Deserialize<string>(JsonOptions.Mini));
     }
+    [Fact]
+    public void UnquotedStringsTest() {
+        string Text = """
+            {
+              "a": b,
+              "c": d{}e
+              "f":g h  i
+              "j":
+              k
+              "l": 123m
+              "m": 12/*3*/
+            }
+            """;
+
+        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Hjson);
+        Assert.Equal(6, Element.GetPropertyCount());
+        Assert.Equal("b,", Element.GetProperty("a").Deserialize<string>(JsonOptions.Mini));
+        Assert.Equal("d{}e", Element.GetProperty("c").Deserialize<string>(JsonOptions.Mini));
+        Assert.Equal("g h  i", Element.GetProperty("f").Deserialize<string>(JsonOptions.Mini));
+        Assert.Equal("k", Element.GetProperty("j").Deserialize<string>(JsonOptions.Mini));
+        Assert.Equal("123m", Element.GetProperty("l").Deserialize<string>(JsonOptions.Mini));
+        Assert.Equal("12", Element.GetProperty("m").Deserialize<string>(JsonOptions.Mini));
+    }
 }

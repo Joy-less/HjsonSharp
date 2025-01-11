@@ -284,6 +284,10 @@ public sealed class HjsonStream : RuneStream {
         else if (Rune.Value is (>= '0' and <= '9') or '.') {
             return ReadNumber();
         }
+        // Unquoted string
+        else if (Options.UnquotedStrings) {
+            return ReadUnquotedString();
+        }
         // Invalid rune
         else {
             throw new HjsonException($"Invalid rune: `{Rune}`");
@@ -325,9 +329,12 @@ public sealed class HjsonStream : RuneStream {
                 }
                 OpeningQuote = '\'';
             }
-            // Invalid quote
+            // Unquoted
             else {
-                throw new HjsonException($"Expected `\"` to start string");
+                if (!Options.UnquotedStrings) {
+                    throw new HjsonException("Unquoted strings are not allowed");
+                }
+                return ReadUnquotedString();
             }
         }
 
@@ -409,6 +416,31 @@ public sealed class HjsonStream : RuneStream {
         // End token
         return new Token(this, JsonTokenType.String, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
     }
+    private Token ReadUnquotedString() {
+        long TokenPosition = Position;
+
+        // Start token
+        ValueStringBuilder StringBuilder = new();
+
+        while (true) {
+            // Read rune
+            if (ReadRune() is not Rune Rune) {
+                break;
+            }
+
+            // Newline
+            if (Rune.Value is '\n' or '\r') {
+                break;
+            }
+            // Rune
+            else {
+                StringBuilder.Append(Rune);
+            }
+        }
+
+        // End token
+        return new Token(this, JsonTokenType.String, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
+    }
     private Token ReadNumber() {
         long TokenPosition = Position;
 
@@ -480,16 +512,22 @@ public sealed class HjsonStream : RuneStream {
             }
             // End of number
             else {
+                // Unquoted string
+                if (Options.UnquotedStrings) {
+                    if (TestIsQuotelessString()) {
+                        Position = TokenPosition;
+                        return ReadUnquotedString();
+                    }
+                }
+
                 if (TrailingDecimalPoint) {
                     if (!Options.TrailingDecimalPoints) {
                         throw new HjsonException("Expected digit after `.`");
                     }
                 }
-
                 if (TrailingExponent) {
                     throw new HjsonException("Expected digit after `e`/`E`");
                 }
-
                 return new Token(this, JsonTokenType.Number, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
             }
         }
@@ -536,10 +574,17 @@ public sealed class HjsonStream : RuneStream {
             }
             // End of number
             else {
+                // Unquoted string
+                if (Options.UnquotedStrings) {
+                    if (TestIsQuotelessString()) {
+                        Position = TokenPosition;
+                        return ReadUnquotedString();
+                    }
+                }
+
                 if (TrailingSign) {
                     throw new HjsonException($"Expected digit after `+`/`-`");
                 }
-
                 return new Token(this, JsonTokenType.Number, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
             }
         }
@@ -926,9 +971,20 @@ public sealed class HjsonStream : RuneStream {
 
         // Literal
         foreach (Rune ExpectedRune in Literal.EnumerateRunes()) {
+            // Read rune
             Rune? ActualRune = ReadRune();
-            if (ActualRune != ExpectedRune) {
-                throw new HjsonException($"Unexpected rune: `{ActualRune}`");
+
+            // Expected rune
+            if (ActualRune == ExpectedRune) {
+                continue;
+            }
+            // Unquoted string
+            else {
+                if (!Options.UnquotedStrings) {
+                    throw new HjsonException("Unquoted strings are not allowed");
+                }
+                Position = TokenPosition;
+                return ReadUnquotedString();
             }
         }
         return new Token(this, TokenType, TokenPosition, Literal.Length);
@@ -955,6 +1011,42 @@ public sealed class HjsonStream : RuneStream {
         // Parse unicode character from 4 hexadecimal digits
         char UnicodeCharacter = (char)ushort.Parse(HexUtf8Bytes, NumberStyles.AllowHexSpecifier);
         return UnicodeCharacter;
+    }
+    private bool TestIsQuotelessString() {
+        long StartTestPosition = Position;
+
+        try {
+            while (true) {
+                // Peek rune
+                if (PeekRune() is not Rune TestRune) {
+                    return false;
+                }
+
+                // Comma
+                if (TestRune.Value is ',') {
+                    ReadRune();
+                }
+                // Comment
+                else if (TestRune.Value is '#' or '/') {
+                    ReadComment();
+                }
+                // Newline
+                else if (TestRune.Value is '\n' or '\r') {
+                    return false;
+                }
+                // Whitespace
+                else if (Rune.IsWhiteSpace(TestRune)) {
+                    ReadRune();
+                }
+                // Invalid non-quoteless-string rune
+                else {
+                    return true;
+                }
+            }
+        }
+        finally {
+            Position = StartTestPosition;
+        }
     }
 
     public readonly record struct Token(HjsonStream HjsonStream, JsonTokenType Type, long Position, long Length = 1, string Value = "") {
