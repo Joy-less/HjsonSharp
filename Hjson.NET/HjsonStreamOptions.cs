@@ -38,13 +38,14 @@ public record struct HjsonStreamOptions() {
         UnicodeWhitespace = true,
     };
     /// <summary>
-    /// A variant of JSON allowing unquoted property names, trailing commas, single-quoted strings, triple-quoted multi-line strings, unquoted strings,
-    /// escaped string single quotes, line-style comments, block-style comments, hash-style comments, and omitted root object braces.<br/>
+    /// A variant of JSON allowing unquoted property names, trailing commas, omitted commas, single-quoted strings, triple-quoted multi-line strings,
+    /// unquoted strings, escaped string single quotes, line-style comments, block-style comments, hash-style comments, and omitted root object braces.<br/>
     /// <see href="https://hjson.github.io"/>
     /// </summary>
     public static HjsonStreamOptions Hjson => Json with {
         UnquotedPropertyNames = true,
         TrailingCommas = true,
+        OmittedCommas = true,
         SingleQuotedStrings = true,
         TripleQuotedMultiLineStrings = true,
         UnquotedStrings = true,
@@ -93,6 +94,17 @@ public record struct HjsonStreamOptions() {
     /// </summary>
     public bool TrailingCommas { get; set; }
     /// <summary>
+    /// Enables/disables omitted commas in arrays and objects.
+    /// <code>
+    /// [
+    ///   1
+    ///   2,
+    ///   3
+    /// ]
+    /// </code>
+    /// </summary>
+    public bool OmittedCommas { get; set; }
+    /// <summary>
     /// Enables/disables unicode whitespace characters larger than one byte.
     /// <code>
     /// \u200A
@@ -100,14 +112,14 @@ public record struct HjsonStreamOptions() {
     /// </summary>
     public bool UnicodeWhitespace { get; set; }
     /// <summary>
-    /// Enables/disables unquoted property names:
+    /// Enables/disables unquoted property names.
     /// <code>
     /// { a: "b" }
     /// </code>
     /// </summary>
     public bool UnquotedPropertyNames { get; set; }
     /// <summary>
-    /// Enables/disables ECMAScript-style property names:
+    /// Enables/disables ECMAScript-style property names.
     /// <code>
     /// {
     ///   a$_b\u0065私: "b",
@@ -117,7 +129,7 @@ public record struct HjsonStreamOptions() {
     /// </summary>
     public bool EcmaScriptPropertyNames { get; set; }
     /// <summary>
-    /// Enables/disables single-quoted strings:
+    /// Enables/disables single-quoted strings.
     /// <code>
     /// 'string'
     /// </code>
@@ -125,7 +137,7 @@ public record struct HjsonStreamOptions() {
     /// </summary>
     public bool SingleQuotedStrings { get; set; }
     /// <summary>
-    /// Enables/disables triple-quoted multi-line strings:
+    /// Enables/disables triple-quoted multi-line strings.
     /// <code>
     /// '''
     /// string
@@ -134,14 +146,14 @@ public record struct HjsonStreamOptions() {
     /// </summary>
     public bool TripleQuotedMultiLineStrings { get; set; }
     /// <summary>
-    /// Enables/disables unquoted strings:
+    /// Enables/disables unquoted strings.
     /// <code>
     /// string
     /// </code>
     /// </summary>
     public bool UnquotedStrings { get; set; }
     /// <summary>
-    /// Enables/disables escaped newlines in strings:
+    /// Enables/disables escaped newlines in strings.
     /// <code>
     /// "hello \
     /// world"
@@ -149,42 +161,42 @@ public record struct HjsonStreamOptions() {
     /// </summary>
     public bool EscapedStringNewlines { get; set; }
     /// <summary>
-    /// Enables/disables escaped single quotes in strings:
+    /// Enables/disables escaped single quotes in strings.
     /// <code>
     /// "\'"
     /// </code>
     /// </summary>
     public bool EscapedStringSingleQuotes { get; set; }
     /// <summary>
-    /// Enables/disables numbers with leading 0's:
+    /// Enables/disables numbers with leading 0's.
     /// <code>
     /// 012
     /// </code>
     /// </summary>
     public bool LeadingZeroes { get; set; }
     /// <summary>
-    /// Enables/disables numbers starting with a decimal point:
+    /// Enables/disables numbers starting with a decimal point.
     /// <code>
     /// .5
     /// </code>
     /// </summary>
     public bool LeadingDecimalPoints { get; set; }
     /// <summary>
-    /// Enables/disables numbers ending with a decimal point:
+    /// Enables/disables numbers ending with a decimal point.
     /// <code>
     /// 5.
     /// </code>
     /// </summary>
     public bool TrailingDecimalPoints { get; set; }
     /// <summary>
-    /// Enables/disables numbers starting with an explicit plus-sign:
+    /// Enables/disables numbers starting with an explicit plus-sign.
     /// <code>
     /// +5
     /// </code>
     /// </summary>
     public bool ExplicitPlusSigns { get; set; }
     /// <summary>
-    /// Enables/disables named literals for numbers:
+    /// Enables/disables named literals for numbers.
     /// <code>
     /// Infinity
     /// -Infinity
@@ -194,14 +206,14 @@ public record struct HjsonStreamOptions() {
     /// </summary>
     public bool NamedFloatingPointLiterals { get; set; }
     /// <summary>
-    /// Enables/disables hexadecimal for numbers:
+    /// Enables/disables hexadecimal for numbers.
     /// <code>
     /// 0xDEADCAFE
     /// </code>
     /// </summary>
     public bool HexadecimalNumbers { get; set; }
     /// <summary>
-    /// Enables/disables omitted braces for root objects:
+    /// Enables/disables omitted braces for root objects.
     /// <code>
     /// a: 5,
     /// b: "..."

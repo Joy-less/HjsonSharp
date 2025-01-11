@@ -607,7 +607,7 @@ public sealed class HjsonStream : RuneStream {
 
                 // Comma
                 TrailingComma = ReadRune(',');
-                PropertyLegal = TrailingComma;
+                PropertyLegal = TrailingComma || Options.OmittedCommas;
 
                 // Comments & whitespace
                 foreach (Token Token in ReadCommentsAndWhitespace()) {
@@ -800,7 +800,7 @@ public sealed class HjsonStream : RuneStream {
 
                 // Comma
                 TrailingComma = ReadRune(',');
-                ItemLegal = TrailingComma;
+                ItemLegal = TrailingComma || Options.OmittedCommas;
 
                 // Comments & whitespace
                 foreach (Token Token in ReadCommentsAndWhitespace()) {
