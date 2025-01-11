@@ -88,4 +88,27 @@ public class JsonTests {
         Assert.Equal([1, 2, 3], Element.GetProperty("first").Deserialize<int[]>(JsonOptions.Mini)!);
         Assert.Equal(2, Element.GetProperty("second").Deserialize<int>(JsonOptions.Mini));
     }
+    [Fact]
+    public void ParseExponentTest() {
+        string Text = """
+            {
+              "1000": 10e3,
+              "2000": 2.0E-3,
+              "-3500": -35e3
+            }
+            """;
+
+        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Json);
+        Assert.Equal(3, Element.GetPropertyCount());
+        Assert.Equal("10e3", Element.GetProperty("1000").Deserialize<string>(JsonOptions.Mini));
+        Assert.Equal(2.0E-3, Element.GetProperty("2000").Deserialize<double>(JsonOptions.Mini));
+        Assert.Equal(-35e3, Element.GetProperty("-3500").Deserialize<double>(JsonOptions.Mini));
+    }
+    [Fact]
+    public void ErroneousNumberTest() {
+        Assert.Throws<HjsonException>(() => HjsonStream.ParseElement<double>("-", HjsonStreamOptions.Json));
+        Assert.Throws<HjsonException>(() => HjsonStream.ParseElement<double>("+", HjsonStreamOptions.Json));
+        Assert.Throws<HjsonException>(() => HjsonStream.ParseElement<double>("-.", HjsonStreamOptions.Json));
+        Assert.Throws<HjsonException>(() => HjsonStream.ParseElement<double>(".", HjsonStreamOptions.Json));
+    }
 }
