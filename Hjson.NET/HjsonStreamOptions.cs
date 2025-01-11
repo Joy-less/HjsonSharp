@@ -35,7 +35,7 @@ public record struct HjsonStreamOptions() {
         ExplicitPlusSigns = true,
         LineStyleComments = true,
         BlockStyleComments = true,
-        UnicodeWhitespace = true,
+        AllWhitespace = true,
     };
     /// <summary>
     /// A variant of JSON allowing unquoted property names, trailing commas, omitted commas, single-quoted strings, triple-quoted multi-line strings,
@@ -105,12 +105,14 @@ public record struct HjsonStreamOptions() {
     /// </summary>
     public bool OmittedCommas { get; set; }
     /// <summary>
-    /// Enables/disables unicode whitespace characters larger than one byte.
+    /// Enables/disables non-JSON whitespace characters.
     /// <code>
-    /// \u200A
+    /// \v (vertical tab)
+    /// \f (form feed)
+    /// \u200A (hair space)
     /// </code>
     /// </summary>
-    public bool UnicodeWhitespace { get; set; }
+    public bool AllWhitespace { get; set; }
     /// <summary>
     /// Enables/disables unquoted property names.
     /// <code>

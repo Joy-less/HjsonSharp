@@ -953,14 +953,14 @@ public sealed class HjsonStream : RuneStream {
                 return;
             }
 
-            // Ascii whitespace
-            if (Rune.Value is ' ' or '\n' or '\r' or '\t' or '\v' or '\f') {
+            // JSON whitespace
+            if (Rune.Value is ' ' or '\n' or '\r' or '\t') {
                 ReadRune();
             }
-            // Unicode whitespace
+            // All whitespace
             else if (Rune.IsWhiteSpace(Rune)) {
-                if (!Options.UnicodeWhitespace) {
-                    throw new HjsonException("Unicode whitespace is not allowed");
+                if (!Options.AllWhitespace) {
+                    throw new HjsonException("Non-JSON whitespace is not allowed");
                 }
                 ReadRune();
             }
