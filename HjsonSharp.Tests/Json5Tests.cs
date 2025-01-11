@@ -76,4 +76,22 @@ public class Json5Tests {
         Assert.Equal(1, Element.GetPropertyCount());
         Assert.Equal("b", Element.GetProperty("a$_b\u0065").Deserialize<string>(JsonOptions.Mini));
     }
+    [Fact]
+    public void NamedFloatingPointLiteralsTest() {
+        string Text = """
+            {
+              "a": Infinity,
+              "b": -Infinity,
+              "c": NaN,
+              "d": -NaN
+            }
+            """;
+
+        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Json5);
+        Assert.Equal(4, Element.GetPropertyCount());
+        Assert.Equal(double.PositiveInfinity, Element.GetProperty("a").Deserialize<double>(JsonOptions.Mini));
+        Assert.Equal(double.NegativeInfinity, Element.GetProperty("b").Deserialize<double>(JsonOptions.Mini));
+        Assert.Equal(double.NaN, Element.GetProperty("c").Deserialize<double>(JsonOptions.Mini));
+        Assert.Equal(double.NaN, Element.GetProperty("d").Deserialize<double>(JsonOptions.Mini));
+    }
 }

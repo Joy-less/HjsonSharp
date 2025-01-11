@@ -281,7 +281,7 @@ public sealed class HjsonStream : RuneStream {
             return ReadString();
         }
         // Number
-        else if (Rune.Value is (>= '0' and <= '9') or '-' or '+' or '.') {
+        else if (Rune.Value is (>= '0' and <= '9') or ('-' or '+') or '.' or ('I' or 'N')) {
             return ReadNumber();
         }
         // Unquoted string
@@ -481,6 +481,19 @@ public sealed class HjsonStream : RuneStream {
             }
             else {
                 throw new HjsonException("Leading decimal points are not allowed");
+            }
+        }
+
+        // Named floating point literal
+        // TODO: Make sure this works with unquoted strings. Write a new ReadLiteralToken method.
+        if (Options.NamedFloatingPointLiterals) {
+            if (PeekRune() is Rune LiteralRune && LiteralRune.Value is 'I' or 'N') {
+                string Literal = LiteralRune.Value is 'I' ? "Infinity" : "NaN";
+
+                // Append literal
+                ReadLiteralToken(JsonTokenType.String, Literal);
+                StringBuilder.Append(Literal);
+                return new Token(this, JsonTokenType.String, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
             }
         }
 
