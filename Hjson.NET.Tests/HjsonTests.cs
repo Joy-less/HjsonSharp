@@ -17,4 +17,16 @@ public class HjsonTests {
         Assert.Equal(1, Element.GetProperty("first").Deserialize<int>(JsonOptions.Mini));
         Assert.Equal(2, Element.GetProperty("second").Deserialize<int>(JsonOptions.Mini));
     }
+    [Fact]
+    public void UnquotedPropertyNamesTest() {
+        string Text = """
+            {
+              abcdef12345_!$%: "b",
+            }
+            """;
+
+        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Hjson);
+        Assert.Equal(1, Element.GetPropertyCount());
+        Assert.Equal("b", Element.GetProperty("abcdef12345_!$%").Deserialize<string>(JsonOptions.Mini));
+    }
 }

@@ -606,13 +606,18 @@ public sealed class HjsonStream : RuneStream {
         long TokenPosition = Position;
 
         // Unquoted property name
-        if (PeekRune()?.Value is not '"' and not '\'') {
-            if (!Options.EcmaScriptPropertyNames) {
-                throw new HjsonException("ECMAScript property names are not allowed");
+        if (PeekRune()?.Value is not ('"' or '\'')) {
+            if (Options.EcmaScriptPropertyNames) {
+                yield return ReadEcmaScriptPropertyName();
+                yield break;
             }
-
-            yield return ReadEcmaScriptPropertyName();
-            yield break;
+            else if (Options.UnquotedPropertyNames) {
+                yield return ReadUnquotedPropertyName();
+                yield break;
+            }
+            else {
+                throw new HjsonException("Unquoted property names are not allowed");
+            }
         }
 
         // String
@@ -636,13 +641,14 @@ public sealed class HjsonStream : RuneStream {
         ValueStringBuilder StringBuilder = new();
 
         while (true) {
-            // Read rune
-            if (ReadRune() is not Rune Rune) {
+            // Peek rune
+            if (PeekRune() is not Rune Rune) {
                 break;
             }
 
             // Colon
             if (Rune.Value is ':') {
+                ReadRune();
                 break;
             }
             // Comments & whitespace
@@ -657,14 +663,17 @@ public sealed class HjsonStream : RuneStream {
             }
             // Dollar sign
             else if (Rune.Value is '$') {
+                ReadRune();
                 StringBuilder.Append('$');
             }
             // Underscore
             else if (Rune.Value is '_') {
+                ReadRune();
                 StringBuilder.Append('_');
             }
             // Escape
             else if (Rune.Value is '\\') {
+                ReadRune();
                 // Read escaped rune
                 if (ReadRune() is not Rune EscapedRune) {
                     throw new HjsonException("Expected escape character after `\\`, got end of stream");
@@ -681,11 +690,43 @@ public sealed class HjsonStream : RuneStream {
             }
             // Unicode letter
             else if (Rune.IsLetter(Rune)) {
+                ReadRune();
                 StringBuilder.Append(Rune);
             }
             // Invalid rune
             else {
                 throw new HjsonException($"Unexpected rune in property name: `{Rune}`");
+            }
+        }
+
+        // End token
+        return new Token(this, JsonTokenType.PropertyName, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
+    }
+    private Token ReadUnquotedPropertyName() {
+        long TokenPosition = Position;
+
+        // Start token
+        ValueStringBuilder StringBuilder = new();
+
+        while (true) {
+            // Peek rune
+            if (PeekRune() is not Rune Rune) {
+                break;
+            }
+
+            // Colon
+            if (Rune.Value is ':') {
+                ReadRune();
+                break;
+            }
+            // Invalid rune
+            else if (Rune.Value is ',' or ':' or '[' or ']' or '{' or '}' || Rune.IsWhiteSpace(Rune)) {
+                throw new HjsonException($"Unexpected rune in property name: `{Rune}`");
+            }
+            // Valid rune
+            else {
+                ReadRune();
+                StringBuilder.Append(Rune);
             }
         }
 
