@@ -1,15 +1,14 @@
 # Hjson.NET
- 
-## Objectives
 
-**System.Text.Json compatible:** Parse HJSON directly to `JsonElement`.
+A customisable streaming parser for [HJSON](https://hjson.github.io), with support for [JSON](https://json.org), [JSONC](https://code.visualstudio.com/docs/languages/json#_json-with-comments) and [JSON5](https://json5.org).
 
-**Streaming parser:** Parse one token at a time, without loading the entire document into memory.
+## Features
 
-**Incomplete document:** Option to parse incomplete HJSON (such as `{"key": "val`).
+- **Compatible with System.Text.Json:** Parse HJSON directly to `System.Text.JsonElement`.
+- **Token streaming:** Parse one token at a time without loading the entire document into memory.
+- **Customisable:** Pick and choose which extra features on top of JSON you want, with presets for HJSON, JSON, JSONC and JSON5.
+- **Unicode compatible:** Compatible with UTF-8, UTF-16, UTF-32 and ASCII.
 
-**Multiple variants:** Support for the following JSON variants: JSON, JSONC, JSON5, HJSON.
+## Todo
 
-**Minimal allocation:** Minimise heap allocations by using structs and spans where possible.
-
-**Unicode compatible:** Compatible with UTF-8, UTF-16, and UTF-32.
+- **Incomplete documents:** Parse incomplete documents (such as `{"key": "val`).
