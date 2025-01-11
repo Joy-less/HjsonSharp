@@ -70,4 +70,22 @@ public class JsonTests {
 
         Assert.Throws<HjsonException>(() => HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Json));
     }
+    [Fact]
+    public void ParseNestedArrayTest() {
+        string Text = """
+            {
+              "first": [
+                1,
+                2,
+                3
+              ],
+              "second": 2
+            }
+            """;
+
+        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Json);
+        Assert.Equal(2, Element.GetPropertyCount());
+        Assert.Equal([1, 2, 3], Element.GetProperty("first").Deserialize<int[]>(JsonOptions.Mini)!);
+        Assert.Equal(2, Element.GetProperty("second").Deserialize<int>(JsonOptions.Mini));
+    }
 }

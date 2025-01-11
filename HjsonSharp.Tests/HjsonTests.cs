@@ -73,12 +73,16 @@ public class HjsonTests {
         string Text = """
             {
               "a":"b"c:de:f
+              "g": [
+                1 2
+              ]
             }
             """;
 
         JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Hjson);
-        Assert.Equal(2, Element.GetPropertyCount());
+        Assert.Equal(3, Element.GetPropertyCount());
         Assert.Equal("b", Element.GetProperty("a").Deserialize<string>(JsonOptions.Mini));
         Assert.Equal("de:f", Element.GetProperty("c").Deserialize<string>(JsonOptions.Mini));
+        Assert.Equal(["1 2"], Element.GetProperty("g").Deserialize<string[]>(JsonOptions.Mini)!);
     }
 }
