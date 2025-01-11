@@ -449,6 +449,10 @@ public sealed class HjsonStream : RuneStream {
 
         // Leading decimal point
         if (ReadRune('.')) {
+            if (Options.UnquotedStrings) {
+                Position = TokenPosition;
+                return ReadUnquotedString();
+            }
             if (!Options.LeadingDecimalPoints) {
                 throw new HjsonException("Leading decimal points are not allowed");
             }

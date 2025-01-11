@@ -52,16 +52,20 @@ public class HjsonTests {
               k
               "l": 123m
               "m": 12/*3*/
+              "n": .a
+              "o": 5.
             }
             """;
 
         JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Hjson);
-        Assert.Equal(6, Element.GetPropertyCount());
+        Assert.Equal(8, Element.GetPropertyCount());
         Assert.Equal("b,", Element.GetProperty("a").Deserialize<string>(JsonOptions.Mini));
         Assert.Equal("d{}e", Element.GetProperty("c").Deserialize<string>(JsonOptions.Mini));
         Assert.Equal("g h  i", Element.GetProperty("f").Deserialize<string>(JsonOptions.Mini));
         Assert.Equal("k", Element.GetProperty("j").Deserialize<string>(JsonOptions.Mini));
         Assert.Equal("123m", Element.GetProperty("l").Deserialize<string>(JsonOptions.Mini));
         Assert.Equal("12", Element.GetProperty("m").Deserialize<string>(JsonOptions.Mini));
+        Assert.Equal(".a", Element.GetProperty("n").Deserialize<string>(JsonOptions.Mini));
+        Assert.Equal("5.", Element.GetProperty("o").Deserialize<string>(JsonOptions.Mini));
     }
 }
