@@ -60,6 +60,10 @@ public record struct HjsonStreamOptions() {
     /// </summary>
     public Encoding? StreamEncoding { get; set; }
     /// <summary>
+    /// Whether to avoid disposing the inner stream when the <see cref="HjsonStream"/> is disposed.
+    /// </summary>
+    public bool LeaveStreamOpen { get; set; }
+    /// <summary>
     /// Enables/disables line-style comments.
     /// <code>
     /// // comment

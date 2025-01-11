@@ -3,6 +3,10 @@ using System.Text;
 
 namespace Hjson.NET;
 
+/// <summary>
+/// A stream that can read runes from a byte stream according to a specified encoding.<br/>
+/// <see cref="InnerStream"/> must be manually disposed.
+/// </summary>
 public class RuneStream : Stream {
     public Stream InnerStream { get; }
 
@@ -18,6 +22,9 @@ public class RuneStream : Stream {
     public override bool CanWrite => InnerStream.CanWrite;
     public override long Length => InnerStream.Length;
     public override long Position { get => InnerStream.Position; set => InnerStream.Position = value; }
+    public override bool CanTimeout => base.CanTimeout;
+    public override int ReadTimeout { get => base.ReadTimeout; set => base.ReadTimeout = value; }
+    public override int WriteTimeout { get => base.WriteTimeout; set => base.WriteTimeout = value; }
 
     public override void Flush() => InnerStream.Flush();
     public override int Read(byte[] Buffer, int Offset, int Count) => InnerStream.Read(Buffer, Offset, Count);
@@ -25,6 +32,21 @@ public class RuneStream : Stream {
     public override long Seek(long Offset, SeekOrigin Origin) => InnerStream.Seek(Offset, Origin);
     public override void SetLength(long Value) => InnerStream.SetLength(Value);
     public override void Write(byte[] Buffer, int Offset, int Count) => InnerStream.Write(Buffer, Offset, Count);
+    public override IAsyncResult BeginRead(byte[] Buffer, int Offset, int Count, AsyncCallback? Callback, object? State) => InnerStream.BeginRead(Buffer, Offset, Count, Callback, State);
+    public override IAsyncResult BeginWrite(byte[] Buffer, int Offset, int Count, AsyncCallback? Callback, object? State) => InnerStream.BeginWrite(Buffer, Offset, Count, Callback, State);
+    public override void Close() => InnerStream.Close();
+    public override void CopyTo(Stream Destination, int BufferSize) => InnerStream.CopyTo(Destination, BufferSize);
+    public override Task CopyToAsync(Stream Destination, int BufferSize, CancellationToken CancellationToken) => InnerStream.CopyToAsync(Destination, BufferSize, CancellationToken);
+    public override int EndRead(IAsyncResult AsyncResult) => InnerStream.EndRead(AsyncResult);
+    public override void EndWrite(IAsyncResult AsyncResult) => InnerStream.EndWrite(AsyncResult);
+    public override Task FlushAsync(CancellationToken CancellationToken) => InnerStream.FlushAsync(CancellationToken);
+    public override int Read(Span<byte> Buffer) => InnerStream.Read(Buffer);
+    public override Task<int> ReadAsync(byte[] Buffer, int Offset, int Count, CancellationToken CancellationToken) => InnerStream.ReadAsync(Buffer, Offset, Count, CancellationToken);
+    public override ValueTask<int> ReadAsync(Memory<byte> Buffer, CancellationToken CancellationToken = default) => InnerStream.ReadAsync(Buffer, CancellationToken);
+    public override void Write(ReadOnlySpan<byte> Buffer) => InnerStream.Write(Buffer);
+    public override Task WriteAsync(byte[] Buffer, int Offset, int Count, CancellationToken CancellationToken) => InnerStream.WriteAsync(Buffer, Offset, Count, CancellationToken);
+    public override ValueTask WriteAsync(ReadOnlyMemory<byte> Buffer, CancellationToken CancellationToken = default) => InnerStream.WriteAsync(Buffer, CancellationToken);
+    public override void WriteByte(byte Value) => InnerStream.WriteByte(Value);
 
     /// <summary>
     /// Decodes a rune from the stream according to the specified encoding.<br/>
@@ -68,7 +90,7 @@ public class RuneStream : Stream {
             }
 
             // Ensure byte is valid ASCII character
-            if (Byte is < 0 or > 127) {
+            if (Byte > 127) {
                 throw new HjsonException("Could not decode rune from ASCII bytes");
             }
             return new Rune((byte)Byte);

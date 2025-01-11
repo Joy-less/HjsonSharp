@@ -254,6 +254,14 @@ public sealed class HjsonStream : RuneStream {
         return ReadRune(new Rune(Expected));
     }
 
+    protected override void Dispose(bool Disposing) {
+        if (Disposing) {
+            if (!Options.LeaveStreamOpen) {
+                InnerStream.Dispose();
+            }
+        }
+    }
+
     private Token ReadPrimitiveElement() {
         // Peek rune
         if (PeekRune() is not Rune Rune) {
