@@ -178,8 +178,7 @@ public class RuneStream : Stream {
     /// <summary>
     /// Decodes the preamble (Byte Order Mark / BOM) from the stream.<br/>
     /// If no preamble is found, <see cref="Encoding.UTF8"/> is assumed.<br/>
-    /// Detects <see cref="Encoding.UTF8"/>, <see cref="Encoding.Unicode"/>, <see cref="Encoding.BigEndianUnicode"/> and
-    /// <see cref="Encoding.UTF32"/>.
+    /// Detects <see cref="Encoding.UTF8"/>, <see cref="Encoding.Unicode"/>, <see cref="Encoding.BigEndianUnicode"/> and <see cref="Encoding.UTF32"/>.
     /// </summary>
     /// <remarks>
     /// The stream should be at the beginning, and will be moved after the preamble.

@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="HjsonSharp.Benchmarks/HjsonSharp.Benchmarks.csproj" />
   <Project Path="HjsonSharp.Tests/HjsonSharp.Tests.csproj" />
   <Project Path="HjsonSharp/HjsonSharp.csproj" />
 </Solution>
