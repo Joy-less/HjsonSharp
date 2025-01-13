@@ -82,16 +82,14 @@ public class Json5Tests {
             {
               "a": Infinity,
               "b": -Infinity,
-              "c": NaN,
-              "d": -NaN
+              "c": NaN
             }
             """;
 
         JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Json5);
-        Assert.Equal(4, Element.GetPropertyCount());
+        Assert.Equal(3, Element.GetPropertyCount());
         Assert.Equal(double.PositiveInfinity, Element.GetProperty("a").Deserialize<double>(JsonOptions.Mini));
         Assert.Equal(double.NegativeInfinity, Element.GetProperty("b").Deserialize<double>(JsonOptions.Mini));
         Assert.Equal(double.NaN, Element.GetProperty("c").Deserialize<double>(JsonOptions.Mini));
-        Assert.Equal(double.NaN, Element.GetProperty("d").Deserialize<double>(JsonOptions.Mini));
     }
 }

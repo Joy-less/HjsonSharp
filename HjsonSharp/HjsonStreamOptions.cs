@@ -153,6 +153,9 @@ public record struct HjsonStreamOptions() {
     /// string
     /// </code>
     /// </summary>
+    /// <remarks>
+    /// Since unquoted strings are terminated by a newline, <see cref="OmittedCommas"/> should also be <see langword="true"/>.
+    /// </remarks>
     public bool UnquotedStrings { get; set; }
     /// <summary>
     /// Enables/disables escaped newlines in strings.
