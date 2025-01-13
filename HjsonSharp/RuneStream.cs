@@ -73,10 +73,10 @@ public class RuneStream : Stream {
             // Read remaining bytes (up to 3 more)
             Span<byte> Bytes = stackalloc byte[SequenceLength];
             Bytes[0] = (byte)FirstByte;
-            int TotalBytes = 1 + Read(Bytes[1..]);
+            int TotalBytesRead = 1 + Read(Bytes[1..]);
 
             // Decode rune from UTF-8 bytes
-            if (Rune.DecodeFromUtf8(Bytes, out Rune Result, out _) is not OperationStatus.Done) {
+            if (Rune.DecodeFromUtf8(Bytes[..TotalBytesRead], out Rune Result, out _) is not OperationStatus.Done) {
                 throw new HjsonException("Could not decode rune from UTF-8 bytes");
             }
             return Result;
