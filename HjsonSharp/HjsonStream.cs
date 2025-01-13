@@ -558,10 +558,11 @@ public sealed class HjsonStream : RuneStream {
 
         bool ParsedExponent = false;
         bool ParsedDecimalPoint = false;
-        bool ParsedDigit = false;
+        bool ParsedNonZeroDigit = false;
         bool TrailingExponent = false;
         bool TrailingDecimalPoint = false;
         bool TrailingSign = false;
+        bool LeadingZero = false;
 
         // Sign
         if (ReadRune('-')) {
@@ -621,13 +622,14 @@ public sealed class HjsonStream : RuneStream {
 
             // Digit
             if (Rune?.Value is >= '0' and <= '9') {
-                if (!ParsedDigit && Rune.Value.Value is '0') {
-                    if (!Options.LeadingZeroes) {
-                        throw new HjsonException("Leading zeroes are not allowed");
+                if (Rune.Value.Value is '0') {
+                    if (!ParsedNonZeroDigit) {
+                        LeadingZero = true;
                     }
                 }
-
-                ParsedDigit = true;
+                else {
+                    ParsedNonZeroDigit = true;
+                }
 
                 TrailingExponent = false;
                 TrailingDecimalPoint = false;
@@ -681,8 +683,8 @@ public sealed class HjsonStream : RuneStream {
             }
             // End of number
             else {
-                if (TrailingDecimalPoint) {
-                    if (!Options.TrailingDecimalPoints) {
+                if (!Options.TrailingDecimalPoints) {
+                    if (TrailingDecimalPoint) {
                         if (Options.UnquotedStrings) {
                             Position = TokenPosition;
                             return ReadUnquotedString();
@@ -703,6 +705,15 @@ public sealed class HjsonStream : RuneStream {
                         return ReadUnquotedString();
                     }
                     throw new HjsonException("Expected digit after sign");
+                }
+                if (!Options.LeadingZeroes) {
+                    if (LeadingZero && ParsedNonZeroDigit) {
+                        if (Options.UnquotedStrings) {
+                            Position = TokenPosition;
+                            return ReadUnquotedString();
+                        }
+                        throw new HjsonException("Leading zeroes are not allowed");
+                    }
                 }
 
                 // Detect unquoted string (e.g. `123 a`)
