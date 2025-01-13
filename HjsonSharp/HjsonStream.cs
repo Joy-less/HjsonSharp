@@ -24,19 +24,31 @@ public sealed class HjsonStream : RuneStream {
         using HjsonStream HjsonStream = new(Stream, Options);
         return HjsonStream.ParseElement<T>();
     }
+    public static JsonElement ParseElement(Stream Stream, HjsonStreamOptions? Options = null) {
+        return ParseElement<JsonElement>(Stream, Options);
+    }
     public static T? ParseElement<T>(byte[] Bytes, HjsonStreamOptions? Options = null) {
         using HjsonStream HjsonStream = new(Bytes, Options);
         return HjsonStream.ParseElement<T>();
+    }
+    public static JsonElement ParseElement(byte[] Bytes, HjsonStreamOptions? Options = null) {
+        return ParseElement<JsonElement>(Bytes, Options);
     }
     public static T? ParseElement<T>(string String, HjsonStreamOptions? Options = null) {
         using HjsonStream HjsonStream = new(String, Options);
         return HjsonStream.ParseElement<T>();
     }
+    public static JsonElement ParseElement(string String, HjsonStreamOptions? Options = null) {
+        return ParseElement<JsonElement>(String, Options);
+    }
 
     public T? ParseElement<T>() {
         return ParseNode().Deserialize<T>(JsonOptions.Mini);
     }
-    public bool ParseElement<T>(out T? Result) {
+    public JsonElement ParseElement() {
+        return ParseElement<JsonElement>();
+    }
+    public bool TryParseElement<T>(out T? Result) {
         try {
             Result = ParseElement<T>();
             return true;
@@ -45,6 +57,9 @@ public sealed class HjsonStream : RuneStream {
             Result = default;
             return false;
         }
+    }
+    public bool TryParseElement(out JsonElement Result) {
+        return TryParseElement<JsonElement>(out Result);
     }
     public JsonNode? ParseNode() {
         JsonNode? CurrentNode = null;
@@ -145,6 +160,16 @@ public sealed class HjsonStream : RuneStream {
 
         // End of stream
         throw new HjsonException("Expected token, got end of stream");
+    }
+    public bool TryParseNode(out JsonNode? Result) {
+        try {
+            Result = ParseNode();
+            return true;
+        }
+        catch (Exception) {
+            Result = null;
+            return false;
+        }
     }
     public IEnumerable<Token> ReadElement() {
         // Comments & whitespace
