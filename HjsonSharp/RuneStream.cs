@@ -16,7 +16,8 @@ public class RuneStream : Stream {
     public Stream InnerStream { get; }
 
     /// <summary>
-    /// The stream should be a <see cref="BufferedStream"/> for performance.
+    /// Constructs a stream that reads runes from a byte stream.<br/>
+    /// The stream should be a <see cref="BufferedStream"/> if not stored in memory.
     /// </summary>
     public RuneStream(Stream InnerStream) {
         this.InnerStream = InnerStream;
