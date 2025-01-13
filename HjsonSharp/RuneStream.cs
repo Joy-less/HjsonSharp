@@ -4,10 +4,15 @@ using System.Text;
 namespace HjsonSharp;
 
 /// <summary>
-/// A stream that can read runes from a byte stream according to a specified encoding.<br/>
-/// <see cref="InnerStream"/> must be manually disposed.
+/// A stream that can read runes from a byte stream according to a specified encoding.
 /// </summary>
+/// <remarks>
+/// <see cref="InnerStream"/> must be manually disposed.
+/// </remarks>
 public class RuneStream : Stream {
+    /// <summary>
+    /// The wrapped stream to decode runes from.
+    /// </summary>
     public Stream InnerStream { get; }
 
     /// <summary>
@@ -17,36 +22,67 @@ public class RuneStream : Stream {
         this.InnerStream = InnerStream;
     }
 
+    #region Overrides
+    /// <inheritdoc/>
     public override bool CanRead => InnerStream.CanRead;
+    /// <inheritdoc/>
     public override bool CanSeek => InnerStream.CanSeek;
+    /// <inheritdoc/>
     public override bool CanWrite => InnerStream.CanWrite;
+    /// <inheritdoc/>
     public override long Length => InnerStream.Length;
+    /// <inheritdoc/>
     public override long Position { get => InnerStream.Position; set => InnerStream.Position = value; }
+    /// <inheritdoc/>
     public override bool CanTimeout => base.CanTimeout;
+    /// <inheritdoc/>
     public override int ReadTimeout { get => base.ReadTimeout; set => base.ReadTimeout = value; }
+    /// <inheritdoc/>
     public override int WriteTimeout { get => base.WriteTimeout; set => base.WriteTimeout = value; }
 
+    /// <inheritdoc/>
     public override void Flush() => InnerStream.Flush();
+    /// <inheritdoc/>
     public override int Read(byte[] Buffer, int Offset, int Count) => InnerStream.Read(Buffer, Offset, Count);
+    /// <inheritdoc/>
     public override int ReadByte() => InnerStream.ReadByte();
+    /// <inheritdoc/>
     public override long Seek(long Offset, SeekOrigin Origin) => InnerStream.Seek(Offset, Origin);
+    /// <inheritdoc/>
     public override void SetLength(long Value) => InnerStream.SetLength(Value);
+    /// <inheritdoc/>
     public override void Write(byte[] Buffer, int Offset, int Count) => InnerStream.Write(Buffer, Offset, Count);
+    /// <inheritdoc/>
     public override IAsyncResult BeginRead(byte[] Buffer, int Offset, int Count, AsyncCallback? Callback, object? State) => InnerStream.BeginRead(Buffer, Offset, Count, Callback, State);
+    /// <inheritdoc/>
     public override IAsyncResult BeginWrite(byte[] Buffer, int Offset, int Count, AsyncCallback? Callback, object? State) => InnerStream.BeginWrite(Buffer, Offset, Count, Callback, State);
+    /// <inheritdoc/>
     public override void Close() => InnerStream.Close();
+    /// <inheritdoc/>
     public override void CopyTo(Stream Destination, int BufferSize) => InnerStream.CopyTo(Destination, BufferSize);
+    /// <inheritdoc/>
     public override Task CopyToAsync(Stream Destination, int BufferSize, CancellationToken CancellationToken) => InnerStream.CopyToAsync(Destination, BufferSize, CancellationToken);
+    /// <inheritdoc/>
     public override int EndRead(IAsyncResult AsyncResult) => InnerStream.EndRead(AsyncResult);
+    /// <inheritdoc/>
     public override void EndWrite(IAsyncResult AsyncResult) => InnerStream.EndWrite(AsyncResult);
+    /// <inheritdoc/>
     public override Task FlushAsync(CancellationToken CancellationToken) => InnerStream.FlushAsync(CancellationToken);
+    /// <inheritdoc/>
     public override int Read(Span<byte> Buffer) => InnerStream.Read(Buffer);
+    /// <inheritdoc/>
     public override Task<int> ReadAsync(byte[] Buffer, int Offset, int Count, CancellationToken CancellationToken) => InnerStream.ReadAsync(Buffer, Offset, Count, CancellationToken);
+    /// <inheritdoc/>
     public override ValueTask<int> ReadAsync(Memory<byte> Buffer, CancellationToken CancellationToken = default) => InnerStream.ReadAsync(Buffer, CancellationToken);
+    /// <inheritdoc/>
     public override void Write(ReadOnlySpan<byte> Buffer) => InnerStream.Write(Buffer);
+    /// <inheritdoc/>
     public override Task WriteAsync(byte[] Buffer, int Offset, int Count, CancellationToken CancellationToken) => InnerStream.WriteAsync(Buffer, Offset, Count, CancellationToken);
+    /// <inheritdoc/>
     public override ValueTask WriteAsync(ReadOnlyMemory<byte> Buffer, CancellationToken CancellationToken = default) => InnerStream.WriteAsync(Buffer, CancellationToken);
+    /// <inheritdoc/>
     public override void WriteByte(byte Value) => InnerStream.WriteByte(Value);
+    #endregion
 
     /// <summary>
     /// Decodes a rune from the stream according to the specified encoding.<br/>

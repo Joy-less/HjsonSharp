@@ -2,6 +2,9 @@
 
 namespace HjsonSharp;
 
+/// <summary>
+/// Options used by <see cref="HjsonStream"/> including feature switches.
+/// </summary>
 public record struct HjsonStreamOptions() {
     /// <summary>
     /// The standard, strict JSON format.

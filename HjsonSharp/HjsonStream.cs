@@ -6,48 +6,85 @@ using System.Text.Json.Nodes;
 
 namespace HjsonSharp;
 
+/// <summary>
+/// A stream that can read HJSON from a byte stream according to a specified encoding.<br/>
+/// </summary>
+/// <remarks>
+/// <see cref="RuneStream.InnerStream"/> must be manually disposed.
+/// </remarks>
 public sealed class HjsonStream : RuneStream {
+    /// <summary>
+    /// The options used by the stream including feature switches.
+    /// </summary>
     public HjsonStreamOptions Options { get; set; }
 
+    /// <summary>
+    /// Constructs a stream that reads HJSON from a byte stream.
+    /// </summary>
     public HjsonStream(Stream Stream, HjsonStreamOptions? Options = null)
         : base(new BufferedStream(Stream)) {
         this.Options = Options ?? HjsonStreamOptions.Hjson;
     }
+    /// <summary>
+    /// Constructs a stream that reads HJSON from a byte array.
+    /// </summary>
     public HjsonStream(byte[] Bytes, HjsonStreamOptions? Options = null)
         : this(new MemoryStream(Bytes), Options) {
     }
+    /// <summary>
+    /// Constructs a stream that reads HJSON from a string encoded to UTF-8.
+    /// </summary>
     public HjsonStream(string String, HjsonStreamOptions? Options = null)
         : this((Options?.StreamEncoding ?? Encoding.UTF8).GetBytes(String), Options) {
     }
 
+    /// <summary>
+    /// Parses a single element from the stream.
+    /// </summary>
     public static T? ParseElement<T>(Stream Stream, HjsonStreamOptions? Options = null) {
         using HjsonStream HjsonStream = new(Stream, Options);
         return HjsonStream.ParseElement<T>();
     }
+    /// <inheritdoc cref="ParseElement{T}(Stream, HjsonStreamOptions?)"/>
     public static JsonElement ParseElement(Stream Stream, HjsonStreamOptions? Options = null) {
         return ParseElement<JsonElement>(Stream, Options);
     }
+    /// <summary>
+    /// Parses a single element from the byte array.
+    /// </summary>
     public static T? ParseElement<T>(byte[] Bytes, HjsonStreamOptions? Options = null) {
         using HjsonStream HjsonStream = new(Bytes, Options);
         return HjsonStream.ParseElement<T>();
     }
+    /// <inheritdoc cref="ParseElement{T}(byte[], HjsonStreamOptions?)"/>
     public static JsonElement ParseElement(byte[] Bytes, HjsonStreamOptions? Options = null) {
         return ParseElement<JsonElement>(Bytes, Options);
     }
+    /// <summary>
+    /// Parses a single element from the string encoded to UTF-8.
+    /// </summary>
     public static T? ParseElement<T>(string String, HjsonStreamOptions? Options = null) {
         using HjsonStream HjsonStream = new(String, Options);
         return HjsonStream.ParseElement<T>();
     }
+    /// <inheritdoc cref="ParseElement{T}(string, HjsonStreamOptions?)"/>
     public static JsonElement ParseElement(string String, HjsonStreamOptions? Options = null) {
         return ParseElement<JsonElement>(String, Options);
     }
 
+    /// <summary>
+    /// Parses a single element from the stream.
+    /// </summary>
     public T? ParseElement<T>() {
         return ParseNode().Deserialize<T>(JsonOptions.Mini);
     }
+    /// <inheritdoc cref="ParseElement{T}()"/>
     public JsonElement ParseElement() {
         return ParseElement<JsonElement>();
     }
+    /// <summary>
+    /// Tries to parse a single element from the stream, returning <see langword="false"/> if an exception occurs.
+    /// </summary>
     public bool TryParseElement<T>(out T? Result) {
         try {
             Result = ParseElement<T>();
@@ -58,9 +95,13 @@ public sealed class HjsonStream : RuneStream {
             return false;
         }
     }
+    /// <inheritdoc cref="TryParseElement{T}(out T)"/>
     public bool TryParseElement(out JsonElement Result) {
         return TryParseElement<JsonElement>(out Result);
     }
+    /// <summary>
+    /// Parses a single <see cref="JsonNode"/> from the stream.
+    /// </summary>
     public JsonNode? ParseNode() {
         JsonNode? CurrentNode = null;
         string? CurrentPropertyName = null;
@@ -161,6 +202,9 @@ public sealed class HjsonStream : RuneStream {
         // End of stream
         throw new HjsonException("Expected token, got end of stream");
     }
+    /// <summary>
+    /// Tries to parse a single <see cref="JsonNode"/> from the stream, returning <see langword="false"/> if an exception occurs.
+    /// </summary>
     public bool TryParseNode(out JsonNode? Result) {
         try {
             Result = ParseNode();
@@ -171,6 +215,9 @@ public sealed class HjsonStream : RuneStream {
             return false;
         }
     }
+    /// <summary>
+    /// Reads the tokens of a single element from the stream.
+    /// </summary>
     public IEnumerable<Token> ReadElement() {
         // Comments & whitespace
         foreach (Token Token in ReadCommentsAndWhitespace()) {
@@ -199,6 +246,20 @@ public sealed class HjsonStream : RuneStream {
             yield return ReadPrimitiveElement();
         }
     }
+    /// <summary>
+    /// Tries to find the given property name in the stream.<br/>
+    /// For example, to find <c>c</c>:
+    /// <code>
+    /// // Original position
+    /// {
+    ///   "a": "1",
+    ///   "b": {
+    ///     "c": "2"
+    ///   },
+    ///   "c":/* Final position */ "3"
+    /// }
+    /// </code>
+    /// </summary>
     public bool FindPath(string PropertyName) {
         long CurrentDepth = 0;
 
@@ -223,6 +284,21 @@ public sealed class HjsonStream : RuneStream {
         // Path not found
         return false;
     }
+    /// <summary>
+    /// Tries to find the given array index in the stream.<br/>
+    /// For example, to find <c>1</c>:
+    /// <code>
+    /// // Original position
+    /// [
+    ///   [
+    ///     "a",
+    ///     "b"
+    ///   ],
+    ///   /* Destination position */"c",
+    ///   "d"
+    /// ]
+    /// </code>
+    /// </summary>
     public bool FindPath(long ArrayIndex) {
         long CurrentDepth = 0;
         long CurrentIndex = -1;
@@ -256,18 +332,23 @@ public sealed class HjsonStream : RuneStream {
         // Path not found
         return false;
     }
+    /// <inheritdoc cref="RuneStream.ReadRune(Encoding)"/>
     public Rune? ReadRune() {
         if (Options.StreamEncoding is null) {
             Options = Options with { StreamEncoding = DetectEncoding() };
         }
         return ReadRune(Options.StreamEncoding);
     }
+    /// <inheritdoc cref="RuneStream.PeekRune(Encoding)"/>
     public Rune? PeekRune() {
         if (Options.StreamEncoding is null) {
             Options = Options with { StreamEncoding = DetectEncoding() };
         }
         return PeekRune(Options.StreamEncoding);
     }
+    /// <summary>
+    /// Peeks the next rune from the stream and checks if it matches the expected rune.
+    /// </summary>
     public bool ReadRune(Rune? Expected) {
         long OriginalPosition = Position;
         if (ReadRune() != Expected) {
@@ -276,10 +357,12 @@ public sealed class HjsonStream : RuneStream {
         }
         return true;
     }
+    /// <inheritdoc cref="ReadRune(Rune?)"/>
     public bool ReadRune(char Expected) {
         return ReadRune(new Rune(Expected));
     }
 
+    /// <inheritdoc/>
     protected override void Dispose(bool Disposing) {
         if (Disposing) {
             if (!Options.LeaveStreamOpen) {
@@ -1096,8 +1179,14 @@ public sealed class HjsonStream : RuneStream {
         }
     }
 
+    /// <summary>
+    /// A single token for a <see cref="JsonTokenType"/> in a <see cref="HjsonStream"/>.
+    /// </summary>
     public readonly record struct Token(HjsonStream HjsonStream, JsonTokenType Type, long Position, long Length = 1, string Value = "") {
-        public T? ToElement<T>() {
+        /// <summary>
+        /// Parses a single element at the token's position in the <see cref="HjsonStream"/>.
+        /// </summary>
+        public T? ParseElement<T>() {
             // Go to token position
             long OriginalPosition = HjsonStream.Position;
             HjsonStream.Position = Position;

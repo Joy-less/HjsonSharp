@@ -1,13 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <VersionPrefix>1.0</VersionPrefix>
     <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
-    <LangVersion>preview</LangVersion>
+    <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <NoWarn>IDE0290</NoWarn>
+    <Title>HjsonSharp</Title>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <Authors>Joyless</Authors>
+    <PackageProjectUrl>https://github.com/Joy-less/HjsonSharp</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/Joy-less/HjsonSharp</RepositoryUrl>
+    <PackageTags>HJSON; JSON; JSON5; JSONC; Stream</PackageTags>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="LinkDotNet.StringBuilder" Version="1.22.0" />
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="LinkDotNet.StringBuilder" Version="2.0.0" />
     <PackageReference Include="System.Text.Json" Version="9.0.0" />
   </ItemGroup>
 </Project>
