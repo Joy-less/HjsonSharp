@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using System.Text.Json;
+using System.Text.Encodings.Web;
 
 namespace HjsonSharp;
 
@@ -10,7 +11,7 @@ public static class JsonOptions {
         IncludeFields = true,
         NewLine = "\n",
         ReadCommentHandling = JsonCommentHandling.Skip,
-        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
     public static JsonSerializerOptions Pretty { get; } = new(Mini) {
         WriteIndented = true,
