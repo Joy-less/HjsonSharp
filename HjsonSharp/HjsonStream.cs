@@ -269,10 +269,11 @@ public sealed class HjsonStream : RuneStream {
         return PeekRune(Options.StreamEncoding);
     }
     public bool ReadRune(Rune? Expected) {
-        if (PeekRune() != Expected) {
+        long OriginalPosition = Position;
+        if (ReadRune() != Expected) {
+            Position = OriginalPosition;
             return false;
         }
-        ReadRune();
         return true;
     }
     public bool ReadRune(char Expected) {
