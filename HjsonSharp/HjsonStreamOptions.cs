@@ -58,9 +58,10 @@ public record struct HjsonStreamOptions() {
 
     /// <summary>
     /// The text encoding of the wrapped <see cref="Stream"/>.<br/>
-    /// If <see langword="null"/>, the encoding will be detected from the stream's preamble.
+    /// If <see langword="null"/>, the encoding is detected from the stream's preamble.<br/>
+    /// Default: <see cref="Encoding.UTF8"/>
     /// </summary>
-    public Encoding? StreamEncoding { get; set; }
+    public Encoding? StreamEncoding { get; set; } = Encoding.UTF8;
     /// <summary>
     /// Whether to avoid disposing the inner stream when the <see cref="HjsonStream"/> is disposed.
     /// </summary>
