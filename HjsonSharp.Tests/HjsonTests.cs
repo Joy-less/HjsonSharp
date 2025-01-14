@@ -64,7 +64,7 @@ public class HjsonTests {
         Assert.Equal("g h  i", Element.GetProperty("f").Deserialize<string>(JsonOptions.Mini));
         Assert.Equal("k", Element.GetProperty("j").Deserialize<string>(JsonOptions.Mini));
         Assert.Equal("123m", Element.GetProperty("l").Deserialize<string>(JsonOptions.Mini));
-        Assert.Equal("12", Element.GetProperty("m").Deserialize<string>(JsonOptions.Mini));
+        Assert.Equal(12, Element.GetProperty("m").Deserialize<int>(JsonOptions.Mini));
         Assert.Equal(".a", Element.GetProperty("n").Deserialize<string>(JsonOptions.Mini));
         Assert.Equal("5.", Element.GetProperty("o").Deserialize<string>(JsonOptions.Mini));
     }

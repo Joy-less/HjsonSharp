@@ -100,7 +100,7 @@ public class JsonTests {
 
         JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Json);
         Assert.Equal(3, Element.GetPropertyCount());
-        Assert.Equal("10e3", Element.GetProperty("1000").Deserialize<string>(JsonOptions.Mini));
+        Assert.Equal(10e3, Element.GetProperty("1000").Deserialize<double>(JsonOptions.Mini));
         Assert.Equal(2.0E-3, Element.GetProperty("2000").Deserialize<double>(JsonOptions.Mini));
         Assert.Equal(-35e3, Element.GetProperty("-3500").Deserialize<double>(JsonOptions.Mini));
     }

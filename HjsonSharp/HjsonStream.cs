@@ -159,7 +159,7 @@ public sealed class HjsonStream : RuneStream {
             }
             // Number
             else if (Token.Type is JsonTokenType.Number) {
-                JsonValue Node = JsonValue.Create(Token.Value);
+                JsonNode Node = CreateJsonValueFromNumberString(Token.Value);
                 if (SubmitNode(Node)) {
                     return Node;
                 }
@@ -1189,6 +1189,22 @@ public sealed class HjsonStream : RuneStream {
             Position = StartTestPosition;
         }
     }
+    private static JsonValue CreateJsonValueFromNumberString(string NumberString) {
+        // Transform leading/trailing decimal points
+        bool LeadingDecimalPoint = NumberString.StartsWith('.');
+        bool TrailingDecimalPoint = NumberString.EndsWith('.');
+        if (LeadingDecimalPoint && TrailingDecimalPoint) {
+            NumberString = '0' + NumberString + '0';
+        }
+        else if (LeadingDecimalPoint) {
+            NumberString = '0' + NumberString;
+        }
+        else if (TrailingDecimalPoint) {
+            NumberString += '0';
+        }
+        // Parse number
+        return JsonSerializer.Deserialize<JsonValue>(NumberString)!;
+    }
 
     /// <summary>
     /// A single token for a <see cref="JsonTokenType"/> in a <see cref="HjsonStream"/>.
@@ -1201,7 +1217,6 @@ public sealed class HjsonStream : RuneStream {
             // Go to token position
             long OriginalPosition = HjsonStream.Position;
             HjsonStream.Position = Position;
-
             try {
                 // Parse element
                 return HjsonStream.ParseElement<T>();
@@ -1210,6 +1225,10 @@ public sealed class HjsonStream : RuneStream {
                 // Return to original position
                 HjsonStream.Position = OriginalPosition;
             }
+        }
+        /// <inheritdoc cref="ParseElement{T}()"/>
+        public JsonElement ParseElement() {
+            return ParseElement<JsonElement>();
         }
     }
 }
