@@ -1168,15 +1168,10 @@ public sealed class HjsonStream : RuneStream {
     }
     private static JsonValue CreateJsonValueFromNumberString(string NumberString) {
         // Transform leading/trailing decimal points
-        bool LeadingDecimalPoint = NumberString.StartsWith('.');
-        bool TrailingDecimalPoint = NumberString.EndsWith('.');
-        if (LeadingDecimalPoint && TrailingDecimalPoint) {
-            NumberString = '0' + NumberString + '0';
-        }
-        else if (LeadingDecimalPoint) {
+        if (NumberString.StartsWith('.')) {
             NumberString = '0' + NumberString;
         }
-        else if (TrailingDecimalPoint) {
+        if (NumberString.EndsWith('.')) {
             NumberString += '0';
         }
         // Parse number
