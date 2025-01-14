@@ -28,6 +28,10 @@ public class StringRuneReader : RuneReader {
         get => InnerStringIndex;
         set => InnerStringIndex = (int)value;
     }
+    /// <inheritdoc/>
+    public override long Length {
+        get => InnerString.Length;
+    }
 
     /// <summary>
     /// Reads a rune at the current index and advances the index.

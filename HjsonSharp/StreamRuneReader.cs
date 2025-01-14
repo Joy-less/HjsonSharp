@@ -30,6 +30,10 @@ public class StreamRuneReader : RuneReader {
         get => InnerStream.Position;
         set => InnerStream.Position = value;
     }
+    /// <inheritdoc/>
+    public override long Length {
+        get => InnerStream.Length;
+    }
 
     /// <summary>
     /// Decodes a rune from the stream according to the specified encoding.<br/>

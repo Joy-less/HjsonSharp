@@ -27,6 +27,10 @@ public class ListRuneReader : RuneReader {
         get => InnerListIndex;
         set => InnerListIndex = (int)value;
     }
+    /// <inheritdoc/>
+    public override long Length {
+        get => InnerList.Count;
+    }
 
     /// <summary>
     /// Reads a rune at the current index and advances the index.

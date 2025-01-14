@@ -84,6 +84,10 @@ public sealed class HjsonReader : RuneReader {
         get => InnerRuneReader.Position;
         set => InnerRuneReader.Position = value;
     }
+    /// <inheritdoc/>
+    public override long Length {
+        get => InnerRuneReader.Length;
+    }
 
     /// <inheritdoc/>
     public override Rune? PeekRune() {

@@ -10,9 +10,16 @@ public abstract class RuneReader : IDisposable, IAsyncDisposable {
     /// The current position in the sequence.
     /// </summary>
     /// <remarks>
-    /// This could be a byte offset, a character index, or a rune number, depending on the implementation.
+    /// This could refer to bytes, characters, or runes, depending on the implementation.
     /// </remarks>
     public abstract long Position { get; set; }
+    /// <summary>
+    /// The length of the sequence.
+    /// </summary>
+    /// <remarks>
+    /// This could refer to bytes, characters, or runes, depending on the implementation.
+    /// </remarks>
+    public abstract long Length { get; }
 
     /// <summary>
     /// Reads the rune at the next position and advances the position.
