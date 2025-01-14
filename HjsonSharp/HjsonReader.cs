@@ -44,6 +44,12 @@ public sealed class HjsonReader : RuneReader {
     public HjsonReader(string String, HjsonReaderOptions? Options = null)
         : this(new StringRuneReader(String), Options) {
     }
+    /// <summary>
+    /// Constructs a stream that reads HJSON from a list of runes.
+    /// </summary>
+    public HjsonReader(IList<Rune> List, HjsonReaderOptions? Options = null)
+        : this(new ListRuneReader(List), Options) {
+    }
 
     /// <summary>
     /// Parses a single element from the stream.
@@ -77,6 +83,17 @@ public sealed class HjsonReader : RuneReader {
     /// <inheritdoc cref="ParseElement{T}(string, HjsonReaderOptions?)"/>
     public static JsonElement ParseElement(string String, HjsonReaderOptions? Options = null) {
         return ParseElement<JsonElement>(String, Options);
+    }
+    /// <summary>
+    /// Parses a single element from the list of runes.
+    /// </summary>
+    public static T? ParseElement<T>(IList<Rune> List, HjsonReaderOptions? Options = null) {
+        using HjsonReader HjsonReader = new(List, Options);
+        return HjsonReader.ParseElement<T>();
+    }
+    /// <inheritdoc cref="ParseElement{T}(IList{Rune}, HjsonReaderOptions?)"/>
+    public static JsonElement ParseElement(IList<Rune> List, HjsonReaderOptions? Options = null) {
+        return ParseElement<JsonElement>(List, Options);
     }
 
     /// <inheritdoc/>
