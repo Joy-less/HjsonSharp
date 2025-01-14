@@ -12,7 +12,7 @@ public class HjsonTests {
             } # This is a final comment
             """;
 
-        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Hjson);
+        JsonElement Element = HjsonReader.ParseElement<JsonElement>(Text, HjsonReaderOptions.Hjson);
         Assert.Equal(2, Element.GetPropertyCount());
         Assert.Equal(1, Element.GetProperty("first").Deserialize<int>(JsonOptions.Mini));
         Assert.Equal(2, Element.GetProperty("second").Deserialize<int>(JsonOptions.Mini));
@@ -25,7 +25,7 @@ public class HjsonTests {
             }
             """;
 
-        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Hjson);
+        JsonElement Element = HjsonReader.ParseElement<JsonElement>(Text, HjsonReaderOptions.Hjson);
         Assert.Equal(1, Element.GetPropertyCount());
         Assert.Equal("b", Element.GetProperty("abcdef12345_!$%").Deserialize<string>(JsonOptions.Mini));
     }
@@ -37,7 +37,7 @@ public class HjsonTests {
             }
             """;
 
-        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Hjson);
+        JsonElement Element = HjsonReader.ParseElement<JsonElement>(Text, HjsonReaderOptions.Hjson);
         Assert.Equal(1, Element.GetPropertyCount());
         Assert.Equal("b", Element.GetProperty("a").Deserialize<string>(JsonOptions.Mini));
     }
@@ -57,7 +57,7 @@ public class HjsonTests {
             }
             """;
 
-        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Hjson);
+        JsonElement Element = HjsonReader.ParseElement<JsonElement>(Text, HjsonReaderOptions.Hjson);
         Assert.Equal(8, Element.GetPropertyCount());
         Assert.Equal("b,", Element.GetProperty("a").Deserialize<string>(JsonOptions.Mini));
         Assert.Equal("d{}e", Element.GetProperty("c").Deserialize<string>(JsonOptions.Mini));
@@ -79,7 +79,7 @@ public class HjsonTests {
             }
             """;
 
-        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Hjson);
+        JsonElement Element = HjsonReader.ParseElement<JsonElement>(Text, HjsonReaderOptions.Hjson);
         Assert.Equal(3, Element.GetPropertyCount());
         Assert.Equal("b", Element.GetProperty("a").Deserialize<string>(JsonOptions.Mini));
         Assert.Equal("de:f", Element.GetProperty("c").Deserialize<string>(JsonOptions.Mini));

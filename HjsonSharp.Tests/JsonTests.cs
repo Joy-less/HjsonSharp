@@ -12,7 +12,7 @@ public class JsonTests {
             }
             """;
 
-        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Json);
+        JsonElement Element = HjsonReader.ParseElement<JsonElement>(Text, HjsonReaderOptions.Json);
         Assert.Equal(2, Element.GetPropertyCount());
         Assert.Equal(1, Element.GetProperty("first").Deserialize<int>(JsonOptions.Mini));
         Assert.Equal(2, Element.GetProperty("second").Deserialize<int>(JsonOptions.Mini));
@@ -26,7 +26,7 @@ public class JsonTests {
             ]
             """;
 
-        int[] Array = HjsonStream.ParseElement<int[]>(Text, HjsonStreamOptions.Json)!;
+        int[] Array = HjsonReader.ParseElement<int[]>(Text, HjsonReaderOptions.Json)!;
         Assert.Equal([1, 2, 3], Array);
     }
     [Fact]
@@ -42,7 +42,7 @@ public class JsonTests {
             }
             """;
 
-        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Json);
+        JsonElement Element = HjsonReader.ParseElement<JsonElement>(Text, HjsonReaderOptions.Json);
         Assert.Equal(2, Element.GetPropertyCount());
         Assert.Equal([1, 2, 3], Element.GetProperty("first").Deserialize<int[]>(JsonOptions.Mini)!);
         Assert.Equal(2, Element.GetProperty("second").Deserialize<int>(JsonOptions.Mini));
@@ -58,9 +58,9 @@ public class JsonTests {
             }
             """;
 
-        using HjsonStream HjsonStream = new(Text, HjsonStreamOptions.Json);
-        Assert.True(HjsonStream.FindPath("second"));
-        JsonElement Element = HjsonStream.ParseElement<JsonElement>();
+        using HjsonReader HjsonReader = new(Text, HjsonReaderOptions.Json);
+        Assert.True(HjsonReader.FindPath("second"));
+        JsonElement Element = HjsonReader.ParseElement<JsonElement>();
         Assert.Equal(5, Element.GetProperty("third").Deserialize<int>(JsonOptions.Mini));
     }
     [Fact]
@@ -73,9 +73,9 @@ public class JsonTests {
             ]
             """;
 
-        using HjsonStream HjsonStream = new(Text, HjsonStreamOptions.Json);
-        Assert.True(HjsonStream.FindPath(2));
-        JsonElement Element = HjsonStream.ParseElement<JsonElement>();
+        using HjsonReader HjsonReader = new(Text, HjsonReaderOptions.Json);
+        Assert.True(HjsonReader.FindPath(2));
+        JsonElement Element = HjsonReader.ParseElement<JsonElement>();
         Assert.Equal(5, Element.Deserialize<int>(JsonOptions.Mini));
     }
     [Fact]
@@ -86,7 +86,7 @@ public class JsonTests {
             }
             """;
 
-        Assert.Throws<HjsonException>(() => HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Json));
+        Assert.Throws<HjsonException>(() => HjsonReader.ParseElement<JsonElement>(Text, HjsonReaderOptions.Json));
     }
     [Fact]
     public void ExponentTest() {
@@ -98,7 +98,7 @@ public class JsonTests {
             }
             """;
 
-        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Json);
+        JsonElement Element = HjsonReader.ParseElement<JsonElement>(Text, HjsonReaderOptions.Json);
         Assert.Equal(3, Element.GetPropertyCount());
         Assert.Equal(10e3, Element.GetProperty("1000").Deserialize<double>(JsonOptions.Mini));
         Assert.Equal(2.0E-3, Element.GetProperty("2000").Deserialize<double>(JsonOptions.Mini));
@@ -106,16 +106,16 @@ public class JsonTests {
     }
     [Fact]
     public void ErroneousNumberTest() {
-        Assert.Throws<HjsonException>(() => HjsonStream.ParseElement<double>("-", HjsonStreamOptions.Json));
-        Assert.Throws<HjsonException>(() => HjsonStream.ParseElement<double>("+", HjsonStreamOptions.Json));
-        Assert.Throws<HjsonException>(() => HjsonStream.ParseElement<double>("-.", HjsonStreamOptions.Json));
-        Assert.Throws<HjsonException>(() => HjsonStream.ParseElement<double>(".", HjsonStreamOptions.Json));
+        Assert.Throws<HjsonException>(() => HjsonReader.ParseElement<double>("-", HjsonReaderOptions.Json));
+        Assert.Throws<HjsonException>(() => HjsonReader.ParseElement<double>("+", HjsonReaderOptions.Json));
+        Assert.Throws<HjsonException>(() => HjsonReader.ParseElement<double>("-.", HjsonReaderOptions.Json));
+        Assert.Throws<HjsonException>(() => HjsonReader.ParseElement<double>(".", HjsonReaderOptions.Json));
     }
     [Fact]
     public void LeadingZeroTest() {
-        Assert.Equal(0, HjsonStream.ParseElement<int>("0", HjsonStreamOptions.Json));
-        Assert.Throws<HjsonException>(() => HjsonStream.ParseElement<int>("01", HjsonStreamOptions.Json));
-        Assert.Throws<HjsonException>(() => HjsonStream.ParseElement<int>("001", HjsonStreamOptions.Json));
-        Assert.Equal(0e0, HjsonStream.ParseElement<double>("0e0", HjsonStreamOptions.Json));
+        Assert.Equal(0, HjsonReader.ParseElement<int>("0", HjsonReaderOptions.Json));
+        Assert.Throws<HjsonException>(() => HjsonReader.ParseElement<int>("01", HjsonReaderOptions.Json));
+        Assert.Throws<HjsonException>(() => HjsonReader.ParseElement<int>("001", HjsonReaderOptions.Json));
+        Assert.Equal(0e0, HjsonReader.ParseElement<double>("0e0", HjsonReaderOptions.Json));
     }
 }

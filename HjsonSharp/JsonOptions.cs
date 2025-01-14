@@ -5,11 +5,11 @@ using System.Text.Encodings.Web;
 namespace HjsonSharp;
 
 /// <summary>
-/// Presets for <see cref="JsonSerializerOptions"/> that work well with <see cref="HjsonStream"/>.
+/// Presets for <see cref="JsonSerializerOptions"/> that work well with <see cref="HjsonReader"/>.
 /// </summary>
 public static class JsonOptions {
     /// <summary>
-    /// A preset for reading and writing JSON with minimal formatting that works well with <see cref="HjsonStream"/>.<br/>
+    /// A preset for reading and writing JSON with minimal formatting that works well with <see cref="HjsonReader"/>.<br/>
     /// <list type="bullet">
     /// <item>Allows reading numbers from strings</item>
     /// <item>Allows named floating point literals</item>
@@ -28,7 +28,7 @@ public static class JsonOptions {
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
     /// <summary>
-    /// A preset for reading and writing JSON with indented formatting that works well with <see cref="HjsonStream"/>.<br/>
+    /// A preset for reading and writing JSON with indented formatting that works well with <see cref="HjsonReader"/>.<br/>
     /// <list type="bullet">
     /// <item>Allows reading numbers from strings</item>
     /// <item>Allows named floating point literals</item>

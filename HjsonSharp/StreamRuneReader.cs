@@ -4,14 +4,11 @@ using System.Text;
 namespace HjsonSharp;
 
 /// <summary>
-/// A stream that can read runes from a byte stream according to a specified encoding.
+/// A reader that can read runes from a byte stream according to a specified encoding.
 /// </summary>
-/// <remarks>
-/// <see cref="InnerStream"/> must be manually disposed.
-/// </remarks>
-public class RuneStream : Stream {
+public class StreamRuneReader : RuneReader {
     /// <summary>
-    /// The wrapped stream to decode runes from.
+    /// The byte stream to decode runes from.
     /// </summary>
     public Stream InnerStream { get; set; }
     /// <summary>
@@ -20,88 +17,32 @@ public class RuneStream : Stream {
     public Encoding? InnerStreamEncoding { get; set; }
 
     /// <summary>
-    /// Constructs a stream that reads runes from a byte stream.<br/>
-    /// The stream should be a <see cref="BufferedStream"/> if not stored in memory.
+    /// Constructs a reader that reads runes from a byte stream.
     /// </summary>
-    public RuneStream(Stream Stream, Encoding? Encoding) {
+    /// <param name="Stream">Should be a <see cref="BufferedStream"/> or a <see cref="MemoryStream"/> for performance reasons.</param>
+    public StreamRuneReader(Stream Stream, Encoding? Encoding) {
         InnerStream = Stream;
         InnerStreamEncoding = Encoding ?? DetectEncoding();
     }
 
-    #region Overrides
     /// <inheritdoc/>
-    public override bool CanRead => InnerStream.CanRead;
-    /// <inheritdoc/>
-    public override bool CanSeek => InnerStream.CanSeek;
-    /// <inheritdoc/>
-    public override bool CanWrite => InnerStream.CanWrite;
-    /// <inheritdoc/>
-    public override long Length => InnerStream.Length;
-    /// <inheritdoc/>
-    public override long Position { get => InnerStream.Position; set => InnerStream.Position = value; }
-    /// <inheritdoc/>
-    public override bool CanTimeout => base.CanTimeout;
-    /// <inheritdoc/>
-    public override int ReadTimeout { get => base.ReadTimeout; set => base.ReadTimeout = value; }
-    /// <inheritdoc/>
-    public override int WriteTimeout { get => base.WriteTimeout; set => base.WriteTimeout = value; }
-
-    /// <inheritdoc/>
-    public override void Flush() => InnerStream.Flush();
-    /// <inheritdoc/>
-    public override int Read(byte[] Buffer, int Offset, int Count) => InnerStream.Read(Buffer, Offset, Count);
-    /// <inheritdoc/>
-    public override int ReadByte() => InnerStream.ReadByte();
-    /// <inheritdoc/>
-    public override long Seek(long Offset, SeekOrigin Origin) => InnerStream.Seek(Offset, Origin);
-    /// <inheritdoc/>
-    public override void SetLength(long Value) => InnerStream.SetLength(Value);
-    /// <inheritdoc/>
-    public override void Write(byte[] Buffer, int Offset, int Count) => InnerStream.Write(Buffer, Offset, Count);
-    /// <inheritdoc/>
-    public override IAsyncResult BeginRead(byte[] Buffer, int Offset, int Count, AsyncCallback? Callback, object? State) => InnerStream.BeginRead(Buffer, Offset, Count, Callback, State);
-    /// <inheritdoc/>
-    public override IAsyncResult BeginWrite(byte[] Buffer, int Offset, int Count, AsyncCallback? Callback, object? State) => InnerStream.BeginWrite(Buffer, Offset, Count, Callback, State);
-    /// <inheritdoc/>
-    public override void Close() => InnerStream.Close();
-    /// <inheritdoc/>
-    public override void CopyTo(Stream Destination, int BufferSize) => InnerStream.CopyTo(Destination, BufferSize);
-    /// <inheritdoc/>
-    public override Task CopyToAsync(Stream Destination, int BufferSize, CancellationToken CancellationToken) => InnerStream.CopyToAsync(Destination, BufferSize, CancellationToken);
-    /// <inheritdoc/>
-    public override int EndRead(IAsyncResult AsyncResult) => InnerStream.EndRead(AsyncResult);
-    /// <inheritdoc/>
-    public override void EndWrite(IAsyncResult AsyncResult) => InnerStream.EndWrite(AsyncResult);
-    /// <inheritdoc/>
-    public override Task FlushAsync(CancellationToken CancellationToken) => InnerStream.FlushAsync(CancellationToken);
-    /// <inheritdoc/>
-    public override int Read(Span<byte> Buffer) => InnerStream.Read(Buffer);
-    /// <inheritdoc/>
-    public override Task<int> ReadAsync(byte[] Buffer, int Offset, int Count, CancellationToken CancellationToken) => InnerStream.ReadAsync(Buffer, Offset, Count, CancellationToken);
-    /// <inheritdoc/>
-    public override ValueTask<int> ReadAsync(Memory<byte> Buffer, CancellationToken CancellationToken = default) => InnerStream.ReadAsync(Buffer, CancellationToken);
-    /// <inheritdoc/>
-    public override void Write(ReadOnlySpan<byte> Buffer) => InnerStream.Write(Buffer);
-    /// <inheritdoc/>
-    public override Task WriteAsync(byte[] Buffer, int Offset, int Count, CancellationToken CancellationToken) => InnerStream.WriteAsync(Buffer, Offset, Count, CancellationToken);
-    /// <inheritdoc/>
-    public override ValueTask WriteAsync(ReadOnlyMemory<byte> Buffer, CancellationToken CancellationToken = default) => InnerStream.WriteAsync(Buffer, CancellationToken);
-    /// <inheritdoc/>
-    public override void WriteByte(byte Value) => InnerStream.WriteByte(Value);
-    #endregion
+    public override long Position {
+        get => InnerStream.Position;
+        set => InnerStream.Position = value;
+    }
 
     /// <summary>
     /// Decodes a rune from the stream according to the specified encoding.<br/>
     /// Supports <see cref="Encoding.UTF8"/>, <see cref="Encoding.Unicode"/>, <see cref="Encoding.BigEndianUnicode"/>,
     /// <see cref="Encoding.UTF32"/> and <see cref="Encoding.ASCII"/>.
     /// </summary>
-    public Rune? ReadRune() {
+    public override Rune? ReadRune() {
         long OriginalPosition = Position;
         try {
             // UTF-8
             if (InnerStreamEncoding == Encoding.UTF8) {
                 // Read first byte
-                int FirstByte = ReadByte();
+                int FirstByte = InnerStream.ReadByte();
                 if (FirstByte < 0) {
                     return null;
                 }
@@ -117,7 +58,7 @@ public class RuneStream : Stream {
                 // Read remaining bytes (up to 3 more)
                 Span<byte> Bytes = stackalloc byte[SequenceLength];
                 Bytes[0] = (byte)FirstByte;
-                int TotalBytesRead = 1 + Read(Bytes[1..]);
+                int TotalBytesRead = 1 + InnerStream.Read(Bytes[1..]);
 
                 // Decode rune from UTF-8 bytes
                 if (Rune.DecodeFromUtf8(Bytes[..TotalBytesRead], out Rune Result, out _) is not OperationStatus.Done) {
@@ -128,7 +69,7 @@ public class RuneStream : Stream {
             // ASCII
             else if (InnerStreamEncoding == Encoding.ASCII) {
                 // Read 1 byte
-                int Byte = ReadByte();
+                int Byte = InnerStream.ReadByte();
                 if (Byte < 0) {
                     return null;
                 }
@@ -143,7 +84,7 @@ public class RuneStream : Stream {
             else if (InnerStreamEncoding == Encoding.UTF32) {
                 // Read 4 bytes
                 Span<byte> Bytes = stackalloc byte[4];
-                int BytesRead = Read(Bytes);
+                int BytesRead = InnerStream.Read(Bytes);
                 if (BytesRead == 0) {
                     return null;
                 }
@@ -172,7 +113,7 @@ public class RuneStream : Stream {
             else if (InnerStreamEncoding == Encoding.Unicode || InnerStreamEncoding == Encoding.BigEndianUnicode) {
                 // Read 2 bytes
                 Span<byte> Bytes = stackalloc byte[4];
-                int BytesRead = Read(Bytes[..2]);
+                int BytesRead = InnerStream.Read(Bytes[..2]);
                 if (BytesRead == 0) {
                     return null;
                 }
@@ -196,7 +137,7 @@ public class RuneStream : Stream {
                 }
 
                 // Read 2 more bytes
-                BytesRead += Read(Bytes[BytesRead..]);
+                BytesRead += InnerStream.Read(Bytes[BytesRead..]);
 
                 // Convert bytes to char
                 Span<char> TwoChars = stackalloc char[2];
@@ -216,20 +157,18 @@ public class RuneStream : Stream {
             }
         }
         catch {
+            // Reset position on exception
             Position = OriginalPosition;
             throw;
         }
     }
-    /// <inheritdoc cref="ReadRune()"/>
-    public Rune? PeekRune() {
-        long OriginalPosition = Position;
-        try {
-            return ReadRune();
-        }
-        finally {
-            Position = OriginalPosition;
-        }
+    /// <inheritdoc/>
+    public override void Dispose() {
+        base.Dispose();
+        GC.SuppressFinalize(this);
+        InnerStream.Dispose();
     }
+
     /// <summary>
     /// Decodes the preamble (Byte Order Mark / BOM) from the stream.<br/>
     /// If no preamble is found, <see cref="Encoding.UTF8"/> is assumed.<br/>
@@ -244,7 +183,7 @@ public class RuneStream : Stream {
         try {
             // Read up to 4 bytes
             Span<byte> LeadingBytes = stackalloc byte[4];
-            int LeadingBytesRead = Read(LeadingBytes);
+            int LeadingBytesRead = InnerStream.Read(LeadingBytes);
             ReadOnlySpan<byte> LeadingBytesReadOnly = LeadingBytes[..LeadingBytesRead];
 
             // UTF-8

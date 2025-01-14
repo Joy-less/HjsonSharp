@@ -16,7 +16,7 @@ public class CustomJsonTests {
             }
             """;
 
-        JsonElement Element = HjsonStream.ParseElement<JsonElement>(Text, HjsonStreamOptions.Json with {
+        JsonElement Element = HjsonReader.ParseElement<JsonElement>(Text, HjsonReaderOptions.Json with {
             NamedFloatingPointLiterals = true,
             UnquotedStrings = true,
             OmittedCommas = true,
