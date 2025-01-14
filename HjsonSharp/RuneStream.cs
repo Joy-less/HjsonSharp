@@ -139,6 +139,9 @@ public class RuneStream : Stream {
                 // Read 4 bytes
                 Span<byte> Bytes = stackalloc byte[4];
                 int BytesRead = Read(Bytes);
+                if (BytesRead == 0) {
+                    return null;
+                }
 
                 // Ensure 4 bytes were read
                 if (BytesRead != 4) {
@@ -165,6 +168,9 @@ public class RuneStream : Stream {
                 // Read 2 bytes
                 Span<byte> Bytes = stackalloc byte[4];
                 int BytesRead = Read(Bytes[..2]);
+                if (BytesRead == 0) {
+                    return null;
+                }
 
                 // Ensure 2 bytes were read
                 if (BytesRead != 2) {
