@@ -20,6 +20,7 @@ public class StreamRuneReader : RuneReader {
     /// Constructs a reader that reads runes from a byte stream.
     /// </summary>
     /// <param name="Stream">Should be a <see cref="BufferedStream"/> or a <see cref="MemoryStream"/> for performance reasons.</param>
+    /// <param name="Encoding">If <see langword="null"/>, the encoding is detected by reading the preamble at the start of the stream.</param>
     public StreamRuneReader(Stream Stream, Encoding? Encoding) {
         InnerStream = Stream;
         InnerStreamEncoding = Encoding ?? DetectEncoding();
