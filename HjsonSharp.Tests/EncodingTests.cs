@@ -46,7 +46,7 @@ public class EncodingTests {
 
     private static void BaseTest(Encoding Encoding, bool ShouldFail = false) {
         const string InputString = "こんにちは😀";
-        string? Result = HjsonStream.ParseElement<string>('"' + InputString + '"', HjsonStreamOptions.Hjson with { StreamEncoding = Encoding });
+        string? Result = HjsonStream.ParseElement<string>(Encoding.GetBytes('"' + InputString + '"'), Encoding);
         if (ShouldFail) {
             Assert.NotEqual(InputString, Result);
         }
@@ -56,7 +56,7 @@ public class EncodingTests {
     }
     private static void BasePreambleTest(Encoding Encoding, bool ShouldFail = false) {
         const string InputString = "私";
-        string? Result = HjsonStream.ParseElement<string>([.. Encoding.Preamble, .. Encoding.GetBytes($"\"{InputString}\"")], HjsonStreamOptions.Hjson with { StreamEncoding = null });
+        string? Result = HjsonStream.ParseElement<string>([.. Encoding.Preamble, .. Encoding.GetBytes('"' + InputString + '"')], Encoding: null);
         if (ShouldFail) {
             Assert.NotEqual(InputString, Result);
         }

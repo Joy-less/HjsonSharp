@@ -13,14 +13,19 @@ public class RuneStream : Stream {
     /// <summary>
     /// The wrapped stream to decode runes from.
     /// </summary>
-    public Stream InnerStream { get; }
+    public Stream InnerStream { get; set; }
+    /// <summary>
+    /// The text encoding to use when decoding runes from <see cref="InnerStream"/>.
+    /// </summary>
+    public Encoding? InnerStreamEncoding { get; set; }
 
     /// <summary>
     /// Constructs a stream that reads runes from a byte stream.<br/>
     /// The stream should be a <see cref="BufferedStream"/> if not stored in memory.
     /// </summary>
-    public RuneStream(Stream InnerStream) {
-        this.InnerStream = InnerStream;
+    public RuneStream(Stream Stream, Encoding? Encoding) {
+        InnerStream = Stream;
+        InnerStreamEncoding = Encoding ?? DetectEncoding();
     }
 
     #region Overrides
@@ -90,11 +95,11 @@ public class RuneStream : Stream {
     /// Supports <see cref="Encoding.UTF8"/>, <see cref="Encoding.Unicode"/>, <see cref="Encoding.BigEndianUnicode"/>,
     /// <see cref="Encoding.UTF32"/> and <see cref="Encoding.ASCII"/>.
     /// </summary>
-    public Rune? ReadRune(Encoding Encoding) {
+    public Rune? ReadRune() {
         long OriginalPosition = Position;
         try {
             // UTF-8
-            if (Encoding == Encoding.UTF8) {
+            if (InnerStreamEncoding == Encoding.UTF8) {
                 // Read first byte
                 int FirstByte = ReadByte();
                 if (FirstByte < 0) {
@@ -121,7 +126,7 @@ public class RuneStream : Stream {
                 return Result;
             }
             // ASCII
-            else if (Encoding == Encoding.ASCII) {
+            else if (InnerStreamEncoding == Encoding.ASCII) {
                 // Read 1 byte
                 int Byte = ReadByte();
                 if (Byte < 0) {
@@ -135,7 +140,7 @@ public class RuneStream : Stream {
                 return new Rune((byte)Byte);
             }
             // UTF-32
-            else if (Encoding == Encoding.UTF32) {
+            else if (InnerStreamEncoding == Encoding.UTF32) {
                 // Read 4 bytes
                 Span<byte> Bytes = stackalloc byte[4];
                 int BytesRead = Read(Bytes);
@@ -150,7 +155,7 @@ public class RuneStream : Stream {
 
                 // Convert bytes to chars
                 Span<char> Chars = stackalloc char[2];
-                int CharsRead = Encoding.GetChars(Bytes, Chars);
+                int CharsRead = InnerStreamEncoding.GetChars(Bytes, Chars);
 
                 // Ensure 1 or 2 chars were read
                 if (CharsRead == 1) {
@@ -164,7 +169,7 @@ public class RuneStream : Stream {
                 }
             }
             // UTF-16
-            else if (Encoding == Encoding.Unicode || Encoding == Encoding.BigEndianUnicode) {
+            else if (InnerStreamEncoding == Encoding.Unicode || InnerStreamEncoding == Encoding.BigEndianUnicode) {
                 // Read 2 bytes
                 Span<byte> Bytes = stackalloc byte[4];
                 int BytesRead = Read(Bytes[..2]);
@@ -178,10 +183,10 @@ public class RuneStream : Stream {
                 }
 
                 // If not in surrogate pair, convert char to rune
-                if (GetUtf16SequenceLength(Bytes, Encoding == Encoding.BigEndianUnicode) == 2) {
+                if (GetUtf16SequenceLength(Bytes, InnerStreamEncoding == Encoding.BigEndianUnicode) == 2) {
                     // Convert bytes to char
                     Span<char> OneChars = stackalloc char[1];
-                    int OneCharsRead = Encoding.GetChars(Bytes[..BytesRead], OneChars);
+                    int OneCharsRead = InnerStreamEncoding.GetChars(Bytes[..BytesRead], OneChars);
 
                     // Ensure 1 char was read
                     if (OneCharsRead != 1) {
@@ -195,7 +200,7 @@ public class RuneStream : Stream {
 
                 // Convert bytes to char
                 Span<char> TwoChars = stackalloc char[2];
-                int TwoCharsRead = Encoding.GetChars(Bytes, TwoChars);
+                int TwoCharsRead = InnerStreamEncoding.GetChars(Bytes, TwoChars);
 
                 // Ensure 1 char was read
                 if (TwoCharsRead != 2) {
@@ -207,7 +212,7 @@ public class RuneStream : Stream {
             }
             // Not supported
             else {
-                throw new NotSupportedException($"Encoding not supported: `{Encoding}`");
+                throw new NotSupportedException($"Encoding not supported: `{InnerStreamEncoding}`");
             }
         }
         catch {
@@ -215,11 +220,11 @@ public class RuneStream : Stream {
             throw;
         }
     }
-    /// <inheritdoc cref="ReadRune(Encoding)"/>
-    public Rune? PeekRune(Encoding Encoding) {
+    /// <inheritdoc cref="ReadRune()"/>
+    public Rune? PeekRune() {
         long OriginalPosition = Position;
         try {
-            return ReadRune(Encoding);
+            return ReadRune();
         }
         finally {
             Position = OriginalPosition;
