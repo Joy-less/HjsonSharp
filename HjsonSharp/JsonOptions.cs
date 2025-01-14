@@ -20,7 +20,7 @@ public static class JsonOptions {
     /// </list>
     /// </summary>
     public static JsonSerializerOptions Mini { get; } = new() {
-        NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+        NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals | JsonNumberHandling.AllowReadingFromString,
         AllowTrailingCommas = true,
         IncludeFields = true,
         NewLine = "\n",
