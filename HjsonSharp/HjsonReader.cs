@@ -508,6 +508,9 @@ public sealed class HjsonReader : RuneReader {
                 }
                 // Single quote
                 else if (EscapedRune.Value is '\'') {
+                    if (!Options.SingleQuotedStrings && !Options.StringInvalidEscapeSequences) {
+                        throw new HjsonException("Escaped single quotes are not allowed");
+                    }
                     StringBuilder.Append('\'');
                 }
                 // Backslash
@@ -548,7 +551,10 @@ public sealed class HjsonReader : RuneReader {
                 }
                 // Invalid escape character
                 else {
-                    throw new HjsonException($"Expected valid escape character after `\\`, got `{EscapedRune}`");
+                    if (!Options.StringInvalidEscapeSequences) {
+                        throw new HjsonException($"Expected valid escape character after `\\`, got `{EscapedRune}`");
+                    }
+                    StringBuilder.Append(EscapedRune);
                 }
             }
             // Rune
@@ -573,7 +579,7 @@ public sealed class HjsonReader : RuneReader {
             }
 
             // Newline
-            if (Rune.Value is '\n' or '\r') {
+            if (Rune.Value is '\n') {
                 break;
             }
             // Rune
@@ -610,7 +616,7 @@ public sealed class HjsonReader : RuneReader {
                 }
             }
             // Newline
-            else if (Rune.Value is '\n' or '\r') {
+            else if (Rune.Value is '\n') {
                 // Start of leading whitespace
                 LeadingWhitespaceCounter = 0;
                 IsLeadingWhitespace = true;
@@ -660,7 +666,7 @@ public sealed class HjsonReader : RuneReader {
                 }
 
                 // Start of leading whitespace
-                if (CurrentRune.Value is '\n' or '\r') {
+                if (CurrentRune.Value is '\n') {
                     // Remove leading whitespace
                     if (IsInLeadingWhitespace) {
                         StringBuilder.Remove(StartLeadingWhitespaceIndex, Index - StartLeadingWhitespaceIndex);
@@ -703,7 +709,7 @@ public sealed class HjsonReader : RuneReader {
             // Remove leading whitespace on last line
             StringBuilder.Remove(StringBuilder.Length - LeadingWhitespaceCounter, LeadingWhitespaceCounter);
             // Remove last newline
-            if (StringBuilder.Length >= 1 && StringBuilder[^1] is '\n' or '\r') {
+            if (StringBuilder.Length >= 1 && StringBuilder[^1] is '\n') {
                 StringBuilder.Remove(StringBuilder.Length - 1, 1);
             }
         }
@@ -1234,7 +1240,7 @@ public sealed class HjsonReader : RuneReader {
             }
             // Check end of line comment
             else {
-                if (CommentRune.Value is '\n' or '\r') {
+                if (CommentRune.Value is '\n') {
                     break;
                 }
             }
@@ -1253,12 +1259,8 @@ public sealed class HjsonReader : RuneReader {
                 return;
             }
 
-            // Newline
-            if (Rune.Value is '\n' or '\r') {
-                Read();
-            }
             // JSON whitespace
-            else if (Rune.Value is ' ' or '\t') {
+            if (Rune.Value is '\n' or '\r' or ' ' or '\t') {
                 Read();
             }
             // All whitespace

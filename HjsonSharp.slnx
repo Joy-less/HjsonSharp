@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Solution Items/" Id="8bdae8cf-f331-42e1-a5a2-ab774d773ec5">
+    <File Path="README.md" />
+  </Folder>
   <Project Path="HjsonSharp.Benchmarks/HjsonSharp.Benchmarks.csproj" />
   <Project Path="HjsonSharp.Tests/HjsonSharp.Tests.csproj" />
   <Project Path="HjsonSharp/HjsonSharp.csproj" />

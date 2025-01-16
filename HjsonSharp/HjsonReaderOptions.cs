@@ -19,16 +19,17 @@ public record struct HjsonReaderOptions() {
         TrailingCommas = true,
     };
     /// <summary>
-    /// A variant of JSON allowing ECMAScript property names, trailing commas, single-quoted strings, escaped string newlines, hexadecimal numbers,
-    /// leading decimal points, trailing decimal points, named floating-point literals, explicit plus-signs, line-style comments, block-style comments,
-    /// and unicode whitespace.<br/>
+    /// A variant of JSON allowing ECMAScript property names, trailing commas, single-quoted strings, escaped newlines in strings, invalid escape sequences
+    /// in strings, hexadecimal numbers, leading decimal points, trailing decimal points, named floating-point literals, explicit plus-signs,
+    /// line-style comments, block-style comments, and unicode whitespace.<br/>
     /// <see href="https://json5.org"/>
     /// </summary>
     public static HjsonReaderOptions Json5 => Json with {
         EcmaScriptPropertyNames = true,
         TrailingCommas = true,
         SingleQuotedStrings = true,
-        EscapedStringNewlines = true,
+        StringEscapedNewlines = true,
+        StringInvalidEscapeSequences = true,
         HexadecimalNumbers = true,
         LeadingDecimalPoints = true,
         TrailingDecimalPoints = true,
@@ -40,7 +41,7 @@ public record struct HjsonReaderOptions() {
     };
     /// <summary>
     /// A variant of JSON allowing unquoted property names, trailing commas, omitted commas, single-quoted strings, triple-quoted multi-line strings,
-    /// unquoted strings, escaped string single quotes, line-style comments, block-style comments, hash-style comments, and omitted root object braces.<br/>
+    /// unquoted strings, line-style comments, block-style comments, hash-style comments, and omitted root object braces.<br/>
     /// <see href="https://hjson.github.io"/>
     /// </summary>
     public static HjsonReaderOptions Hjson => Json with {
@@ -50,7 +51,6 @@ public record struct HjsonReaderOptions() {
         SingleQuotedStrings = true,
         TripleQuotedStrings = true,
         UnquotedStrings = true,
-        EscapedStringSingleQuotes = true,
         LineStyleComments = true,
         BlockStyleComments = true,
         HashStyleComments = true,
@@ -129,6 +129,9 @@ public record struct HjsonReaderOptions() {
     /// </code>
     /// <see href="https://262.ecma-international.org/5.1/#sec-7.6"/>
     /// </summary>
+    /// <remarks>
+    /// Also enables the <c>\'</c> escape sequence in single and double quoted strings.
+    /// </remarks>
     public bool SingleQuotedStrings { get; set; }
     /// <summary>
     /// Enables/disables triple-quoted multi-line strings.
@@ -161,14 +164,24 @@ public record struct HjsonReaderOptions() {
     /// world"
     /// </code>
     /// </summary>
-    public bool EscapedStringNewlines { get; set; }
+    public bool StringEscapedNewlines { get; set; }
     /// <summary>
-    /// Enables/disables escaped single quotes in strings.
+    /// Enables/disables the <c>\x</c> escape sequence as an alternative to <c>\u</c> in strings.
     /// <code>
-    /// "\'"
+    /// "\x00E7" (ç)
+    /// "\x0E7" (ç)
+    /// "\xE7" (ç)
     /// </code>
     /// </summary>
-    public bool EscapedStringSingleQuotes { get; set; }
+    public bool StringEscapedVariableLengthHexSequences { get; set; }
+    /// <summary>
+    /// Enables/disables non-existent escape sequences in strings.
+    /// <code>
+    /// "\A" (A)
+    /// "\D" (D)
+    /// </code>
+    /// </summary>
+    public bool StringInvalidEscapeSequences { get; set; }
     /// <summary>
     /// Enables/disables numbers with leading 0's.
     /// <code>
