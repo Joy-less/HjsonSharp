@@ -28,9 +28,9 @@ public record struct HjsonReaderOptions() {
         EcmaScriptPropertyNames = true,
         TrailingCommas = true,
         SingleQuotedStrings = true,
-        StringEscapedNewlines = true,
-        StringEscapedShortHexSequences = true,
-        StringInvalidEscapeSequences = true,
+        EscapedStringNewlines = true,
+        EscapedStringShortHexSequences = true,
+        InvalidStringEscapeSequences = true,
         HexadecimalNumbers = true,
         LeadingDecimalPoints = true,
         TrailingDecimalPoints = true,
@@ -165,14 +165,14 @@ public record struct HjsonReaderOptions() {
     /// world"
     /// </code>
     /// </summary>
-    public bool StringEscapedNewlines { get; set; }
+    public bool EscapedStringNewlines { get; set; }
     /// <summary>
     /// Enables/disables the 2-character <c>\x</c> escape sequence as an alternative to the 4-character <c>\u</c> in strings.
     /// <code>
     /// "\xE7" (ç)
     /// </code>
     /// </summary>
-    public bool StringEscapedShortHexSequences { get; set; }
+    public bool EscapedStringShortHexSequences { get; set; }
     /// <summary>
     /// Enables/disables non-existent escape sequences in strings.
     /// <code>
@@ -180,7 +180,7 @@ public record struct HjsonReaderOptions() {
     /// "\D" (D)
     /// </code>
     /// </summary>
-    public bool StringInvalidEscapeSequences { get; set; }
+    public bool InvalidStringEscapeSequences { get; set; }
     /// <summary>
     /// Enables/disables numbers with leading 0's.
     /// <code>

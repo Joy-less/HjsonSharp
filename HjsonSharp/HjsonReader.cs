@@ -508,7 +508,7 @@ public sealed class HjsonReader : RuneReader {
                 }
                 // Single quote
                 else if (EscapedRune.Value is '\'') {
-                    if (!Options.SingleQuotedStrings && !Options.StringInvalidEscapeSequences) {
+                    if (!Options.SingleQuotedStrings && !Options.InvalidStringEscapeSequences) {
                         throw new HjsonException("Escaped single quotes are not allowed");
                     }
                     StringBuilder.Append('\'');
@@ -551,14 +551,14 @@ public sealed class HjsonReader : RuneReader {
                 }
                 // Unicode short hex sequence
                 else if (EscapedRune.Value is 'x') {
-                    if (!Options.StringEscapedShortHexSequences && !Options.StringInvalidEscapeSequences) {
+                    if (!Options.EscapedStringShortHexSequences && !Options.InvalidStringEscapeSequences) {
                         throw new HjsonException("Escaped short hex sequences are not allowed");
                     }
                     StringBuilder.Append(ReadRuneFromHexSequence(2));
                 }
                 // Invalid escape character
                 else {
-                    if (!Options.StringInvalidEscapeSequences) {
+                    if (!Options.InvalidStringEscapeSequences) {
                         throw new HjsonException($"Expected valid escape character after `\\`, got `{EscapedRune}`");
                     }
                     StringBuilder.Append(EscapedRune);
