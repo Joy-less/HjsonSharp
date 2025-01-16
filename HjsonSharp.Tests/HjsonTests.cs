@@ -113,4 +113,33 @@ public class HjsonTests {
         Assert.Equal("de:f", Element.GetProperty("c").Deserialize<string>(JsonOptions.Mini));
         Assert.Equal(["1 2"], Element.GetProperty("g").Deserialize<string[]>(JsonOptions.Mini)!);
     }
+    [Fact]
+    public void OmittedRootBracketsTest() {
+        string Text1 = """
+            {
+              "a": "b",
+              "c": "d"
+            }
+            """;
+        string Text2 = """
+            "a": "b",
+            "c": "d"
+            """;
+        JsonElement Element1 = HjsonReader.ParseElement<JsonElement>(Text1, HjsonReaderOptions.Hjson);
+        JsonElement Element2 = HjsonReader.ParseElement<JsonElement>(Text2, HjsonReaderOptions.Hjson);
+        Assert.Equal(Element1.ToString(), Element2.ToString());
+
+        string Text3 = """
+            null
+            """;
+        JsonElement Element3 = HjsonReader.ParseElement<JsonElement>(Text3, HjsonReaderOptions.Hjson);
+        Assert.Null(Element3.Deserialize<string>(JsonOptions.Mini));
+
+        string Text4 = """
+            null: 5
+            """;
+        JsonElement Element4 = HjsonReader.ParseElement<JsonElement>(Text4, HjsonReaderOptions.Hjson);
+        Assert.Equal(1, Element4.GetPropertyCount());
+        Assert.Equal(5, Element4.GetProperty("null").Deserialize<int>(JsonOptions.Mini));
+    }
 }

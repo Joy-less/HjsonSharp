@@ -59,8 +59,8 @@ public class JsonTests {
             """;
 
         using HjsonReader HjsonReader = new(Text, HjsonReaderOptions.Json);
-        Assert.True(HjsonReader.FindPath("second"));
-        JsonElement Element = HjsonReader.ParseElement<JsonElement>();
+        Assert.True(HjsonReader.FindPath("second", IsRoot: true));
+        JsonElement Element = HjsonReader.ParseElement<JsonElement>(IsRoot: false);
         Assert.Equal(5, Element.GetProperty("third").Deserialize<int>(JsonOptions.Mini));
     }
     [Fact]
@@ -74,8 +74,8 @@ public class JsonTests {
             """;
 
         using HjsonReader HjsonReader = new(Text, HjsonReaderOptions.Json);
-        Assert.True(HjsonReader.FindPath(2));
-        JsonElement Element = HjsonReader.ParseElement<JsonElement>();
+        Assert.True(HjsonReader.FindPath(2, IsRoot: true));
+        JsonElement Element = HjsonReader.ParseElement<JsonElement>(IsRoot: false);
         Assert.Equal(5, Element.Deserialize<int>(JsonOptions.Mini));
     }
     [Fact]
