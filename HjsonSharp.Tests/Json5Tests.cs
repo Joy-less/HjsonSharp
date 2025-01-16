@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Globalization;
+using System.Text.Json;
 
 namespace HjsonSharp.Tests;
 
@@ -91,6 +92,22 @@ public class Json5Tests {
         Assert.Equal(double.PositiveInfinity, Element.GetProperty("a").Deserialize<double>(JsonOptions.Mini));
         Assert.Equal(double.NegativeInfinity, Element.GetProperty("b").Deserialize<double>(JsonOptions.Mini));
         Assert.Equal(double.NaN, Element.GetProperty("c").Deserialize<double>(JsonOptions.Mini));
+    }
+    [Fact]
+    public void HexadecimalNumbers() {
+        string Text = """
+            {
+              "a": 0X50,
+              "b": 0xDECAF,
+              "c": -0xC0FFEE
+            }
+            """;
+
+        JsonElement Element = HjsonReader.ParseElement<JsonElement>(Text, HjsonReaderOptions.Json5);
+        Assert.Equal(3, Element.GetPropertyCount());
+        Assert.Equal("0X50", Element.GetProperty("a").ToString());
+        Assert.Equal("0xDECAF", Element.GetProperty("b").ToString());
+        Assert.Equal("-0xC0FFEE", Element.GetProperty("c").ToString());
     }
     [Fact]
     public void StringEscapedShortHexSequences() {

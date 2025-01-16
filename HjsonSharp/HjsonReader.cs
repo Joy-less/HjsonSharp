@@ -217,7 +217,10 @@ public sealed class HjsonReader : RuneReader {
             }
             // Number
             else if (Token.Type is JsonTokenType.Number) {
-                JsonNode Node = CreateJsonValueFromNumberString(Token.Value);
+                // TODO:
+                // We can't create a number node from a string, so we create a string node.
+                // See https://github.com/dotnet/runtime/discussions/111373
+                JsonNode Node = JsonValue.Create(Token.Value);
                 if (SubmitNode(Node)) {
                     return Node;
                 }
@@ -727,184 +730,203 @@ public sealed class HjsonReader : RuneReader {
     private Token ReadNumber() {
         long TokenPosition = Position;
 
-        // Create string builder
-        ValueStringBuilder StringBuilder = new();
+        try {
+            // Create string builder
+            ValueStringBuilder StringBuilder = new();
 
-        bool ParsedExponent = false;
-        bool ParsedDecimalPoint = false;
-        bool ParsedNonZeroDigit = false;
-        bool TrailingExponent = false;
-        bool TrailingDecimalPoint = false;
-        bool TrailingSign = false;
-        bool LeadingZero = false;
+            bool ParsedExponent = false;
+            bool ParsedDecimalPoint = false;
+            bool ParsedNonZeroDigit = false;
+            bool TrailingExponent = false;
+            bool TrailingDecimalPoint = false;
+            bool TrailingSign = false;
+            bool LeadingZero = false;
+            bool IsHexadecimal = false;
 
-        // Sign
-        if (TryRead('-')) {
-            StringBuilder.Append('-');
-            TrailingSign = true;
-        }
-        else if (TryRead('+')) {
-            if (!Options.ExplicitPlusSigns) {
-                throw new HjsonException("Explicit plus-signs are not allowed");
+            // Sign
+            if (TryRead('-')) {
+                StringBuilder.Append('-');
+                TrailingSign = true;
             }
-            StringBuilder.Append('+');
-            TrailingSign = true;
-        }
-
-        // Named floating point literal
-        if (Options.NamedFloatingPointLiterals) {
-            if (Peek() is Rune LiteralRune && LiteralRune.Value is 'I' or 'N') {
-                // Guess full literal
-                string Literal = LiteralRune.Value is 'I' ? "Infinity" : "NaN";
-                // Read full literal
-                Token LiteralToken = ReadLiteralToken(JsonTokenType.String, Literal, out bool UnquotedStringFallback);
-
-                // Unquoted string read
-                if (UnquotedStringFallback) {
-                    StringBuilder.Append(LiteralToken.Value);
+            else if (TryRead('+')) {
+                if (!Options.ExplicitPlusSigns) {
+                    throw new HjsonException("Explicit plus-signs are not allowed");
                 }
-                // Full literal read
-                else {
-                    StringBuilder.Append(Literal);
-                }
-                
-                // Submit string token
-                return new Token(this, JsonTokenType.String, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
+                StringBuilder.Append('+');
+                TrailingSign = true;
             }
-        }
 
-        // Leading decimal point
-        if (TryRead('.')) {
-            if (Options.LeadingDecimalPoints) {
+            // Named floating point literal
+            if (Options.NamedFloatingPointLiterals) {
+                if (Peek() is Rune LiteralRune && LiteralRune.Value is 'I' or 'N') {
+                    // Guess full literal
+                    string Literal = LiteralRune.Value is 'I' ? "Infinity" : "NaN";
+                    // Read full literal
+                    Token LiteralToken = ReadLiteralToken(JsonTokenType.String, Literal, out bool UnquotedStringFallback);
+
+                    // Unquoted string was read
+                    if (UnquotedStringFallback) {
+                        StringBuilder.Append(LiteralToken.Value);
+                    }
+                    // Full literal was read
+                    else {
+                        StringBuilder.Append(Literal);
+                    }
+
+                    // Submit string token
+                    return new Token(this, JsonTokenType.String, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
+                }
+            }
+
+            // Leading decimal point
+            if (TryRead('.')) {
+                if (!Options.LeadingDecimalPoints) {
+                    throw new HjsonException("Leading decimal points are not allowed");
+                }
+
                 TrailingSign = false;
                 TrailingDecimalPoint = true;
 
                 StringBuilder.Append('.');
             }
-            else if (Options.UnquotedStrings) {
-                Position = TokenPosition;
-                return ReadUnquotedString();
-            }
-            else {
-                throw new HjsonException("Leading decimal points are not allowed");
-            }
-        }
 
-        while (true) {
-            // Peek rune
-            Rune? Rune = Peek();
+            while (true) {
+                // Peek rune
+                Rune? Rune = Peek();
 
-            // Digit
-            if (Rune?.Value is >= '0' and <= '9') {
-                if (Rune.Value.Value is '0') {
-                    if (!ParsedNonZeroDigit) {
-                        LeadingZero = true;
+                // Digit
+                if (Rune?.Value is >= '0' and <= '9') {
+                    if (Rune.Value.Value is '0') {
+                        if (!ParsedNonZeroDigit) {
+                            LeadingZero = true;
+                        }
                     }
+                    else {
+                        ParsedNonZeroDigit = true;
+                    }
+
+                    TrailingExponent = false;
+                    TrailingDecimalPoint = false;
+                    TrailingSign = false;
+
+                    Read();
+                    StringBuilder.Append(Rune.Value);
                 }
-                else {
+                // Hexadecimal digit
+                else if (IsHexadecimal && Rune?.Value is (>= 'A' and <= 'F') or (>= 'a' and <= 'f')) {
                     ParsedNonZeroDigit = true;
+
+                    TrailingExponent = false;
+                    TrailingDecimalPoint = false;
+                    TrailingSign = false;
+
+                    Read();
+                    StringBuilder.Append(Rune.Value);
                 }
+                // Exponent
+                else if (Rune?.Value is 'e' or 'E') {
+                    if (ParsedExponent) {
+                        throw new HjsonException($"Duplicate exponent: `{Rune}`");
+                    }
+                    if (TrailingSign) {
+                        throw new HjsonException($"Expected digit before exponent: `{Rune}`");
+                    }
 
-                TrailingExponent = false;
-                TrailingDecimalPoint = false;
-                TrailingSign = false;
+                    ParsedExponent = true;
 
-                Read();
-                StringBuilder.Append(Rune.Value);
-            }
-            // Exponent
-            else if (Rune?.Value is 'e' or 'E') {
-                if (ParsedExponent) {
-                    throw new HjsonException($"Duplicate exponent: `{Rune}`");
-                }
-                if (TrailingSign) {
-                    throw new HjsonException($"Expected digit before exponent: `{Rune}`");
-                }
+                    TrailingExponent = true;
+                    TrailingDecimalPoint = false;
 
-                ParsedExponent = true;
+                    Read();
+                    StringBuilder.Append(Rune.Value);
 
-                TrailingExponent = true;
-                TrailingDecimalPoint = false;
-
-                Read();
-                StringBuilder.Append(Rune.Value);
-
-                // Exponent sign
-                if (TryRead('-')) {
-                    StringBuilder.Append('-');
-                }
-                else if (TryRead('+')) {
-                    StringBuilder.Append('+');
-                }
-            }
-            // Decimal point
-            else if (Rune?.Value is '.') {
-                if (ParsedDecimalPoint) {
-                    throw new HjsonException($"Duplicate decimal point: `{Rune}`");
-                }
-                if (ParsedExponent) {
-                    throw new HjsonException($"Exponent cannot be fractional: `{Rune}`");
-                }
-
-                ParsedDecimalPoint = true;
-
-                TrailingExponent = false;
-                TrailingDecimalPoint = true;
-                TrailingSign = false;
-
-                Read();
-                StringBuilder.Append('.');
-            }
-            // End of number
-            else {
-                if (!Options.TrailingDecimalPoints) {
-                    if (TrailingDecimalPoint) {
-                        if (Options.UnquotedStrings) {
-                            Position = TokenPosition;
-                            return ReadUnquotedString();
-                        }
-                        throw new HjsonException("Expected digit after decimal point");
+                    // Exponent sign
+                    if (TryRead('-')) {
+                        StringBuilder.Append('-');
+                    }
+                    else if (TryRead('+')) {
+                        StringBuilder.Append('+');
                     }
                 }
-                if (TrailingExponent) {
-                    if (Options.UnquotedStrings) {
-                        Position = TokenPosition;
-                        return ReadUnquotedString();
+                // Decimal point
+                else if (Rune?.Value is '.') {
+                    if (ParsedDecimalPoint) {
+                        throw new HjsonException($"Duplicate decimal point: `{Rune}`");
                     }
-                    throw new HjsonException("Expected digit after exponent");
-                }
-                if (TrailingSign) {
-                    if (Options.UnquotedStrings) {
-                        Position = TokenPosition;
-                        return ReadUnquotedString();
+                    if (ParsedExponent) {
+                        throw new HjsonException($"Exponent cannot be fractional: `{Rune}`");
                     }
-                    throw new HjsonException("Expected digit after sign");
-                }
-                if (!Options.LeadingZeroes) {
-                    if (LeadingZero && ParsedNonZeroDigit) {
-                        if (Options.UnquotedStrings) {
-                            Position = TokenPosition;
-                            return ReadUnquotedString();
-                        }
-                        throw new HjsonException("Leading zeroes are not allowed");
-                    }
-                }
 
-                // Detect unquoted string (e.g. `123 a`)
-                if (Options.UnquotedStrings) {
-                    if (DetectFallbackToUnquotedString()) {
-                        Position = TokenPosition;
-                        return ReadUnquotedString();
-                    }
-                }
+                    ParsedDecimalPoint = true;
 
+                    TrailingExponent = false;
+                    TrailingDecimalPoint = true;
+                    TrailingSign = false;
+
+                    Read();
+                    StringBuilder.Append(Rune.Value);
+                }
+                // Hexadecimal specifier
+                else if (Rune?.Value is 'x' or 'X') {
+                    if (ParsedNonZeroDigit || ParsedDecimalPoint || ParsedExponent) {
+                        throw new HjsonException($"Hexadecimal specifier must be at the start of the number: `{Rune}`");
+                    }
+                    if (!Options.HexadecimalNumbers) {
+                        throw new HjsonException("Hexadecimal numbers are not allowed");
+                    }
+
+                    IsHexadecimal = true;
+
+                    LeadingZero = false;
+                    ParsedNonZeroDigit = true;
+
+                    TrailingExponent = false;
+                    TrailingDecimalPoint = true;
+                    TrailingSign = false;
+
+                    Read();
+                    StringBuilder.Append(Rune.Value);
+                }
                 // End of number
-                break;
-            }
-        }
+                else {
+                    if (!Options.TrailingDecimalPoints) {
+                        if (TrailingDecimalPoint) {
+                            throw new HjsonException("Expected digit after decimal point");
+                        }
+                    }
+                    if (TrailingExponent) {
+                        throw new HjsonException("Expected digit after exponent");
+                    }
+                    if (TrailingSign) {
+                        throw new HjsonException("Expected digit after sign");
+                    }
+                    if (!Options.LeadingZeroes) {
+                        if (LeadingZero && ParsedNonZeroDigit) {
+                            throw new HjsonException("Leading zeroes are not allowed");
+                        }
+                    }
 
-        // End of number
-        return new Token(this, JsonTokenType.Number, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
+                    // Detect unquoted string (e.g. `123 a`)
+                    if (Options.UnquotedStrings) {
+                        if (DetectFallbackToUnquotedString()) {
+                            Position = TokenPosition;
+                            return ReadUnquotedString();
+                        }
+                    }
+
+                    // End of number
+                    break;
+                }
+            }
+
+            // End of number
+            return new Token(this, JsonTokenType.Number, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
+        }
+        // Fallback to unquoted string
+        catch (HjsonException) when (Options.UnquotedStrings) {
+            Position = TokenPosition;
+            return ReadUnquotedString();
+        }
     }
     private IEnumerable<Token> ReadObject() {
         // Opening bracket
@@ -1361,18 +1383,6 @@ public sealed class HjsonReader : RuneReader {
         finally {
             Position = StartTestPosition;
         }
-    }
-
-    private static JsonValue CreateJsonValueFromNumberString(string NumberString) {
-        // Transform leading/trailing decimal points
-        if (NumberString.StartsWith('.')) {
-            NumberString = '0' + NumberString;
-        }
-        if (NumberString.EndsWith('.')) {
-            NumberString += '0';
-        }
-        // Parse number
-        return JsonSerializer.Deserialize<JsonValue>(NumberString)!;
     }
 
     /// <summary>
