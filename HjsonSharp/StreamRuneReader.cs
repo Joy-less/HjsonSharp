@@ -41,7 +41,7 @@ public class StreamRuneReader : RuneReader {
     /// Supports <see cref="Encoding.UTF8"/>, <see cref="Encoding.Unicode"/>, <see cref="Encoding.BigEndianUnicode"/>,
     /// <see cref="Encoding.UTF32"/> and <see cref="Encoding.ASCII"/>.
     /// </summary>
-    public override Rune? ReadRune() {
+    public override Rune? Read() {
         long OriginalPosition = Position;
         try {
             // UTF-8

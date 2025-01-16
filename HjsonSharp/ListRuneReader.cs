@@ -35,7 +35,7 @@ public class ListRuneReader : RuneReader {
     /// <summary>
     /// Reads a rune at the current index and advances the index.
     /// </summary>
-    public override Rune? ReadRune() {
+    public override Rune? Read() {
         if (InnerListIndex >= InnerList.Count) {
             return null;
         }
@@ -46,7 +46,7 @@ public class ListRuneReader : RuneReader {
     /// <summary>
     /// Reads a rune at the current index without advancing the index.
     /// </summary>
-    public override Rune? PeekRune() {
+    public override Rune? Peek() {
         if (InnerListIndex >= InnerList.Count) {
             return null;
         }

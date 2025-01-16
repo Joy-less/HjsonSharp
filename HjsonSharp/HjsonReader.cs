@@ -1,4 +1,5 @@
 ﻿using LinkDotNet.StringBuilder;
+using System.Buffers;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
@@ -107,20 +108,20 @@ public sealed class HjsonReader : RuneReader {
     }
 
     /// <inheritdoc/>
-    public override Rune? PeekRune() {
-        return InnerRuneReader.PeekRune();
+    public override Rune? Peek() {
+        return InnerRuneReader.Peek();
     }
     /// <inheritdoc/>
-    public override Rune? ReadRune() {
-        return InnerRuneReader.ReadRune();
+    public override Rune? Read() {
+        return InnerRuneReader.Read();
     }
     /// <inheritdoc/>
-    public override bool ReadRune(Rune? Expected) {
-        return InnerRuneReader.ReadRune(Expected);
+    public override bool TryRead(Rune? Expected) {
+        return InnerRuneReader.TryRead(Expected);
     }
     /// <inheritdoc/>
-    public override bool ReadRune(char Expected) {
-        return InnerRuneReader.ReadRune(Expected);
+    public override bool TryRead(char Expected) {
+        return InnerRuneReader.TryRead(Expected);
     }
     /// <inheritdoc/>
     public override void Dispose() {
@@ -256,8 +257,8 @@ public sealed class HjsonReader : RuneReader {
             }
         }
 
-        // End of stream
-        throw new HjsonException("Expected token, got end of stream");
+        // end of input
+        throw new HjsonException("Expected token, got end of input");
     }
     /// <summary>
     /// Tries to parse a single <see cref="JsonNode"/> from the stream, returning <see langword="false"/> if an exception occurs.
@@ -282,8 +283,8 @@ public sealed class HjsonReader : RuneReader {
         }
 
         // Peek rune
-        if (PeekRune() is not Rune Rune) {
-            throw new HjsonException("Expected token, got end of stream");
+        if (Peek() is not Rune Rune) {
+            throw new HjsonException("Expected token, got end of input");
         }
 
         // Object
@@ -392,8 +393,8 @@ public sealed class HjsonReader : RuneReader {
 
     private Token ReadPrimitiveElement() {
         // Peek rune
-        if (PeekRune() is not Rune Rune) {
-            throw new HjsonException("Expected token, got end of stream");
+        if (Peek() is not Rune Rune) {
+            throw new HjsonException("Expected token, got end of input");
         }
 
         // Null
@@ -427,8 +428,8 @@ public sealed class HjsonReader : RuneReader {
     }
     private Token ReadBoolean() {
         // Peek rune
-        if (PeekRune() is not Rune Rune) {
-            throw new HjsonException("Expected boolean, got end of stream");
+        if (Peek() is not Rune Rune) {
+            throw new HjsonException("Expected boolean, got end of input");
         }
 
         // True
@@ -444,20 +445,35 @@ public sealed class HjsonReader : RuneReader {
         long TokenPosition = Position;
 
         // Opening quote
-        char OpeningQuote;
-        // Double quote
-        if (ReadRune('"')) {
-            OpeningQuote = '"';
+        Rune OpeningQuote;
+        // Double-quoted string
+        if (TryRead('"')) {
+            OpeningQuote = new Rune('"');
         }
         else {
-            // Single quote
-            if (ReadRune('\'')) {
-                if (!Options.SingleQuotedStrings) {
-                    throw new HjsonException("Single-quoted strings are not allowed");
+            if (TryRead('\'')) {
+                if (TryRead('\'')) {
+                    // Triple-quoted string
+                    if (TryRead('\'')) {
+                        if (!Options.TripleQuotedStrings) {
+                            throw new HjsonException("Triple-quoted strings are not allowed");
+                        }
+                        return ReadTripleQuotedString(new Rune('\''));
+                    }
+                    // Empty single-quoted string
+                    else {
+                        return new Token(this, JsonTokenType.String, TokenPosition, Position - TokenPosition, "");
+                    }
                 }
-                OpeningQuote = '\'';
+                // Single-quoted string
+                else {
+                    if (!Options.SingleQuotedStrings) {
+                        throw new HjsonException("Single-quoted strings are not allowed");
+                    }
+                    OpeningQuote = new Rune('\'');
+                }
             }
-            // Unquoted
+            // Unquoted string
             else {
                 if (!Options.UnquotedStrings) {
                     throw new HjsonException("Unquoted strings are not allowed");
@@ -471,19 +487,19 @@ public sealed class HjsonReader : RuneReader {
 
         while (true) {
             // Read rune
-            if (ReadRune() is not Rune Rune) {
-                throw new HjsonException($"Expected `{OpeningQuote}` to end string, got end of stream");
+            if (Read() is not Rune Rune) {
+                throw new HjsonException($"Expected `{OpeningQuote}` to end string, got end of input");
             }
 
             // Closing quote
-            if (Rune.Value == OpeningQuote) {
+            if (Rune == OpeningQuote) {
                 break;
             }
             // Escape
             else if (Rune.Value is '\\') {
                 // Read escaped rune
-                if (ReadRune() is not Rune EscapedRune) {
-                    throw new HjsonException("Expected escape character after `\\`, got end of stream");
+                if (Read() is not Rune EscapedRune) {
+                    throw new HjsonException("Expected escape character after `\\`, got end of input");
                 }
 
                 // Double quote
@@ -552,7 +568,7 @@ public sealed class HjsonReader : RuneReader {
 
         while (true) {
             // Read rune
-            if (ReadRune() is not Rune Rune) {
+            if (Read() is not Rune Rune) {
                 break;
             }
 
@@ -564,6 +580,130 @@ public sealed class HjsonReader : RuneReader {
             else {
                 StringBuilder.Append(Rune);
             }
+        }
+
+        // End token
+        return new Token(this, JsonTokenType.String, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
+    }
+    private Token ReadTripleQuotedString(Rune OpeningQuote, int OpeningQuoteCount = 3) {
+        long TokenPosition = Position;
+
+        // Create string builder
+        ValueStringBuilder StringBuilder = new();
+
+        int ClosingQuoteCounter = 0;
+        long LeadingWhitespaceCounter = 0;
+        bool IsLeadingWhitespace = false;
+        bool IsFirstLine = true;
+
+        while (true) {
+            // Read rune
+            if (Read() is not Rune Rune) {
+                throw new HjsonException($"Expected `{OpeningQuote}{OpeningQuote}{OpeningQuote}` to end string, got end of input");
+            }
+
+            // Closing quote
+            if (Rune == OpeningQuote) {
+                ClosingQuoteCounter++;
+                if (ClosingQuoteCounter == OpeningQuoteCount) {
+                    break;
+                }
+            }
+            // Newline
+            else if (Rune.Value is '\n' or '\r') {
+                // Start of leading whitespace
+                LeadingWhitespaceCounter = 0;
+                IsLeadingWhitespace = true;
+
+                // Skip whitespace on first line
+                if (IsFirstLine) {
+                    IsFirstLine = false;
+                    continue;
+                }
+
+                StringBuilder.Append(Rune);
+            }
+            // Whitespace
+            else if (Rune.IsWhiteSpace(Rune)) {
+                // Build leading whitespace
+                if (IsLeadingWhitespace) {
+                    LeadingWhitespaceCounter++;
+                }
+
+                // Skip whitespace on first line
+                if (IsFirstLine && IsLeadingWhitespace) {
+                    continue;
+                }
+
+                StringBuilder.Append(Rune);
+            }
+            // Rune
+            else {
+                // Reset closing triple-quote counter
+                ClosingQuoteCounter = 0;
+                // End of leading whitespace
+                IsLeadingWhitespace = false;
+
+                StringBuilder.Append(Rune);
+            }
+        }
+
+        // Trim leading whitespace preceding closing quotes
+        int TrimLeadingWhitespaceCounter = 0;
+        int StartLeadingWhitespaceIndex = 0;
+        bool IsInLeadingWhitespace = true;
+        for (int Index = 0; Index < StringBuilder.Length;) {
+            // Get current rune
+            if (Rune.DecodeFromUtf16(StringBuilder.AsSpan()[Index..], out Rune CurrentRune, out int CurrentRuneLength) is not OperationStatus.Done) {
+                throw new InvalidProgramException("Could not decode rune previously built when reading triple quoted string");
+            }
+
+            // Start of leading whitespace
+            if (CurrentRune.Value is '\n' or '\r') {
+                // Remove leading whitespace
+                if (IsInLeadingWhitespace) {
+                    StringBuilder.Remove(StartLeadingWhitespaceIndex, Index - StartLeadingWhitespaceIndex);
+                    Index = StartLeadingWhitespaceIndex;
+                }
+
+                // Reset leading whitespace
+                TrimLeadingWhitespaceCounter = 0;
+                StartLeadingWhitespaceIndex = Index + CurrentRuneLength;
+                IsInLeadingWhitespace = true;
+            }
+            // Whitespace
+            else if (Rune.IsWhiteSpace(CurrentRune)) {
+                if (IsInLeadingWhitespace) {
+                    // Build leading whitespace
+                    TrimLeadingWhitespaceCounter++;
+
+                    // Remove leading whitespace when end reached
+                    if (TrimLeadingWhitespaceCounter > LeadingWhitespaceCounter) {
+                        IsInLeadingWhitespace = false;
+
+                        // Remove leading whitespace
+                        StringBuilder.Remove(StartLeadingWhitespaceIndex, Index - StartLeadingWhitespaceIndex);
+                        Index = StartLeadingWhitespaceIndex;
+                    }
+                }
+            }
+            // End of leading whitespace
+            else if (IsInLeadingWhitespace) {
+                IsInLeadingWhitespace = false;
+
+                // Remove leading whitespace
+                StringBuilder.Remove(StartLeadingWhitespaceIndex, Index - StartLeadingWhitespaceIndex);
+                Index = StartLeadingWhitespaceIndex;
+            }
+
+            // Move index to next rune
+            Index += CurrentRuneLength;
+        }
+        // Remove leading whitespace on last line
+        StringBuilder.Remove(StartLeadingWhitespaceIndex, StringBuilder.Length - StartLeadingWhitespaceIndex);
+        // Remove last newline
+        if (StringBuilder.Length >= 1 && StringBuilder[^1] is '\n' or '\r') {
+            StringBuilder.Remove(StringBuilder.Length - 1, 1);
         }
 
         // End token
@@ -584,11 +724,11 @@ public sealed class HjsonReader : RuneReader {
         bool LeadingZero = false;
 
         // Sign
-        if (ReadRune('-')) {
+        if (TryRead('-')) {
             StringBuilder.Append('-');
             TrailingSign = true;
         }
-        else if (ReadRune('+')) {
+        else if (TryRead('+')) {
             if (!Options.ExplicitPlusSigns) {
                 throw new HjsonException("Explicit plus-signs are not allowed");
             }
@@ -598,7 +738,7 @@ public sealed class HjsonReader : RuneReader {
 
         // Named floating point literal
         if (Options.NamedFloatingPointLiterals) {
-            if (PeekRune() is Rune LiteralRune && LiteralRune.Value is 'I' or 'N') {
+            if (Peek() is Rune LiteralRune && LiteralRune.Value is 'I' or 'N') {
                 // Guess full literal
                 string Literal = LiteralRune.Value is 'I' ? "Infinity" : "NaN";
                 // Read full literal
@@ -619,7 +759,7 @@ public sealed class HjsonReader : RuneReader {
         }
 
         // Leading decimal point
-        if (ReadRune('.')) {
+        if (TryRead('.')) {
             if (Options.LeadingDecimalPoints) {
                 TrailingSign = false;
                 TrailingDecimalPoint = true;
@@ -637,7 +777,7 @@ public sealed class HjsonReader : RuneReader {
 
         while (true) {
             // Peek rune
-            Rune? Rune = PeekRune();
+            Rune? Rune = Peek();
 
             // Digit
             if (Rune?.Value is >= '0' and <= '9') {
@@ -654,7 +794,7 @@ public sealed class HjsonReader : RuneReader {
                 TrailingDecimalPoint = false;
                 TrailingSign = false;
 
-                ReadRune();
+                Read();
                 StringBuilder.Append(Rune.Value);
             }
             // Exponent
@@ -671,14 +811,14 @@ public sealed class HjsonReader : RuneReader {
                 TrailingExponent = true;
                 TrailingDecimalPoint = false;
 
-                ReadRune();
+                Read();
                 StringBuilder.Append(Rune.Value);
 
                 // Exponent sign
-                if (ReadRune('-')) {
+                if (TryRead('-')) {
                     StringBuilder.Append('-');
                 }
-                else if (ReadRune('+')) {
+                else if (TryRead('+')) {
                     StringBuilder.Append('+');
                 }
             }
@@ -697,7 +837,7 @@ public sealed class HjsonReader : RuneReader {
                 TrailingDecimalPoint = true;
                 TrailingSign = false;
 
-                ReadRune();
+                Read();
                 StringBuilder.Append('.');
             }
             // End of number
@@ -753,7 +893,7 @@ public sealed class HjsonReader : RuneReader {
     }
     private IEnumerable<Token> ReadObject() {
         // Opening bracket
-        if (!ReadRune('{')) {
+        if (!TryRead('{')) {
             throw new HjsonException($"Expected `{{` to start object");
         }
         yield return new Token(this, JsonTokenType.StartObject, Position - 1);
@@ -768,8 +908,8 @@ public sealed class HjsonReader : RuneReader {
 
         while (true) {
             // Peek rune
-            if (PeekRune() is not Rune Rune) {
-                throw new HjsonException("Expected '}' to end object, got end of stream");
+            if (Peek() is not Rune Rune) {
+                throw new HjsonException("Expected '}' to end object, got end of input");
             }
 
             // Closing bracket
@@ -782,7 +922,7 @@ public sealed class HjsonReader : RuneReader {
                 }
                 // End of object
                 yield return new Token(this, JsonTokenType.EndObject, Position);
-                ReadRune();
+                Read();
                 yield break;
             }
             // Property name
@@ -813,7 +953,7 @@ public sealed class HjsonReader : RuneReader {
                 }
 
                 // Comma
-                TrailingComma = ReadRune(',');
+                TrailingComma = TryRead(',');
                 PropertyLegal = TrailingComma || Options.OmittedCommas;
 
                 // Comments & whitespace
@@ -827,7 +967,7 @@ public sealed class HjsonReader : RuneReader {
         long TokenPosition = Position;
 
         // Unquoted property name
-        if (PeekRune()?.Value is not ('"' or '\'')) {
+        if (Peek()?.Value is not ('"' or '\'')) {
             if (Options.EcmaScriptPropertyNames) {
                 yield return ReadEcmaScriptPropertyName();
                 yield break;
@@ -850,7 +990,7 @@ public sealed class HjsonReader : RuneReader {
         }
 
         // Colon
-        if (!ReadRune(':')) {
+        if (!TryRead(':')) {
             throw new HjsonException($"Expected `:` after property name in object");
         }
         yield return new Token(this, JsonTokenType.PropertyName, TokenPosition, Position - TokenPosition, String.Value);
@@ -863,13 +1003,13 @@ public sealed class HjsonReader : RuneReader {
 
         while (true) {
             // Peek rune
-            if (PeekRune() is not Rune Rune) {
+            if (Peek() is not Rune Rune) {
                 break;
             }
 
             // Colon
             if (Rune.Value is ':') {
-                ReadRune();
+                Read();
                 break;
             }
             // Comments & whitespace
@@ -877,27 +1017,27 @@ public sealed class HjsonReader : RuneReader {
                 ReadCommentsAndWhitespace();
 
                 // Colon
-                if (!ReadRune(':')) {
+                if (!TryRead(':')) {
                     throw new HjsonException($"Expected `:` after property name in object");
                 }
                 break;
             }
             // Dollar sign
             else if (Rune.Value is '$') {
-                ReadRune();
+                Read();
                 StringBuilder.Append('$');
             }
             // Underscore
             else if (Rune.Value is '_') {
-                ReadRune();
+                Read();
                 StringBuilder.Append('_');
             }
             // Escape
             else if (Rune.Value is '\\') {
-                ReadRune();
+                Read();
                 // Read escaped rune
-                if (ReadRune() is not Rune EscapedRune) {
-                    throw new HjsonException("Expected escape character after `\\`, got end of stream");
+                if (Read() is not Rune EscapedRune) {
+                    throw new HjsonException("Expected escape character after `\\`, got end of input");
                 }
 
                 // Unicode hex sequence
@@ -911,7 +1051,7 @@ public sealed class HjsonReader : RuneReader {
             }
             // Unicode letter
             else if (Rune.IsLetter(Rune)) {
-                ReadRune();
+                Read();
                 StringBuilder.Append(Rune);
             }
             // Invalid rune
@@ -931,13 +1071,13 @@ public sealed class HjsonReader : RuneReader {
 
         while (true) {
             // Peek rune
-            if (PeekRune() is not Rune Rune) {
+            if (Peek() is not Rune Rune) {
                 break;
             }
 
             // Colon
             if (Rune.Value is ':') {
-                ReadRune();
+                Read();
                 break;
             }
             // Invalid rune
@@ -946,7 +1086,7 @@ public sealed class HjsonReader : RuneReader {
             }
             // Valid rune
             else {
-                ReadRune();
+                Read();
                 StringBuilder.Append(Rune);
             }
         }
@@ -956,7 +1096,7 @@ public sealed class HjsonReader : RuneReader {
     }
     private IEnumerable<Token> ReadArray() {
         // Opening bracket
-        if (!ReadRune('[')) {
+        if (!TryRead('[')) {
             throw new HjsonException($"Expected `[` to start array");
         }
         yield return new Token(this, JsonTokenType.StartArray, Position - 1);
@@ -971,8 +1111,8 @@ public sealed class HjsonReader : RuneReader {
 
         while (true) {
             // Peek rune
-            if (PeekRune() is not Rune Rune) {
-                throw new HjsonException("Expected `]` to end array, got end of stream");
+            if (Peek() is not Rune Rune) {
+                throw new HjsonException("Expected `]` to end array, got end of input");
             }
 
             // Closing bracket
@@ -985,7 +1125,7 @@ public sealed class HjsonReader : RuneReader {
                 }
                 // End of array
                 yield return new Token(this, JsonTokenType.EndArray, Position);
-                ReadRune();
+                Read();
                 yield break;
             }
             // Item
@@ -1006,7 +1146,7 @@ public sealed class HjsonReader : RuneReader {
                 }
 
                 // Comma
-                TrailingComma = ReadRune(',');
+                TrailingComma = TryRead(',');
                 ItemLegal = TrailingComma || Options.OmittedCommas;
 
                 // Comments & whitespace
@@ -1022,7 +1162,7 @@ public sealed class HjsonReader : RuneReader {
             ReadWhitespace();
 
             // Peek rune
-            if (PeekRune() is not Rune Rune) {
+            if (Peek() is not Rune Rune) {
                 yield break;
             }
 
@@ -1041,16 +1181,16 @@ public sealed class HjsonReader : RuneReader {
 
         // Comment type
         bool IsBlockComment = false;
-        if (ReadRune('/')) {
+        if (TryRead('/')) {
             // Line-style comment
-            if (ReadRune('/')) {
+            if (TryRead('/')) {
                 // Ensure line-style comments are enabled
                 if (!Options.LineStyleComments) {
                     throw new HjsonException("Line-style comments are not allowed");
                 }
             }
             // Block-style comment
-            else if (ReadRune('*')) {
+            else if (TryRead('*')) {
                 // Ensure block-style comments are enabled
                 if (!Options.BlockStyleComments) {
                     throw new HjsonException("Block-style comments are not allowed");
@@ -1059,7 +1199,7 @@ public sealed class HjsonReader : RuneReader {
             }
         }
         // Hash-style comment
-        else if (ReadRune('#')) {
+        else if (TryRead('#')) {
             // Ensure hash-style comments are enabled
             if (!Options.HashStyleComments) {
                 throw new HjsonException("Hash-style comments are not allowed");
@@ -1076,17 +1216,17 @@ public sealed class HjsonReader : RuneReader {
         // Read comment
         while (true) {
             // Read rune
-            if (ReadRune() is not Rune CommentRune) {
+            if (Read() is not Rune CommentRune) {
                 if (IsBlockComment) {
-                    throw new HjsonException("Expected `*/` to end block-style comment, got end of stream");
+                    throw new HjsonException("Expected `*/` to end block-style comment, got end of input");
                 }
                 break;
             }
 
             // Check end of block comment
             if (IsBlockComment) {
-                if (CommentRune.Value is '*' && PeekRune()?.Value is '/') {
-                    ReadRune();
+                if (CommentRune.Value is '*' && Peek()?.Value is '/') {
+                    Read();
                     break;
                 }
             }
@@ -1107,20 +1247,24 @@ public sealed class HjsonReader : RuneReader {
     private void ReadWhitespace() {
         while (true) {
             // Peek rune
-            if (PeekRune() is not Rune Rune) {
+            if (Peek() is not Rune Rune) {
                 return;
             }
 
+            // Newline
+            if (Rune.Value is '\n' or '\r') {
+                Read();
+            }
             // JSON whitespace
-            if (Rune.Value is ' ' or '\n' or '\r' or '\t') {
-                ReadRune();
+            else if (Rune.Value is ' ' or '\t') {
+                Read();
             }
             // All whitespace
             else if (Rune.IsWhiteSpace(Rune)) {
                 if (!Options.AllWhitespace) {
                     throw new HjsonException("Non-JSON whitespace is not allowed");
                 }
-                ReadRune();
+                Read();
             }
             // End of whitespace
             else {
@@ -1134,7 +1278,7 @@ public sealed class HjsonReader : RuneReader {
         // Literal
         foreach (Rune ExpectedRune in Literal.EnumerateRunes()) {
             // Read rune
-            Rune? ActualRune = ReadRune();
+            Rune? ActualRune = Read();
 
             // Expected rune
             if (ActualRune == ExpectedRune) {
@@ -1158,8 +1302,8 @@ public sealed class HjsonReader : RuneReader {
 
         for (int Index = 0; Index < HexUtf8Bytes.Length; Index++) {
             // Peek rune
-            if (ReadRune() is not Rune Rune) {
-                throw new HjsonException("Expected hex digit in sequence, got end of stream");
+            if (Read() is not Rune Rune) {
+                throw new HjsonException("Expected hex digit in sequence, got end of input");
             }
 
             // Hexadecimal rune
@@ -1182,12 +1326,12 @@ public sealed class HjsonReader : RuneReader {
         try {
             while (true) {
                 // Peek rune
-                if (PeekRune() is not Rune TestRune) {
+                if (Peek() is not Rune TestRune) {
                     return false;
                 }
 
                 // JSON symbol; unquoted strings cannot start with these
-                if (TestRune.Value is ',' or '{' or '}' or '[' or ']' or ':' or '"' or '\'') {
+                if (TestRune.Value is ',' or ':' or '{' or '}' or '[' or ']' or '"' or '\'') {
                     return false;
                 }
                 // Comment
@@ -1196,7 +1340,7 @@ public sealed class HjsonReader : RuneReader {
                 }
                 // Whitespace
                 else if (Rune.IsWhiteSpace(TestRune)) {
-                    ReadRune();
+                    Read();
                 }
                 // Invalid rune; fallback to unquoted string
                 else {
@@ -1208,6 +1352,7 @@ public sealed class HjsonReader : RuneReader {
             Position = StartTestPosition;
         }
     }
+
     private static JsonValue CreateJsonValueFromNumberString(string NumberString) {
         // Transform leading/trailing decimal points
         if (NumberString.StartsWith('.')) {

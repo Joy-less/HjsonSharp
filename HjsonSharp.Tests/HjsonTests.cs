@@ -69,6 +69,30 @@ public class HjsonTests {
         Assert.Equal("5.", Element.GetProperty("o").Deserialize<string>(JsonOptions.Mini));
     }
     [Fact]
+    public void TripleQuotedStringsTest() {
+        string Text = """
+            {
+              "a": '''
+                qwerty
+                ''',
+              "b":
+                '''
+                qwerty
+                ''',
+              "c":
+                '''
+                 qwerty
+                '''
+            }
+            """;
+
+        JsonElement Element = HjsonReader.ParseElement<JsonElement>(Text, HjsonReaderOptions.Hjson);
+        Assert.Equal(3, Element.GetPropertyCount());
+        Assert.Equal("qwerty", Element.GetProperty("a").Deserialize<string>(JsonOptions.Mini));
+        Assert.Equal("qwerty", Element.GetProperty("b").Deserialize<string>(JsonOptions.Mini));
+        Assert.Equal(" qwerty", Element.GetProperty("c").Deserialize<string>(JsonOptions.Mini));
+    }
+    [Fact]
     public void OneLineOmittedCommasTest() {
         string Text = """
             {

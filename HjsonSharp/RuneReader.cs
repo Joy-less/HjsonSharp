@@ -22,36 +22,36 @@ public abstract class RuneReader : IDisposable, IAsyncDisposable {
     public abstract long Length { get; }
 
     /// <summary>
-    /// Reads the rune at the next position and advances the position.
+    /// Reads the rune at the next position and advances the position by one rune.
     /// </summary>
-    public abstract Rune? ReadRune();
+    public abstract Rune? Read();
 
     /// <summary>
-    /// Reads the next rune at the next position without advancing the position.
+    /// Reads the rune at the next position without advancing the position.
     /// </summary>
-    public virtual Rune? PeekRune() {
+    public virtual Rune? Peek() {
         long OriginalPosition = Position;
         try {
-            return ReadRune();
+            return Read();
         }
         finally {
             Position = OriginalPosition;
         }
     }
     /// <summary>
-    /// Peeks the next rune from the stream and checks if it matches the expected rune.
+    /// Peeks the rune at the next position and checks if it matches the expected rune.
     /// </summary>
-    public virtual bool ReadRune(Rune? Expected) {
+    public virtual bool TryRead(Rune? Expected) {
         long OriginalPosition = Position;
-        if (ReadRune() != Expected) {
+        if (Read() != Expected) {
             Position = OriginalPosition;
             return false;
         }
         return true;
     }
-    /// <inheritdoc cref="ReadRune(Rune?)"/>
-    public virtual bool ReadRune(char Expected) {
-        return ReadRune(new Rune(Expected));
+    /// <inheritdoc cref="TryRead(Rune?)"/>
+    public virtual bool TryRead(char Expected) {
+        return TryRead(new Rune(Expected));
     }
     /// <summary>
     /// Releases all unmanaged resources used by the reader.

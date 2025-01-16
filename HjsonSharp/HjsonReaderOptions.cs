@@ -48,7 +48,7 @@ public record struct HjsonReaderOptions() {
         TrailingCommas = true,
         OmittedCommas = true,
         SingleQuotedStrings = true,
-        TripleQuotedMultiLineStrings = true,
+        TripleQuotedStrings = true,
         UnquotedStrings = true,
         EscapedStringSingleQuotes = true,
         LineStyleComments = true,
@@ -138,7 +138,12 @@ public record struct HjsonReaderOptions() {
     /// '''
     /// </code>
     /// </summary>
-    public bool TripleQuotedMultiLineStrings { get; set; }
+    /// <remarks>
+    /// Note: The HJSON specification trims leading whitespace based on the whitespace preceding the opening
+    /// triple quotes. However, since that would require reading backwards, this implementation uses the
+    /// closing triple quotes instead (like C#). This is unlikely to make a difference.
+    /// </remarks>
+    public bool TripleQuotedStrings { get; set; }
     /// <summary>
     /// Enables/disables unquoted strings.
     /// <code>

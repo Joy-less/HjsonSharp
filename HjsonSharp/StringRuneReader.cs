@@ -36,7 +36,7 @@ public class StringRuneReader : RuneReader {
     /// <summary>
     /// Reads a rune at the current index and advances the index.
     /// </summary>
-    public override Rune? ReadRune() {
+    public override Rune? Read() {
         if (InnerStringIndex >= InnerString.Length) {
             return null;
         }
@@ -49,7 +49,7 @@ public class StringRuneReader : RuneReader {
     /// <summary>
     /// Reads a rune at the current index without advancing the index.
     /// </summary>
-    public override Rune? PeekRune() {
+    public override Rune? Peek() {
         if (InnerStringIndex >= InnerString.Length) {
             return null;
         }
