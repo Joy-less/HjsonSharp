@@ -16,7 +16,7 @@ A customisable streaming parser for [HJSON](https://hjson.github.io), with suppo
 
 ## Specification Differences
 
-### Leading Whitespace In Triple Quoted Strings
+### Leading Whitespace In Triple Quoted Strings (HJSON)
 
 Instead of counting leading whitespace preceding the opening quotes, HjsonSharp counts leading whitespace preceding the closing quotes.
 See the [proposal](https://github.com/hjson/hjson/issues/132) for more information.
