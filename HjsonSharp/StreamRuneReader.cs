@@ -129,7 +129,7 @@ public class StreamRuneReader : RuneReader {
                 }
 
                 // If not in surrogate pair, convert char to rune
-                if (GetUtf16SequenceLength(Bytes, InnerStreamEncoding == Encoding.BigEndianUnicode) == 2) {
+                if (GetUtf16SequenceLength(Bytes[0], Bytes[1], InnerStreamEncoding == Encoding.BigEndianUnicode) == 1) {
                     // Convert bytes to char
                     Span<char> OneChars = stackalloc char[1];
                     int OneCharsRead = InnerStreamEncoding.GetChars(Bytes[..BytesRead], OneChars);
@@ -223,7 +223,7 @@ public class StreamRuneReader : RuneReader {
     }
 
     /// <summary>
-    /// Calculates the length in bytes of a single UTF-8 rune from the bits in its first byte.<br/>
+    /// Calculates the <see langword="byte"/> count of a single UTF-8 rune from the bits in its first byte.<br/>
     /// The result will be 1, 2, 3 or 4.
     /// </summary>
     public static int GetUtf8SequenceLength(byte FirstByte) {
@@ -231,17 +231,14 @@ public class StreamRuneReader : RuneReader {
         return (FirstByte - 160 >> 20 - FirstByte / 16) + 2;
     }
     /// <summary>
-    /// Calculates the length in bytes of a single UTF-16 rune from the bits in its first two bytes.<br/>
-    /// The result will be 2 or 4.
+    /// Calculates the <see langword="char"/> count of a single UTF-16 rune from the bits in its first two bytes.<br/>
+    /// The result will be 1 or 2.
     /// </summary>
-    public static int GetUtf16SequenceLength(ReadOnlySpan<byte> Bytes, bool IsBigEndian = false) {
-        if (Bytes.Length < 2) {
-            throw new ArgumentException("At least 2 bytes are required.", nameof(Bytes));
-        }
+    public static int GetUtf16SequenceLength(byte FirstByte, byte SecondByte, bool IsBigEndian = false) {
         ushort Value = IsBigEndian
-            ? (ushort)((Bytes[0] << 8) | Bytes[1])  // Big-endian: Most Significant Byte first
-            : (ushort)((Bytes[1] << 8) | Bytes[0]); // Little-endian: Least Significant Byte first
+            ? (ushort)((FirstByte << 8) | SecondByte)  // Big-endian: Most Significant Byte first
+            : (ushort)((SecondByte << 8) | FirstByte); // Little-endian: Least Significant Byte first
         bool IsHighSurrogate = char.IsHighSurrogate((char)Value);
-        return IsHighSurrogate ? 4 : 2;
+        return IsHighSurrogate ? 2 : 1;
     }
 }
