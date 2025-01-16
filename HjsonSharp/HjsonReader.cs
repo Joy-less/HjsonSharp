@@ -592,14 +592,14 @@ public sealed class HjsonReader : RuneReader {
         ValueStringBuilder StringBuilder = new();
 
         int ClosingQuoteCounter = 0;
-        long LeadingWhitespaceCounter = 0;
+        int LeadingWhitespaceCounter = 0;
         bool IsLeadingWhitespace = false;
         bool IsFirstLine = true;
 
         while (true) {
             // Read rune
             if (Read() is not Rune Rune) {
-                throw new HjsonException($"Expected `{OpeningQuote}{OpeningQuote}{OpeningQuote}` to end string, got end of input");
+                throw new HjsonException($"Expected `{string.Concat(Enumerable.Repeat(OpeningQuote, OpeningQuoteCount))}` to end string, got end of input");
             }
 
             // Closing quote
@@ -700,7 +700,7 @@ public sealed class HjsonReader : RuneReader {
             Index += CurrentRuneLength;
         }
         // Remove leading whitespace on last line
-        StringBuilder.Remove(StartLeadingWhitespaceIndex, StringBuilder.Length - StartLeadingWhitespaceIndex);
+        StringBuilder.Remove(StringBuilder.Length - LeadingWhitespaceCounter, LeadingWhitespaceCounter);
         // Remove last newline
         if (StringBuilder.Length >= 1 && StringBuilder[^1] is '\n' or '\r') {
             StringBuilder.Remove(StringBuilder.Length - 1, 1);
