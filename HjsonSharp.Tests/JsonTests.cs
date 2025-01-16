@@ -118,4 +118,10 @@ public class JsonTests {
         Assert.Throws<HjsonException>(() => HjsonReader.ParseElement<int>("001", HjsonReaderOptions.Json));
         Assert.Equal(0e0, HjsonReader.ParseElement<double>("0e0", HjsonReaderOptions.Json));
     }
+    [Fact]
+    public void StringEscapedHexSequences() {
+        Assert.Equal("ç", HjsonReader.ParseElement<string>("""
+            "\u00E7"
+            """, HjsonReaderOptions.Json));
+    }
 }

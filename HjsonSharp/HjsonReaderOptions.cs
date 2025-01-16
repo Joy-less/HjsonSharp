@@ -19,9 +19,9 @@ public record struct HjsonReaderOptions() {
         TrailingCommas = true,
     };
     /// <summary>
-    /// A variant of JSON allowing ECMAScript property names, trailing commas, single-quoted strings, escaped newlines in strings, invalid escape sequences
-    /// in strings, hexadecimal numbers, leading decimal points, trailing decimal points, named floating-point literals, explicit plus-signs,
-    /// line-style comments, block-style comments, and unicode whitespace.<br/>
+    /// A variant of JSON allowing ECMAScript property names, trailing commas, single-quoted strings, escaped newlines in strings, escaped
+    /// short hex sequences in strings, invalid escape sequences in strings, hexadecimal numbers, leading decimal points, trailing decimal
+    /// points, named floating-point literals, explicit plus-signs, line-style comments, block-style comments, and unicode whitespace.<br/>
     /// <see href="https://json5.org"/>
     /// </summary>
     public static HjsonReaderOptions Json5 => Json with {
@@ -29,6 +29,7 @@ public record struct HjsonReaderOptions() {
         TrailingCommas = true,
         SingleQuotedStrings = true,
         StringEscapedNewlines = true,
+        StringEscapedShortHexSequences = true,
         StringInvalidEscapeSequences = true,
         HexadecimalNumbers = true,
         LeadingDecimalPoints = true,
@@ -166,14 +167,12 @@ public record struct HjsonReaderOptions() {
     /// </summary>
     public bool StringEscapedNewlines { get; set; }
     /// <summary>
-    /// Enables/disables the <c>\x</c> escape sequence as an alternative to <c>\u</c> in strings.
+    /// Enables/disables the 2-character <c>\x</c> escape sequence as an alternative to the 4-character <c>\u</c> in strings.
     /// <code>
-    /// "\x00E7" (ç)
-    /// "\x0E7" (ç)
     /// "\xE7" (ç)
     /// </code>
     /// </summary>
-    public bool StringEscapedVariableLengthHexSequences { get; set; }
+    public bool StringEscapedShortHexSequences { get; set; }
     /// <summary>
     /// Enables/disables non-existent escape sequences in strings.
     /// <code>

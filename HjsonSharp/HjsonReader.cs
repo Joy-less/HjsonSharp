@@ -547,7 +547,14 @@ public sealed class HjsonReader : RuneReader {
                 }
                 // Unicode hex sequence
                 else if (EscapedRune.Value is 'u') {
-                    StringBuilder.Append(ReadCharFromHexSequence());
+                    StringBuilder.Append(ReadRuneFromHexSequence(4));
+                }
+                // Unicode short hex sequence
+                else if (EscapedRune.Value is 'x') {
+                    if (!Options.StringEscapedShortHexSequences && !Options.StringInvalidEscapeSequences) {
+                        throw new HjsonException("Escaped short hex sequences are not allowed");
+                    }
+                    StringBuilder.Append(ReadRuneFromHexSequence(2));
                 }
                 // Invalid escape character
                 else {
@@ -1050,7 +1057,7 @@ public sealed class HjsonReader : RuneReader {
 
                 // Unicode hex sequence
                 if (EscapedRune.Value is 'u') {
-                    StringBuilder.Append(ReadCharFromHexSequence());
+                    StringBuilder.Append(ReadRuneFromHexSequence(4));
                 }
                 // Invalid escape character
                 else {
@@ -1301,10 +1308,10 @@ public sealed class HjsonReader : RuneReader {
         UnquotedStringFallback = false;
         return new Token(this, TokenType, TokenPosition, Literal.Length);
     }
-    private char ReadCharFromHexSequence() {
-        Span<byte> HexUtf8Bytes = stackalloc byte[4];
+    private Rune ReadRuneFromHexSequence(int Length) {
+        Span<byte> HexUtf8Bytes = stackalloc byte[Length];
 
-        for (int Index = 0; Index < HexUtf8Bytes.Length; Index++) {
+        for (int Index = 0; Index < Length; Index++) {
             // Peek rune
             if (Read() is not Rune Rune) {
                 throw new HjsonException("Expected hex digit in sequence, got end of input");
@@ -1316,13 +1323,12 @@ public sealed class HjsonReader : RuneReader {
             }
             // Unexpected rune
             else {
-                throw new HjsonException($"Expected 4 hexadecimal digits for unicode escape sequence, got `{Rune}`");
+                throw new HjsonException($"Expected {Length} hexadecimal digits for unicode escape sequence, got `{Rune}`");
             }
         }
 
-        // Parse unicode character from 4 hexadecimal digits
-        char UnicodeCharacter = (char)ushort.Parse(HexUtf8Bytes, NumberStyles.AllowHexSpecifier);
-        return UnicodeCharacter;
+        // Parse unicode character from hexadecimal digits
+        return new Rune(int.Parse(HexUtf8Bytes, NumberStyles.AllowHexSpecifier));
     }
     private bool DetectFallbackToUnquotedString() {
         long StartTestPosition = Position;

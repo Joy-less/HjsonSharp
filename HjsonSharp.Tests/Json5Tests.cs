@@ -92,4 +92,13 @@ public class Json5Tests {
         Assert.Equal(double.NegativeInfinity, Element.GetProperty("b").Deserialize<double>(JsonOptions.Mini));
         Assert.Equal(double.NaN, Element.GetProperty("c").Deserialize<double>(JsonOptions.Mini));
     }
+    [Fact]
+    public void StringEscapedShortHexSequences() {
+        Assert.Equal("ç", HjsonReader.ParseElement<string>("""
+            "\xE7"
+            """, HjsonReaderOptions.Json5));
+        Assert.Equal("ç00", HjsonReader.ParseElement<string>("""
+            "\xE700"
+            """, HjsonReaderOptions.Json5));
+    }
 }
