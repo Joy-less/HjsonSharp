@@ -290,7 +290,7 @@ public sealed class HjsonReader : RuneReader {
         }
 
         // Root object with omitted root brackets
-        if (IsRoot && DetectObjectWithOmittedBrackets()) {
+        if (IsRoot && Options.OmittedRootObjectBrackets && DetectObjectWithOmittedBrackets()) {
             foreach (Token Token in ReadObject(OmitBrackets: true)) {
                 yield return Token;
             }
