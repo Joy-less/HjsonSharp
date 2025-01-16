@@ -1,5 +1,6 @@
-﻿using System.Buffers;
-using System.Text;
+﻿using System.Text;
+using System.Buffers;
+using LinkDotNet.StringBuilder;
 
 namespace HjsonSharp;
 
@@ -57,5 +58,13 @@ public class StringRuneReader : RuneReader {
             throw new InvalidOperationException("Could not read rune from string");
         }
         return Result;
+    }
+    /// <inheritdoc/>
+    public override string ReadToEnd() {
+        ValueStringBuilder StringBuilder = new();
+        for (; InnerStringIndex < InnerString.Length; InnerStringIndex++) {
+            StringBuilder.Append(InnerString[InnerStringIndex]);
+        }
+        return StringBuilder.ToString();
     }
 }

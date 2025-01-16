@@ -1,11 +1,12 @@
-﻿using System.Text;
+﻿using LinkDotNet.StringBuilder;
+using System.Text;
 
 namespace HjsonSharp;
 
 /// <summary>
 /// A reader that can read a seekable sequence of runes.
 /// </summary>
-public abstract class RuneReader : IDisposable, IAsyncDisposable {
+public abstract class RuneReader : IDisposable {
     /// <summary>
     /// The current position in the sequence.
     /// </summary>
@@ -54,22 +55,19 @@ public abstract class RuneReader : IDisposable, IAsyncDisposable {
         return TryRead(new Rune(Expected));
     }
     /// <summary>
+    /// Reads every remaining rune in the reader and concatenates them to a string.
+    /// </summary>
+    public virtual string ReadToEnd() {
+        ValueStringBuilder StringBuilder = new();
+        while (Read() is Rune Rune) {
+            StringBuilder.Append(Rune);
+        }
+        return StringBuilder.ToString();
+    }
+    /// <summary>
     /// Releases all unmanaged resources used by the reader.
     /// </summary>
     public virtual void Dispose() {
         GC.SuppressFinalize(this);
-    }
-    /// <summary>
-    /// Asynchronously releases all unmanaged resources used by the reader.
-    /// </summary>
-    public virtual ValueTask DisposeAsync() {
-        GC.SuppressFinalize(this);
-        try {
-            Dispose();
-            return default;
-        }
-        catch (Exception Ex) {
-            return ValueTask.FromException(Ex);
-        }
     }
 }

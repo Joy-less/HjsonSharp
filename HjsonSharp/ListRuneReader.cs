@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using LinkDotNet.StringBuilder;
 
 namespace HjsonSharp;
 
@@ -52,5 +53,13 @@ public class ListRuneReader : RuneReader {
         }
         Rune Result = InnerList[InnerListIndex];
         return Result;
+    }
+    /// <inheritdoc/>
+    public override string ReadToEnd() {
+        ValueStringBuilder StringBuilder = new();
+        for (; InnerListIndex < InnerList.Count; InnerListIndex++) {
+            StringBuilder.Append(InnerList[InnerListIndex]);
+        }
+        return StringBuilder.ToString();
     }
 }

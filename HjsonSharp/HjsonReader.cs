@@ -1,9 +1,9 @@
-﻿using LinkDotNet.StringBuilder;
-using System.Buffers;
+﻿using System.Buffers;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using LinkDotNet.StringBuilder;
 
 namespace HjsonSharp;
 
@@ -122,6 +122,10 @@ public sealed class HjsonReader : RuneReader {
     /// <inheritdoc/>
     public override bool TryRead(char Expected) {
         return InnerRuneReader.TryRead(Expected);
+    }
+    /// <inheritdoc/>
+    public override string ReadToEnd() {
+        return InnerRuneReader.ReadToEnd();
     }
     /// <inheritdoc/>
     public override void Dispose() {

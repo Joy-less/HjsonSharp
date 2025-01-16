@@ -1,5 +1,5 @@
-﻿using System.Buffers;
-using System.Text;
+﻿using System.Text;
+using System.Buffers;
 
 namespace HjsonSharp;
 
