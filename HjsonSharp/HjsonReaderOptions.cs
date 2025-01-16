@@ -41,8 +41,8 @@ public record struct HjsonReaderOptions() {
         AllWhitespace = true,
     };
     /// <summary>
-    /// A variant of JSON allowing unquoted property names, trailing commas, omitted commas, single-quoted strings, triple-quoted multi-line strings,
-    /// unquoted strings, line-style comments, block-style comments, hash-style comments, and omitted root object brackets.<br/>
+    /// A variant of JSON allowing unquoted property names, trailing commas, omitted commas, single-quoted strings, triple-quoted multi-line
+    /// strings, unquoted strings, line-style comments, block-style comments, hash-style comments, and omitted root object brackets.<br/>
     /// <see href="https://hjson.github.io"/>
     /// </summary>
     public static HjsonReaderOptions Hjson => Json with {
@@ -163,6 +163,14 @@ public record struct HjsonReaderOptions() {
     /// <code>
     /// "hello \
     /// world"
+    /// </code>
+    /// The following newline sequences are escaped:
+    /// <code>
+    /// \n
+    /// \r
+    /// \r\n
+    /// \u2028 (line separator)
+    /// \u2029 (paragraph separator)
     /// </code>
     /// </summary>
     public bool EscapedStringNewlines { get; set; }

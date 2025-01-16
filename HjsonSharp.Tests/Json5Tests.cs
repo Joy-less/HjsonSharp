@@ -110,12 +110,26 @@ public class Json5Tests {
         Assert.Equal("-0xC0FFEE", Element.GetProperty("c").ToString());
     }
     [Fact]
-    public void StringEscapedShortHexSequences() {
-        Assert.Equal("ç", HjsonReader.ParseElement<string>("""
+    public void EscapedStringShortHexSequences() {
+        string Text1 = """
             "\xE7"
-            """, HjsonReaderOptions.Json5));
-        Assert.Equal("ç00", HjsonReader.ParseElement<string>("""
+            """;
+        Assert.Equal("ç", HjsonReader.ParseElement<string>(Text1, HjsonReaderOptions.Json5));
+
+        string Text2 = """
             "\xE700"
-            """, HjsonReaderOptions.Json5));
+            """;
+        Assert.Equal("ç00", HjsonReader.ParseElement<string>(Text2, HjsonReaderOptions.Json5));
+    }
+    [Fact]
+    public void EscapedStringNewlines() {
+        string Text1 = """
+                "a\
+                b"
+            """;
+        Assert.Equal("a    b", HjsonReader.ParseElement<string>(Text1, HjsonReaderOptions.Json5));
+
+        string Text2 = "\"a\\\r\\\nb\"";
+        Assert.Equal("ab", HjsonReader.ParseElement<string>(Text2, HjsonReaderOptions.Json5));
     }
 }

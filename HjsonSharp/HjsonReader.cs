@@ -571,6 +571,17 @@ public sealed class HjsonReader : RuneReader {
                     }
                     StringBuilder.Append(ReadRuneFromHexSequence(2));
                 }
+                // Newline
+                else if (EscapedRune.Value is '\n' or '\r' or '\u2028' or '\u2029') {
+                    if (!Options.EscapedStringNewlines && !Options.InvalidStringEscapeSequences) {
+                        throw new HjsonException("Escaped newlines are not allowed");
+                    }
+                    // Escape CR LF
+                    if (EscapedRune.Value is '\r') {
+                        TryRead('\n');
+                    }
+                    // Pass
+                }
                 // Invalid escape character
                 else {
                     if (!Options.InvalidStringEscapeSequences) {
