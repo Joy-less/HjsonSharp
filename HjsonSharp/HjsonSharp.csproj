@@ -13,6 +13,9 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/Joy-less/HjsonSharp</RepositoryUrl>
     <PackageTags>HJSON; JSON; JSON5; JSONC; Stream</PackageTags>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\README.md">
