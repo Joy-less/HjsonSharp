@@ -1,5 +1,7 @@
 # HjsonSharp
 
+[![NuGet](https://img.shields.io/nuget/v/HjsonSharp.svg)](https://www.nuget.org/packages/HjsonSharp)
+
 A customisable streaming parser for [HJSON](https://hjson.github.io), with support for [JSON](https://json.org), [JSONC](https://code.visualstudio.com/docs/languages/json#_json-with-comments) and [JSON5](https://json5.org).
 
 ## Features
