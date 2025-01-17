@@ -199,14 +199,14 @@ public sealed class HjsonReader : RuneReader {
                 }
             }
             // True
-            if (Token.Type is JsonTokenType.True) {
+            else if (Token.Type is JsonTokenType.True) {
                 JsonValue Node = JsonValue.Create(true);
                 if (SubmitNode(Node)) {
                     return Node;
                 }
             }
             // False
-            if (Token.Type is JsonTokenType.False) {
+            else if (Token.Type is JsonTokenType.False) {
                 JsonValue Node = JsonValue.Create(false);
                 if (SubmitNode(Node)) {
                     return Node;
