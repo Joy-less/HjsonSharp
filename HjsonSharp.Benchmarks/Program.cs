@@ -24,27 +24,21 @@ public class Program {
 public class HjsonSharpVsHjsonCsBenchmarks {
     #region Long String
 
-    private const int LongStringIterations = 1;
-
     private static readonly string LongString = new('a', 1_000_000);
     private static readonly string LongStringJson = '"' + LongString + '"';
 
-    [Benchmark(OperationsPerInvoke = LongStringIterations)]
+    [Benchmark]
     public void LongStringHjsonCs() {
-        for (int Counter = 0; Counter < LongStringIterations; Counter++) {
-            string Result = (string)HjsonValue.Parse(LongStringJson);
-            if (Result != LongString) {
-                throw new Exception();
-            }
+        string Result = (string)HjsonValue.Parse(LongStringJson);
+        if (Result != LongString) {
+            throw new Exception();
         }
     }
-    [Benchmark(OperationsPerInvoke = LongStringIterations)]
+    [Benchmark]
     public void LongStringHjsonSharp() {
-        for (int Counter = 0; Counter < LongStringIterations; Counter++) {
-            string Result = HjsonReader.ParseElement<string>(LongStringJson).Value!;
-            if (Result != LongString) {
-                throw new Exception();
-            }
+        string Result = HjsonReader.ParseElement<string>(LongStringJson).Value!;
+        if (Result != LongString) {
+            throw new Exception();
         }
     }
 
@@ -52,35 +46,27 @@ public class HjsonSharpVsHjsonCsBenchmarks {
 
     #region Short Integer
 
-    private const int ShortIntegerIterations = 1_000_000;
-
     private static readonly int ShortInteger = 12345;
     private static readonly string ShortIntegerJson = ShortInteger.ToString();
 
-    [Benchmark(OperationsPerInvoke = ShortIntegerIterations)]
+    [Benchmark]
     public void ShortIntegerHjsonCs() {
-        for (int Counter = 0; Counter < ShortIntegerIterations; Counter++) {
-            int Result = (int)HjsonValue.Parse(ShortIntegerJson);
-            if (Result != ShortInteger) {
-                throw new Exception();
-            }
+        int Result = (int)HjsonValue.Parse(ShortIntegerJson);
+        if (Result != ShortInteger) {
+            throw new Exception();
         }
     }
-    [Benchmark(OperationsPerInvoke = ShortIntegerIterations)]
+    [Benchmark]
     public void ShortIntegerHjsonSharp() {
-        for (int Counter = 0; Counter < ShortIntegerIterations; Counter++) {
-            int Result = HjsonReader.ParseElement<int>(ShortIntegerJson).Value!;
-            if (Result != ShortInteger) {
-                throw new Exception();
-            }
+        int Result = HjsonReader.ParseElement<int>(ShortIntegerJson).Value!;
+        if (Result != ShortInteger) {
+            throw new Exception();
         }
     }
 
     #endregion
 
     #region Person
-
-    private const int PersonIterations = 100_000;
 
     private static readonly Person Person = new() {
         Name = "John Doe",
@@ -91,22 +77,18 @@ public class HjsonSharpVsHjsonCsBenchmarks {
     };
     private static readonly string PersonJson = JsonSerializer.Serialize(Person);
 
-    [Benchmark(OperationsPerInvoke = PersonIterations)]
+    [Benchmark]
     public void PersonHjsonCs() {
-        for (int Counter = 0; Counter < PersonIterations; Counter++) {
-            Person Result = JsonSerializer.Deserialize<Person>(HjsonValue.Parse(PersonJson).ToString(Stringify.Plain))!;
-            if (Result != Person) {
-                throw new Exception();
-            }
+        Person Result = JsonSerializer.Deserialize<Person>(HjsonValue.Parse(PersonJson).ToString(Stringify.Plain))!;
+        if (Result != Person) {
+            throw new Exception();
         }
     }
-    [Benchmark(OperationsPerInvoke = PersonIterations)]
+    [Benchmark]
     public void PersonHjsonSharp() {
-        for (int Counter = 0; Counter < PersonIterations; Counter++) {
-            Person Result = HjsonReader.ParseElement<Person>(PersonJson).Value!;
-            if (Result != Person) {
-                throw new Exception();
-            }
+        Person Result = HjsonReader.ParseElement<Person>(PersonJson).Value!;
+        if (Result != Person) {
+            throw new Exception();
         }
     }
 

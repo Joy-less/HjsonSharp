@@ -43,3 +43,16 @@ However, an [open issue](https://github.com/hjson/hjson/issues/106) to add this 
 As such, HjsonSharp supports escaped newlines in single and double quoted strings by default.
 
 For maximum portability, avoid escaping newlines in strings.
+
+## Benchmarks
+
+HjsonSharp has similar performance to [hjson-cs](https://github.com/hjson/hjson-cs):
+
+| Method                 | Mean            | Error        | StdDev       | Gen0      | Gen1      | Gen2     | Allocated  |
+|----------------------- |----------------:|-------------:|-------------:|----------:|----------:|---------:|-----------:|
+| LongStringHjsonCs      | 11,135,676.0 ns | 25,272.15 ns | 21,103.39 ns | 1093.7500 | 1031.2500 | 734.3750 | 7828.64 KB |
+| LongStringHjsonSharp   | 19,753,082.7 ns | 71,314.79 ns | 66,707.90 ns |  375.0000 |  375.0000 | 375.0000 | 9956.86 KB |
+| ShortIntegerHjsonCs    |      3,952.6 ns |     18.41 ns |     15.37 ns |    0.4578 |         - |        - |    1.41 KB |
+| ShortIntegerHjsonSharp |        615.7 ns |      3.08 ns |      2.88 ns |    0.3519 |         - |        - |    1.08 KB |
+| PersonHjsonCs          |      2,440.2 ns |     18.83 ns |     17.61 ns |    1.0376 |         - |        - |    3.19 KB |
+| PersonHjsonSharp       |      4,658.1 ns |     22.55 ns |     21.09 ns |    2.5177 |         - |        - |    7.73 KB |
