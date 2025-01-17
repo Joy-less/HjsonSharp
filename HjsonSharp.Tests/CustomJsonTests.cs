@@ -20,7 +20,7 @@ public class CustomJsonTests {
             NamedFloatingPointLiterals = true,
             UnquotedStrings = true,
             OmittedCommas = true,
-        });
+        }).Value;
         Assert.Equal(6, Element.GetPropertyCount());
         Assert.Equal(double.PositiveInfinity, Element.GetProperty("a").Deserialize<double>(JsonOptions.Mini));
         Assert.Equal(double.NegativeInfinity, Element.GetProperty("b").Deserialize<double>(JsonOptions.Mini));

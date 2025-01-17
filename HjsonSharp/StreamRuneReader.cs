@@ -67,7 +67,7 @@ public class StreamRuneReader : RuneReader {
 
                 // Decode rune from UTF-8 bytes
                 if (Rune.DecodeFromUtf8(Bytes[..TotalBytesRead], out Rune Result, out _) is not OperationStatus.Done) {
-                    throw new HjsonException("Could not decode rune from UTF-8 bytes");
+                    throw new RuneReaderException("Could not decode rune from UTF-8 bytes");
                 }
                 return Result;
             }
@@ -81,7 +81,7 @@ public class StreamRuneReader : RuneReader {
 
                 // Ensure byte is valid ASCII character
                 if (Byte > 127) {
-                    throw new HjsonException("Could not decode rune from ASCII bytes");
+                    throw new RuneReaderException("Could not decode rune from ASCII bytes");
                 }
                 return new Rune((byte)Byte);
             }
@@ -96,7 +96,7 @@ public class StreamRuneReader : RuneReader {
 
                 // Ensure 4 bytes were read
                 if (BytesRead != 4) {
-                    throw new HjsonException("Could not decode rune from UTF-32 bytes");
+                    throw new RuneReaderException("Could not decode rune from UTF-32 bytes");
                 }
 
                 // Convert bytes to chars
@@ -111,7 +111,7 @@ public class StreamRuneReader : RuneReader {
                     return new Rune(Chars[0], Chars[1]);
                 }
                 else {
-                    throw new HjsonException("Could not decode rune from UTF-32 bytes");
+                    throw new RuneReaderException("Could not decode rune from UTF-32 bytes");
                 }
             }
             // UTF-16
@@ -125,7 +125,7 @@ public class StreamRuneReader : RuneReader {
 
                 // Ensure 2 bytes were read
                 if (BytesRead != 2) {
-                    throw new HjsonException("Could not decode rune from UTF-16 bytes");
+                    throw new RuneReaderException("Could not decode rune from UTF-16 bytes");
                 }
 
                 // If not in surrogate pair, convert char to rune
@@ -136,7 +136,7 @@ public class StreamRuneReader : RuneReader {
 
                     // Ensure 1 char was read
                     if (OneCharsRead != 1) {
-                        throw new HjsonException("Could not decode rune from UTF-16 bytes");
+                        throw new RuneReaderException("Could not decode rune from UTF-16 bytes");
                     }
                     return new Rune(OneChars[0]);
                 }
@@ -150,7 +150,7 @@ public class StreamRuneReader : RuneReader {
 
                 // Ensure 1 char was read
                 if (TwoCharsRead != 2) {
-                    throw new HjsonException("Could not decode rune from UTF-16 bytes");
+                    throw new RuneReaderException("Could not decode rune from UTF-16 bytes");
                 }
 
                 // Convert surrogate pair to rune

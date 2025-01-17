@@ -71,3 +71,8 @@ public abstract class RuneReader : IDisposable {
         GC.SuppressFinalize(this);
     }
 }
+
+/// <summary>
+/// An exception that occurred when reading/decoding runes.
+/// </summary>
+public class RuneReaderException(string? Message = null) : Exception(Message);
