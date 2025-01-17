@@ -9,7 +9,44 @@ A customisable streaming parser for [HJSON](https://hjson.github.io), with suppo
 - **Feature switches:** Pick and choose your desired non-JSON features, with presets for HJSON, JSONC and JSON5.
 - **Unicode compatible:** Compatible with UTF-8, UTF-16, UTF-32 and ASCII encodings.
 - **Incomplete inputs:** Parse incomplete values, such as `{"key": "val`.
-- **Performant:** Frequently uses spans and value types to avoid unnecessary memory allocations.
+- **Result pattern:** Uses `HjsonResult` to avoid the overhead of exceptions.
+
+## Example
+
+```cs
+string Text = """
+    {
+        // use #, // or /**/ comments,
+        // omit quotes for keys
+        key: 1
+        // omit quotes for strings
+        contains: everything on this line
+        // omit commas at the end of a line
+        cool: {
+          foo: 1
+          bar: 2
+        }
+        // allow trailing commas
+        list: [
+          1,
+          2,
+        ]
+        // and use multiline strings
+        realist:
+          '''
+          My half empty glass,
+          I will fill your empty half.
+          Now you are half full.
+          '''
+    }
+    """;
+
+// Parse to JsonElement
+JsonElement Element = HjsonReader.ParseElement(Text, HjsonReaderOptions.Hjson).Value;
+
+// Serialize to JSON
+string Json = JsonSerializer.Serialize(Element);
+```
 
 ## Specification Differences
 
