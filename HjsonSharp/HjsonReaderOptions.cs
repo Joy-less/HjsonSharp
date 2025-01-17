@@ -42,7 +42,8 @@ public record struct HjsonReaderOptions() {
     };
     /// <summary>
     /// A variant of JSON allowing unquoted property names, trailing commas, omitted commas, single-quoted strings, triple-quoted multi-line
-    /// strings, unquoted strings, line-style comments, block-style comments, hash-style comments, and omitted root object brackets.<br/>
+    /// strings, unquoted strings, escaped newlines in strings, line-style comments, block-style comments, hash-style comments, and omitted
+    /// root object brackets.<br/>
     /// <see href="https://hjson.github.io"/>
     /// </summary>
     public static HjsonReaderOptions Hjson => Json with {
@@ -52,6 +53,7 @@ public record struct HjsonReaderOptions() {
         SingleQuotedStrings = true,
         TripleQuotedStrings = true,
         UnquotedStrings = true,
+        EscapedStringNewlines = true,
         LineStyleComments = true,
         BlockStyleComments = true,
         HashStyleComments = true,

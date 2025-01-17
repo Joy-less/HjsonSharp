@@ -19,13 +19,27 @@ A customisable streaming parser for [HJSON](https://hjson.github.io), with suppo
 ### Leading Whitespace In Triple Quoted Strings (HJSON)
 
 Instead of counting leading whitespace preceding the opening quotes, HjsonSharp counts leading whitespace preceding the closing quotes.
-See the [proposal](https://github.com/hjson/hjson/issues/132) for more information.
 
-To maximise portability, don't rely on significant leading whitespace in triple-quoted strings.
+See the [open issue](https://github.com/hjson/hjson/issues/132) for more information.
+
+For maximum portability, don't rely on significant leading whitespace in triple-quoted strings.
 
 ### Carriage Returns (HJSON)
 
 In the HJSON specification, carriage returns (`\r`) are ignored in favour of line feeds (`\n`). However, HjsonSharp allows `\n`, `\r` and `\r\n`.
+
 This affects unquoted strings, which are terminated by a newline, and triple-quoted strings, which trim the first and last newlines.
 
-To maximise portability, always use the line feed (`\n`) newline style in HJSON documents.
+For maximum portability, always use the line feed (`\n`) newline style in documents.
+
+### Escaped Newlines In Strings (HJSON)
+
+The official [HJSON specification](https://hjson.github.io/rfc.html) does not include support for escaping newlines in strings like JSON5.
+
+However, an [open issue](https://github.com/hjson/hjson/issues/106) to add this was approved by a maintainer:
+
+> I no longer have any objections, implementing this for single or double quoted strings only should be fine. Not for multiline and not for quoteless strings. I would support PR:s for this, but we need PR:s for all major supported languages before changing the syntax documentation.
+
+As such, HjsonSharp supports escaped newlines in single and double quoted strings by default.
+
+For maximum portability, avoid escaping newlines in strings.
