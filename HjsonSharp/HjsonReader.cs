@@ -463,7 +463,7 @@ public sealed class HjsonReader : RuneReader {
         }
         // Invalid rune
         else {
-            return new HjsonError($"Invalid rune: `{Rune}`");
+            return new HjsonError("Invalid rune");
         }
     }
     private HjsonResult<Token> ReadNull() {
@@ -532,7 +532,7 @@ public sealed class HjsonReader : RuneReader {
         while (true) {
             // Read rune
             if (Read() is not Rune Rune) {
-                return new HjsonError($"Expected `{OpeningQuote}` to end string, got end of input");
+                return new HjsonError("Expected quote to end string, got end of input");
             }
 
             // Closing quote
@@ -619,7 +619,7 @@ public sealed class HjsonReader : RuneReader {
                 // Invalid escape character
                 else {
                     if (!Options.InvalidStringEscapeSequences) {
-                        return new HjsonError($"Expected valid escape character after `\\`, got `{EscapedRune}`");
+                        return new HjsonError("Invalid escape character after `\\`");
                     }
                     StringBuilder.Append(EscapedRune);
                 }
@@ -672,7 +672,7 @@ public sealed class HjsonReader : RuneReader {
         while (true) {
             // Read rune
             if (Read() is not Rune Rune) {
-                return new HjsonError($"Expected `{string.Concat(Enumerable.Repeat(OpeningQuote, OpeningQuoteCount))}` to end string, got end of input");
+                return new HjsonError("Expected quotes to end string, got end of input");
             }
 
             // Closing quote
@@ -895,10 +895,10 @@ public sealed class HjsonReader : RuneReader {
                 // Exponent
                 else if (Rune?.Value is 'e' or 'E') {
                     if (ParsedExponent) {
-                        return new HjsonError($"Duplicate exponent: `{Rune}`");
+                        return new HjsonError("Duplicate exponent");
                     }
                     if (TrailingSign) {
-                        return new HjsonError($"Expected digit before exponent: `{Rune}`");
+                        return new HjsonError("Expected digit before exponent");
                     }
 
                     ParsedExponent = true;
@@ -920,10 +920,10 @@ public sealed class HjsonReader : RuneReader {
                 // Decimal point
                 else if (Rune?.Value is '.') {
                     if (ParsedDecimalPoint) {
-                        return new HjsonError($"Duplicate decimal point: `{Rune}`");
+                        return new HjsonError("Duplicate decimal point");
                     }
                     if (ParsedExponent) {
-                        return new HjsonError($"Exponent cannot be fractional: `{Rune}`");
+                        return new HjsonError("Exponent cannot be fractional");
                     }
 
                     ParsedDecimalPoint = true;
@@ -938,7 +938,7 @@ public sealed class HjsonReader : RuneReader {
                 // Hexadecimal specifier
                 else if (Rune?.Value is 'x' or 'X') {
                     if (ParsedNonZeroDigit || ParsedDecimalPoint || ParsedExponent) {
-                        return new HjsonError($"Hexadecimal specifier must be at the start of the number: `{Rune}`");
+                        return new HjsonError("Hexadecimal specifier must be at the start of the number");
                     }
                     if (!Options.HexadecimalNumbers) {
                         return new HjsonError("Hexadecimal numbers are not allowed");
@@ -1006,7 +1006,7 @@ public sealed class HjsonReader : RuneReader {
         // Opening bracket
         if (!OmitBrackets) {
             if (!TryRead('{')) {
-                yield return new HjsonError($"Expected `{{` to start object");
+                yield return new HjsonError("Expected `{{` to start object");
                 yield break;
             }
             yield return new Token(this, JsonTokenType.StartObject, Position - 1);
@@ -1154,7 +1154,7 @@ public sealed class HjsonReader : RuneReader {
 
         // Colon
         if (!TryRead(':')) {
-            yield return new HjsonError($"Expected `:` after property name in object");
+            yield return new HjsonError("Expected `:` after property name in object");
             yield break;
         }
         yield return new Token(this, JsonTokenType.PropertyName, TokenPosition, Position - TokenPosition, String.Value);
@@ -1168,7 +1168,7 @@ public sealed class HjsonReader : RuneReader {
         while (true) {
             // Peek rune
             if (Peek() is not Rune Rune) {
-                return [new HjsonError($"Expected `:` after property name in object")];
+                return [new HjsonError("Expected `:` after property name in object")];
             }
 
             // Colon
@@ -1190,7 +1190,7 @@ public sealed class HjsonReader : RuneReader {
 
                     // Colon
                     if (!TryRead(':')) {
-                        yield return new HjsonError($"Expected `:` after property name in object");
+                        yield return new HjsonError("Expected `:` after property name in object");
                         yield break;
                     }
                 }
@@ -1225,7 +1225,7 @@ public sealed class HjsonReader : RuneReader {
                 }
                 // Invalid escape character
                 else {
-                    return [new HjsonError($"Expected valid escape character after `\\`, got `{EscapedRune}`")];
+                    return [new HjsonError("Invalid escape character after `\\`")];
                 }
             }
             // Unicode letter
@@ -1235,7 +1235,7 @@ public sealed class HjsonReader : RuneReader {
             }
             // Invalid rune
             else {
-                return [new HjsonError($"Unexpected rune in property name: `{Rune}`")];
+                return [new HjsonError("Unexpected rune in property name")];
             }
         }
 
@@ -1251,7 +1251,7 @@ public sealed class HjsonReader : RuneReader {
         while (true) {
             // Peek rune
             if (Peek() is not Rune Rune) {
-                return new HjsonError($"Expected `:` after property name in object");
+                return new HjsonError("Expected `:` after property name in object");
             }
 
             // Colon
@@ -1261,7 +1261,7 @@ public sealed class HjsonReader : RuneReader {
             }
             // Invalid rune
             else if (Rune.Value is ',' or ':' or '[' or ']' or '{' or '}' || Rune.IsWhiteSpace(Rune)) {
-                return new HjsonError($"Unexpected rune in property name: `{Rune}`");
+                return new HjsonError("Unexpected rune in property name");
             }
             // Valid rune
             else {
@@ -1276,7 +1276,7 @@ public sealed class HjsonReader : RuneReader {
     private IEnumerable<HjsonResult<Token>> ReadArray() {
         // Opening bracket
         if (!TryRead('[')) {
-            yield return new HjsonError($"Expected `[` to start array");
+            yield return new HjsonError("Expected `[` to start array");
             yield break;
         }
         yield return new Token(this, JsonTokenType.StartArray, Position - 1);
@@ -1405,7 +1405,7 @@ public sealed class HjsonReader : RuneReader {
         }
         // Invalid comment
         else {
-            return new HjsonError($"Expected `#` or `//` or `/*` to start comment");
+            return new HjsonError("Expected `#` or `//` or `/*` to start comment");
         }
 
         // Create string builder
@@ -1506,7 +1506,7 @@ public sealed class HjsonReader : RuneReader {
             }
             // Unexpected rune
             else {
-                return new HjsonError($"Expected {Length} hexadecimal digits for unicode escape sequence, got `{Rune}`");
+                return new HjsonError("Incorrect number of hexadecimal digits in unicode escape sequence");
             }
         }
 
