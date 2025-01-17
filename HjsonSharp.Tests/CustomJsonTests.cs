@@ -29,4 +29,33 @@ public class CustomJsonTests {
         Assert.Equal("-Infinit5", Element.GetProperty("e").Deserialize<string>(JsonOptions.Mini));
         Assert.Equal("Na5", Element.GetProperty("f").Deserialize<string>(JsonOptions.Mini));
     }
+    [Fact]
+    public void BasicIncompleteInputsTest() {
+        string Text = """
+            {
+              "key": "val
+            """;
+
+        JsonElement Element = HjsonReader.ParseElement(Text, HjsonReaderOptions.Json with {
+            IncompleteInputs = true,
+        }).Value;
+        Assert.Equal(1, Element.GetPropertyCount());
+        Assert.Equal("val", Element.GetProperty("key").Deserialize<string>(JsonOptions.Mini));
+    }
+    [Fact]
+    public void ComplexIncompleteInputsTest() {
+        string Text = """
+            {
+              "items": [
+                "apple",
+                "orange",
+                10
+            """;
+
+        JsonElement Element = HjsonReader.ParseElement(Text, HjsonReaderOptions.Json with {
+            IncompleteInputs = true,
+        }).Value;
+        Assert.Equal(1, Element.GetPropertyCount());
+        Assert.Equal("apple,orange,10", string.Join(',', Element.GetProperty("items").EnumerateArray()));
+    }
 }

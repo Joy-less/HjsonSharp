@@ -532,6 +532,11 @@ public sealed class HjsonReader : RuneReader {
         while (true) {
             // Read rune
             if (Read() is not Rune Rune) {
+                // End of incomplete string
+                if (Options.IncompleteInputs) {
+                    break;
+                }
+                // Missing end quote
                 return new HjsonError("Expected quote to end string, got end of input");
             }
 
@@ -672,7 +677,12 @@ public sealed class HjsonReader : RuneReader {
         while (true) {
             // Read rune
             if (Read() is not Rune Rune) {
-                return new HjsonError("Expected quotes to end string, got end of input");
+                // End of incomplete triple-quoted string
+                if (Options.IncompleteInputs) {
+                    break;
+                }
+                // Missing end quotes
+                return new HjsonError("Expected quotes to end triple-quoted string, got end of input");
             }
 
             // Closing quote
@@ -1030,6 +1040,11 @@ public sealed class HjsonReader : RuneReader {
         while (true) {
             // Peek rune
             if (Peek() is not Rune Rune) {
+                // End of incomplete object
+                if (Options.IncompleteInputs) {
+                    yield return new Token(this, JsonTokenType.EndObject, Position);
+                    yield break;
+                }
                 // Missing closing bracket
                 if (!OmitBrackets) {
                     yield return new HjsonError("Expected `}` to end object, got end of input");
@@ -1295,6 +1310,12 @@ public sealed class HjsonReader : RuneReader {
         while (true) {
             // Peek rune
             if (Peek() is not Rune Rune) {
+                // End of incomplete array
+                if (Options.IncompleteInputs) {
+                    yield return new Token(this, JsonTokenType.EndObject, Position);
+                    yield break;
+                }
+                // Missing closing bracket
                 yield return new HjsonError("Expected `]` to end array, got end of input");
                 yield break;
             }
@@ -1416,6 +1437,11 @@ public sealed class HjsonReader : RuneReader {
             // Read rune
             if (Read() is not Rune CommentRune) {
                 if (IsBlockComment) {
+                    // End of incomplete block comment
+                    if (Options.IncompleteInputs) {
+                        break;
+                    }
+                    // Missing closing block comment
                     return new HjsonError("Expected `*/` to end block-style comment, got end of input");
                 }
                 break;

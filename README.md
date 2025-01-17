@@ -4,15 +4,12 @@ A customisable streaming parser for [HJSON](https://hjson.github.io), with suppo
 
 ## Features
 
-- **System.Text.Json integrated:** Parse HJSON directly to `System.Text.JsonElement`.
+- **System.Text.Json integrated:** Parse directly to `System.Text.JsonElement`.
 - **Token streaming:** Parse one token at a time without loading the entire document into memory.
 - **Feature switches:** Pick and choose your desired non-JSON features, with presets for HJSON, JSONC and JSON5.
 - **Unicode compatible:** Compatible with UTF-8, UTF-16, UTF-32 and ASCII encodings.
-- **Performant:** Frequently uses spans and value types to avoid unnecessary allocations.
-
-## TODO
-
-- **Incomplete documents:** Parse incomplete documents (such as `{"key": "val`).
+- **Incomplete inputs:** Parse incomplete values, such as `{"key": "val`.
+- **Performant:** Frequently uses spans and value types to avoid unnecessary memory allocations.
 
 ## Specification Differences
 

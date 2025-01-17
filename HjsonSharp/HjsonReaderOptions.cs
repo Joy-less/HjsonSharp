@@ -61,6 +61,18 @@ public record struct HjsonReaderOptions() {
     };
 
     /// <summary>
+    /// Enables/disables parsing unclosed inputs.
+    /// <code>
+    /// {
+    ///   "key": "val
+    /// </code>
+    /// </summary>
+    /// <remarks>
+    /// This is potentially useful for large language models that stream responses.<br/>
+    /// Only some tokens can be incomplete in this mode, so it should not be relied upon.
+    /// </remarks>
+    public bool IncompleteInputs { get; set; }
+    /// <summary>
     /// Enables/disables line-style comments.
     /// <code>
     /// // comment
