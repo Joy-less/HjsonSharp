@@ -4,6 +4,60 @@ namespace HjsonSharp.Tests;
 
 public class JsonTests {
     [Fact]
+    public void ParseExampleTest() {
+        // Example from https://www.json.org/example.html
+
+        string Text = """
+            {
+                "glossary": {
+                    "title": "example glossary",
+            		"GlossDiv": {
+                        "title": "S",
+            			"GlossList": {
+                            "GlossEntry": {
+                                "ID": "SGML",
+            					"SortAs": "SGML",
+            					"GlossTerm": "Standard Generalized Markup Language",
+            					"Acronym": "SGML",
+            					"Abbrev": "ISO 8879:1986",
+            					"GlossDef": {
+                                    "para": "A meta-markup language, used to create markup languages such as DocBook.",
+            						"GlossSeeAlso": ["GML", "XML"]
+                                },
+            					"GlossSee": "markup"
+                            }
+                        }
+                    }
+                }
+            }
+            """;
+        var AnonymousObject = new {
+            glossary = new {
+                title = "example glossary",
+                GlossDiv = new {
+                    title = "S",
+                    GlossList = new {
+                        GlossEntry = new {
+                            ID = "SGML",
+                            SortAs = "SGML",
+                            GlossTerm = "Standard Generalized Markup Language",
+                            Acronym = "SGML",
+                            Abbrev = "ISO 8879:1986",
+                            GlossDef = new {
+                                para = "A meta-markup language, used to create markup languages such as DocBook.",
+                                GlossSeeAlso = new[] { "GML", "XML" }
+                            },
+                            GlossSee = "markup"
+                        }
+                    }
+                }
+            }
+        };
+
+        JsonElement Element = HjsonReader.ParseElement(Text, HjsonReaderOptions.Json);
+        Assert.Equal(JsonSerializer.Serialize(AnonymousObject), JsonSerializer.Serialize(Element));
+    }
+    [Fact]
     public void ParseBasicObjectTest() {
         string Text = """
             {
@@ -12,7 +66,7 @@ public class JsonTests {
             }
             """;
 
-        JsonElement Element = HjsonReader.ParseElement<JsonElement>(Text, HjsonReaderOptions.Json);
+        JsonElement Element = HjsonReader.ParseElement(Text, HjsonReaderOptions.Json);
         Assert.Equal(2, Element.GetPropertyCount());
         Assert.Equal(1, Element.GetProperty("first").Deserialize<int>(JsonOptions.Mini));
         Assert.Equal(2, Element.GetProperty("second").Deserialize<int>(JsonOptions.Mini));
@@ -42,7 +96,7 @@ public class JsonTests {
             }
             """;
 
-        JsonElement Element = HjsonReader.ParseElement<JsonElement>(Text, HjsonReaderOptions.Json);
+        JsonElement Element = HjsonReader.ParseElement(Text, HjsonReaderOptions.Json);
         Assert.Equal(2, Element.GetPropertyCount());
         Assert.Equal([1, 2, 3], Element.GetProperty("first").Deserialize<int[]>(JsonOptions.Mini)!);
         Assert.Equal(2, Element.GetProperty("second").Deserialize<int>(JsonOptions.Mini));
@@ -60,7 +114,7 @@ public class JsonTests {
 
         using HjsonReader HjsonReader = new(Text, HjsonReaderOptions.Json);
         Assert.True(HjsonReader.FindPath("second", IsRoot: true));
-        JsonElement Element = HjsonReader.ParseElement<JsonElement>(IsRoot: false);
+        JsonElement Element = HjsonReader.ParseElement(IsRoot: false);
         Assert.Equal(5, Element.GetProperty("third").Deserialize<int>(JsonOptions.Mini));
     }
     [Fact]
@@ -75,7 +129,7 @@ public class JsonTests {
 
         using HjsonReader HjsonReader = new(Text, HjsonReaderOptions.Json);
         Assert.True(HjsonReader.FindPath(2, IsRoot: true));
-        JsonElement Element = HjsonReader.ParseElement<JsonElement>(IsRoot: false);
+        JsonElement Element = HjsonReader.ParseElement(IsRoot: false);
         Assert.Equal(5, Element.Deserialize<int>(JsonOptions.Mini));
     }
     [Fact]
@@ -86,7 +140,7 @@ public class JsonTests {
             }
             """;
 
-        Assert.Throws<HjsonException>(() => HjsonReader.ParseElement<JsonElement>(Text, HjsonReaderOptions.Json));
+        Assert.Throws<HjsonException>(() => HjsonReader.ParseElement(Text, HjsonReaderOptions.Json));
     }
     [Fact]
     public void ExponentTest() {
@@ -98,7 +152,7 @@ public class JsonTests {
             }
             """;
 
-        JsonElement Element = HjsonReader.ParseElement<JsonElement>(Text, HjsonReaderOptions.Json);
+        JsonElement Element = HjsonReader.ParseElement(Text, HjsonReaderOptions.Json);
         Assert.Equal(3, Element.GetPropertyCount());
         Assert.Equal(10e3, Element.GetProperty("1000").Deserialize<double>(JsonOptions.Mini));
         Assert.Equal(2.0E-3, Element.GetProperty("2000").Deserialize<double>(JsonOptions.Mini));

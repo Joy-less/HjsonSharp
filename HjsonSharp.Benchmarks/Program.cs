@@ -22,7 +22,7 @@ public class Program {
 
 [MemoryDiagnoser]
 public class HjsonSharpVsHjsonCsBenchmarks {
-    private static readonly string LongString = new string('a', 1_000_000);
+    private static readonly string LongString = new('a', 1_000_000);
     private static readonly string LongStringJson = '"' + LongString + '"';
 
     [Benchmark]

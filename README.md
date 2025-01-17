@@ -10,7 +10,7 @@ A customisable streaming parser for [HJSON](https://hjson.github.io), with suppo
 - **Unicode compatible:** Compatible with UTF-8, UTF-16, UTF-32 and ASCII encodings.
 - **Performant:** Frequently uses spans and value types to avoid unnecessary allocations.
 
-## Todo
+## TODO
 
 - **Incomplete documents:** Parse incomplete documents (such as `{"key": "val`).
 
@@ -20,3 +20,12 @@ A customisable streaming parser for [HJSON](https://hjson.github.io), with suppo
 
 Instead of counting leading whitespace preceding the opening quotes, HjsonSharp counts leading whitespace preceding the closing quotes.
 See the [proposal](https://github.com/hjson/hjson/issues/132) for more information.
+
+To maximise portability, don't rely on significant leading whitespace in triple-quoted strings.
+
+### Carriage Returns (HJSON)
+
+In the HJSON specification, carriage returns (`\r`) are ignored in favour of line feeds (`\n`). However, HjsonSharp allows `\n`, `\r` and `\r\n`.
+This affects unquoted strings, which are terminated by a newline, and triple-quoted strings, which trim the first and last newlines.
+
+To maximise portability, always use the line feed (`\n`) newline style in HJSON documents.
