@@ -576,7 +576,7 @@ public sealed class HjsonReader : RuneReader {
                     if (!Options.EscapedStringNewlines && !Options.InvalidStringEscapeSequences) {
                         throw new HjsonException("Escaped newlines are not allowed");
                     }
-                    // Escape CR LF
+                    // Join CR LF
                     if (EscapedRune.Value is '\r') {
                         TryRead('\n');
                     }
@@ -612,7 +612,7 @@ public sealed class HjsonReader : RuneReader {
             }
 
             // Newline
-            if (Rune.Value is '\n') {
+            if (Rune.Value is '\n' or '\r') {
                 break;
             }
             // Rune
@@ -649,7 +649,12 @@ public sealed class HjsonReader : RuneReader {
                 }
             }
             // Newline
-            else if (Rune.Value is '\n') {
+            else if (Rune.Value is '\n' or '\r') {
+                // Join CR LF
+                if (Rune.Value is '\r') {
+                    TryRead('\n');
+                }
+
                 // Start of leading whitespace
                 LeadingWhitespaceCounter = 0;
                 IsLeadingWhitespace = true;
@@ -699,7 +704,12 @@ public sealed class HjsonReader : RuneReader {
                 }
 
                 // Start of leading whitespace
-                if (CurrentRune.Value is '\n') {
+                if (CurrentRune.Value is '\n' or '\r') {
+                    // Join CR LF
+                    if (CurrentRune.Value is '\r') {
+                        TryRead('\n');
+                    }
+
                     // Remove leading whitespace
                     if (IsInLeadingWhitespace) {
                         StringBuilder.Remove(StartLeadingWhitespaceIndex, Index - StartLeadingWhitespaceIndex);
@@ -742,7 +752,7 @@ public sealed class HjsonReader : RuneReader {
             // Remove leading whitespace on last line
             StringBuilder.Remove(StringBuilder.Length - LeadingWhitespaceCounter, LeadingWhitespaceCounter);
             // Remove last newline
-            if (StringBuilder.Length >= 1 && StringBuilder[^1] is '\n') {
+            if (StringBuilder.Length >= 1 && StringBuilder[^1] is '\n' or '\r') {
                 StringBuilder.Remove(StringBuilder.Length - 1, 1);
             }
         }
@@ -1308,7 +1318,7 @@ public sealed class HjsonReader : RuneReader {
             }
             // Check end of line comment
             else {
-                if (CommentRune.Value is '\n') {
+                if (CommentRune.Value is '\n' or '\r') {
                     break;
                 }
             }
