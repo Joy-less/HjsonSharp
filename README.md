@@ -80,7 +80,7 @@ For maximum portability, avoid escaping newlines in strings.
 
 ## Benchmarks
 
-HjsonSharp has similar performance to [hjson-cs](https://github.com/hjson/hjson-cs):
+For basic purposes, HjsonSharp has similar performance to [hjson-cs](https://github.com/hjson/hjson-cs):
 
 | Method                 | Mean            | Error        | StdDev       | Gen0      | Gen1      | Gen2     | Allocated  |
 |----------------------- |----------------:|-------------:|-------------:|----------:|----------:|---------:|-----------:|
