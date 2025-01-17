@@ -5,7 +5,7 @@
 /// </summary>
 public record struct HjsonReaderOptions() {
     /// <summary>
-    /// The standard, strict JSON format.
+    /// The standard, strict and simple JSON format.
     /// See <see href="https://json.org"/>.
     /// </summary>
     public static HjsonReaderOptions Json => new();
@@ -21,7 +21,7 @@ public record struct HjsonReaderOptions() {
     /// <summary>
     /// A variant of JSON allowing ECMAScript property names, trailing commas, single-quoted strings, escaped newlines in strings, escaped
     /// short hex sequences in strings, invalid escape sequences in strings, hexadecimal numbers, leading decimal points, trailing decimal
-    /// points, named floating-point literals, explicit plus-signs, line-style comments, block-style comments, and unicode whitespace.<br/>
+    /// points, named floating-point literals, explicit plus-signs, line-style comments, block-style comments, and all whitespace.<br/>
     /// <see href="https://json5.org"/>
     /// </summary>
     public static HjsonReaderOptions Json5 => Json with {
