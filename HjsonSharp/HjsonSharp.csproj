@@ -16,6 +16,7 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <Description>A customisable streaming parser for HJSON, JSON, JSONC and JSON5.</Description>
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\README.md">
@@ -25,6 +26,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="LinkDotNet.StringBuilder" Version="2.1.0" />
-    <PackageReference Include="System.Text.Json" Version="9.0.0" />
+    <PackageReference Include="System.Text.Json" Version="9.0.1" />
   </ItemGroup>
 </Project>
