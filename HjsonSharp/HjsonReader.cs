@@ -1016,7 +1016,7 @@ public sealed class HjsonReader : RuneReader {
         // Opening bracket
         if (!OmitBraces) {
             if (!TryRead('{')) {
-                yield return new Error("Expected `{{` to start object");
+                yield return new Error("Expected `{` to start object");
                 yield break;
             }
             yield return new Token(this, JsonTokenType.StartObject, Position - 1);
