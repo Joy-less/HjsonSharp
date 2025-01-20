@@ -1013,7 +1013,7 @@ public sealed class HjsonReader : RuneReader {
         return NumberToken;
     }
     private IEnumerable<Result<Token>> ReadObject(bool OmitBraces) {
-        // Opening bracket
+        // Opening brace
         if (!OmitBraces) {
             if (!TryRead('{')) {
                 yield return new Error("Expected `{` to start object");
@@ -1045,19 +1045,19 @@ public sealed class HjsonReader : RuneReader {
                     yield return new Token(this, JsonTokenType.EndObject, Position);
                     yield break;
                 }
-                // Missing closing bracket
-                if (!OmitBraces) {
-                    yield return new Error("Expected `}` to end object, got end of input");
+                // End of object with omitted braces
+                if (OmitBraces) {
+                    yield return new Token(this, JsonTokenType.EndObject, Position);
                     yield break;
                 }
-                // End of object with omitted braces
-                yield return new Token(this, JsonTokenType.EndObject, Position);
+                // Missing closing brace
+                yield return new Error("Expected `}` to end object, got end of input");
                 yield break;
             }
 
-            // Closing bracket
+            // Closing brace
             if (Rune.Value is '}') {
-                // Unexpected closing bracket in object with omitted braces
+                // Unexpected closing brace in object with omitted braces
                 if (OmitBraces) {
                     yield return new Error("Unexpected `}` in object with omitted braces");
                     yield break;
