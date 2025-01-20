@@ -596,20 +596,20 @@ public sealed class HjsonReader : RuneReader {
                 }
                 // Unicode hex sequence
                 else if (EscapedRune.Value is 'u') {
-                    if (!ReadCharFromHexSequence(4).TryGetValue(out char ResultChar, out Error Error)) {
+                    if (!ReadHexSequence(4).TryGetValue(out uint Result, out Error Error)) {
                         return Error;
                     }
-                    StringBuilder.Append(ResultChar);
+                    StringBuilder.Append((char)Result);
                 }
                 // Unicode short hex sequence
                 else if (EscapedRune.Value is 'x') {
                     if (!Options.EscapedStringShortHexSequences && !Options.InvalidStringEscapeSequences) {
                         return new Error("Escaped short hex sequences are not allowed");
                     }
-                    if (!ReadCharFromHexSequence(2).TryGetValue(out char ResultChar, out Error Error)) {
+                    if (!ReadHexSequence(2).TryGetValue(out uint Result, out Error Error)) {
                         return Error;
                     }
-                    StringBuilder.Append(ResultChar);
+                    StringBuilder.Append((char)Result);
                 }
                 // Newline
                 else if (EscapedRune.Value is '\n' or '\r' or '\u2028' or '\u2029') {
@@ -1233,10 +1233,10 @@ public sealed class HjsonReader : RuneReader {
 
                 // Unicode hex sequence
                 if (EscapedRune.Value is 'u') {
-                    if (!ReadCharFromHexSequence(4).TryGetValue(out char ResultChar, out Error Error)) {
+                    if (!ReadHexSequence(4).TryGetValue(out uint Result, out Error Error)) {
                         return [Error];
                     }
-                    StringBuilder.Append(ResultChar);
+                    StringBuilder.Append((char)Result);
                 }
                 // Invalid escape character
                 else {
@@ -1517,27 +1517,24 @@ public sealed class HjsonReader : RuneReader {
         UnquotedStringFallback = false;
         return new Token(this, TokenType, TokenPosition, Literal.Length);
     }
-    private Result<char> ReadCharFromHexSequence(int Length) {
-        Span<byte> HexUtf8Bytes = stackalloc byte[Length];
+    private Result<uint> ReadHexSequence(int Length) {
+        Span<char> HexChars = stackalloc char[Length];
 
         for (int Index = 0; Index < Length; Index++) {
-            // Peek rune
-            if (Read() is not Rune Rune) {
-                return new Error("Expected hex digit in sequence, got end of input");
-            }
+            Rune? Rune = Read();
 
-            // Hexadecimal rune
-            if (Rune.Value is (>= '0' and <= '9') or (>= 'A' and <= 'F') or (>= 'a' and <= 'f')) {
-                HexUtf8Bytes[Index] = (byte)Rune.Value;
+            // Hex digit
+            if (Rune?.Value is (>= '0' and <= '9') or (>= 'A' and <= 'F') or (>= 'a' and <= 'f')) {
+                HexChars[Index] = (char)Rune.Value.Value;
             }
-            // Unexpected rune
+            // Unexpected char
             else {
                 return new Error("Incorrect number of hexadecimal digits in unicode escape sequence");
             }
         }
 
-        // Parse unicode character from hexadecimal digits
-        return (char)ushort.Parse(HexUtf8Bytes, NumberStyles.AllowHexSpecifier);
+        // Parse unicode character from hex digits
+        return uint.Parse(HexChars, NumberStyles.AllowHexSpecifier);
     }
     private bool DetectFallbackToUnquotedString() {
         long StartTestPosition = Position;
