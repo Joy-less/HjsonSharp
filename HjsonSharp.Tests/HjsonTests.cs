@@ -200,4 +200,12 @@ public class HjsonTests {
         Assert.Equal(1, Element4.GetPropertyCount());
         Assert.Equal(5, Element4.GetProperty("null").Deserialize<int>(JsonOptions.Mini));
     }
+    [Fact]
+    public void SurrogatePairsTest() {
+        string GrinningFaceEmojiHjson = "\"\\uD83D\\uDE04\"";
+        string GrinningFaceEmojiString = "\uD83D\uDE04"; // 😀
+
+        JsonElement Element = HjsonReader.ParseElement(GrinningFaceEmojiHjson, HjsonReaderOptions.Hjson).Value;
+        Assert.Equal(GrinningFaceEmojiString, Element.Deserialize<string>(JsonOptions.Mini));
+    }
 }
