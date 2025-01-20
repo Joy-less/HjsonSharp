@@ -352,7 +352,7 @@ public sealed class HjsonReader : RuneReader {
     /// }
     /// </code>
     /// </summary>
-    public bool FindPath(string PropertyName, bool IsRoot) {
+    public bool FindPropertyValue(string PropertyName, bool IsRoot) {
         long CurrentDepth = 0;
 
         foreach (Result<Token> TokenResult in ReadElement(IsRoot)) {
@@ -396,7 +396,7 @@ public sealed class HjsonReader : RuneReader {
     /// ]
     /// </code>
     /// </summary>
-    public bool FindPath(long ArrayIndex, bool IsRoot) {
+    public bool FindArrayIndex(long ArrayIndex, bool IsRoot) {
         long CurrentDepth = 0;
         long CurrentIndex = -1;
         bool IsArray = false;
