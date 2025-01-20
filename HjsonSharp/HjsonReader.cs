@@ -298,9 +298,9 @@ public sealed class HjsonReader : RuneReader {
             }
         }
 
-        // Root object with omitted root brackets
-        if (IsRoot && Options.OmittedRootObjectBrackets && DetectObjectWithOmittedBrackets()) {
-            foreach (Result<Token> Token in ReadObject(OmitBrackets: true)) {
+        // Root object with omitted root braces
+        if (IsRoot && Options.OmittedRootObjectBraces && DetectObjectWithOmittedBraces()) {
+            foreach (Result<Token> Token in ReadObject(OmitBraces: true)) {
                 yield return Token;
                 if (Token.IsError) {
                     yield break;
@@ -317,7 +317,7 @@ public sealed class HjsonReader : RuneReader {
 
         // Object
         if (Rune.Value is '{') {
-            foreach (Result<Token> Token in ReadObject(OmitBrackets: false)) {
+            foreach (Result<Token> Token in ReadObject(OmitBraces: false)) {
                 yield return Token;
                 if (Token.IsError) {
                     yield break;
@@ -1012,16 +1012,16 @@ public sealed class HjsonReader : RuneReader {
 
         return NumberToken;
     }
-    private IEnumerable<Result<Token>> ReadObject(bool OmitBrackets) {
+    private IEnumerable<Result<Token>> ReadObject(bool OmitBraces) {
         // Opening bracket
-        if (!OmitBrackets) {
+        if (!OmitBraces) {
             if (!TryRead('{')) {
                 yield return new Error("Expected `{{` to start object");
                 yield break;
             }
             yield return new Token(this, JsonTokenType.StartObject, Position - 1);
         }
-        // Start of object with omitted brackets
+        // Start of object with omitted braces
         else {
             yield return new Token(this, JsonTokenType.StartObject, Position);
         }
@@ -1046,20 +1046,20 @@ public sealed class HjsonReader : RuneReader {
                     yield break;
                 }
                 // Missing closing bracket
-                if (!OmitBrackets) {
+                if (!OmitBraces) {
                     yield return new Error("Expected `}` to end object, got end of input");
                     yield break;
                 }
-                // End of object with omitted brackets
+                // End of object with omitted braces
                 yield return new Token(this, JsonTokenType.EndObject, Position);
                 yield break;
             }
 
             // Closing bracket
             if (Rune.Value is '}') {
-                // Unexpected closing bracket in object with omitted brackets
-                if (OmitBrackets) {
-                    yield return new Error("Unexpected `}` in object with omitted brackets");
+                // Unexpected closing bracket in object with omitted braces
+                if (OmitBraces) {
+                    yield return new Error("Unexpected `}` in object with omitted braces");
                     yield break;
                 }
                 // Trailing comma
@@ -1570,7 +1570,7 @@ public sealed class HjsonReader : RuneReader {
             Position = StartTestPosition;
         }
     }
-    private bool DetectObjectWithOmittedBrackets() {
+    private bool DetectObjectWithOmittedBraces() {
         long StartTestPosition = Position;
         try {
             // Comments & whitespace
@@ -1587,7 +1587,7 @@ public sealed class HjsonReader : RuneReader {
                 }
             }
 
-            // We read a property name (e.g. `a:`), so must be an object with omitted brackets
+            // We read a property name (e.g. `a:`), so must be an object with omitted braces
             return true;
         }
         finally {

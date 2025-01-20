@@ -172,7 +172,7 @@ public class HjsonTests {
         Assert.Equal(["1 2"], Element.GetProperty("g").Deserialize<string[]>(JsonOptions.Mini)!);
     }
     [Fact]
-    public void OmittedRootBracketsTest() {
+    public void OmittedRootBracesTest() {
         string Text1 = """
             {
               "a": "b",

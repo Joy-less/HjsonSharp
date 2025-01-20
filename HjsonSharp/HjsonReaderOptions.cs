@@ -43,7 +43,7 @@ public record struct HjsonReaderOptions() {
     /// <summary>
     /// A variant of JSON allowing unquoted property names, trailing commas, omitted commas, single-quoted strings, triple-quoted multi-line
     /// strings, unquoted strings, escaped newlines in strings, line-style comments, block-style comments, hash-style comments, and omitted
-    /// root object brackets.<br/>
+    /// root object braces.<br/>
     /// <see href="https://hjson.github.io"/>
     /// </summary>
     public static HjsonReaderOptions Hjson => Json with {
@@ -57,7 +57,7 @@ public record struct HjsonReaderOptions() {
         LineStyleComments = true,
         BlockStyleComments = true,
         HashStyleComments = true,
-        OmittedRootObjectBrackets = true,
+        OmittedRootObjectBraces = true,
     };
 
     /// <summary>
@@ -249,11 +249,11 @@ public record struct HjsonReaderOptions() {
     /// </summary>
     public bool HexadecimalNumbers { get; set; }
     /// <summary>
-    /// Enables/disables omitted brackets for root objects.
+    /// Enables/disables omitted braces for root objects.
     /// <code>
     /// a: 5,
     /// b: "..."
     /// </code>
     /// </summary>
-    public bool OmittedRootObjectBrackets { get; set; }
+    public bool OmittedRootObjectBraces { get; set; }
 }
