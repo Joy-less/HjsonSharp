@@ -198,35 +198,35 @@ public sealed class HjsonReader : RuneReader {
             }
 
             // Null
-            if (Token.Type is JsonTokenType.Null) {
+            if (Token.JsonType is JsonTokenType.Null) {
                 JsonValue? Node = null;
                 if (SubmitNode(Node)) {
                     return Node;
                 }
             }
             // True
-            else if (Token.Type is JsonTokenType.True) {
+            else if (Token.JsonType is JsonTokenType.True) {
                 JsonValue Node = JsonValue.Create(true);
                 if (SubmitNode(Node)) {
                     return Node;
                 }
             }
             // False
-            else if (Token.Type is JsonTokenType.False) {
+            else if (Token.JsonType is JsonTokenType.False) {
                 JsonValue Node = JsonValue.Create(false);
                 if (SubmitNode(Node)) {
                     return Node;
                 }
             }
             // String
-            else if (Token.Type is JsonTokenType.String) {
+            else if (Token.JsonType is JsonTokenType.String) {
                 JsonValue Node = JsonValue.Create(Token.Value);
                 if (SubmitNode(Node)) {
                     return Node;
                 }
             }
             // Number
-            else if (Token.Type is JsonTokenType.Number) {
+            else if (Token.JsonType is JsonTokenType.Number) {
                 // TODO:
                 // A number node can't be created from a string yet, so create a string node instead.
                 // See https://github.com/dotnet/runtime/discussions/111373
@@ -236,17 +236,17 @@ public sealed class HjsonReader : RuneReader {
                 }
             }
             // Start Object
-            else if (Token.Type is JsonTokenType.StartObject) {
+            else if (Token.JsonType is JsonTokenType.StartObject) {
                 JsonObject Node = [];
                 StartNode(Node);
             }
             // Start Array
-            else if (Token.Type is JsonTokenType.StartArray) {
+            else if (Token.JsonType is JsonTokenType.StartArray) {
                 JsonArray Node = [];
                 StartNode(Node);
             }
             // End Object/Array
-            else if (Token.Type is JsonTokenType.EndObject or JsonTokenType.EndArray) {
+            else if (Token.JsonType is JsonTokenType.EndObject or JsonTokenType.EndArray) {
                 // Nested node
                 if (CurrentNode?.Parent is not null) {
                     CurrentNode = CurrentNode.Parent;
@@ -257,16 +257,16 @@ public sealed class HjsonReader : RuneReader {
                 }
             }
             // Property Name
-            else if (Token.Type is JsonTokenType.PropertyName) {
+            else if (Token.JsonType is JsonTokenType.PropertyName) {
                 CurrentPropertyName = Token.Value;
             }
             // Comment
-            else if (Token.Type is JsonTokenType.Comment) {
+            else if (Token.JsonType is JsonTokenType.Comment) {
                 // Pass
             }
             // Not implemented
             else {
-                throw new NotImplementedException(Token.Type.ToString());
+                throw new NotImplementedException(Token.JsonType.ToString());
             }
         }
 
@@ -362,15 +362,15 @@ public sealed class HjsonReader : RuneReader {
             }
 
             // Start structure
-            if (Token.Type is JsonTokenType.StartObject or JsonTokenType.StartArray) {
+            if (Token.JsonType is JsonTokenType.StartObject or JsonTokenType.StartArray) {
                 CurrentDepth++;
             }
             // End structure
-            else if (Token.Type is JsonTokenType.EndObject or JsonTokenType.EndArray) {
+            else if (Token.JsonType is JsonTokenType.EndObject or JsonTokenType.EndArray) {
                 CurrentDepth--;
             }
             // Property name
-            else if (Token.Type is JsonTokenType.PropertyName) {
+            else if (Token.JsonType is JsonTokenType.PropertyName) {
                 if (CurrentDepth == 1 && Token.Value == PropertyName) {
                     // Path found
                     return true;
@@ -408,18 +408,18 @@ public sealed class HjsonReader : RuneReader {
             }
 
             // Start structure
-            if (Token.Type is JsonTokenType.StartObject or JsonTokenType.StartArray) {
+            if (Token.JsonType is JsonTokenType.StartObject or JsonTokenType.StartArray) {
                 CurrentDepth++;
                 if (CurrentDepth == 1) {
-                    IsArray = Token.Type is JsonTokenType.StartArray;
+                    IsArray = Token.JsonType is JsonTokenType.StartArray;
                 }
             }
             // End structure
-            else if (Token.Type is JsonTokenType.EndObject or JsonTokenType.EndArray) {
+            else if (Token.JsonType is JsonTokenType.EndObject or JsonTokenType.EndArray) {
                 CurrentDepth--;
             }
             // Primitive value
-            else if (Token.Type is JsonTokenType.Null or JsonTokenType.True or JsonTokenType.False or JsonTokenType.String or JsonTokenType.Number) {
+            else if (Token.JsonType is JsonTokenType.Null or JsonTokenType.True or JsonTokenType.False or JsonTokenType.String or JsonTokenType.Number) {
                 if (CurrentDepth == 1 && IsArray) {
                     CurrentIndex++;
                     // Path found
@@ -1595,7 +1595,7 @@ public sealed class HjsonReader : RuneReader {
     /// <summary>
     /// A single token for a <see cref="JsonTokenType"/> in a <see cref="HjsonReader"/>.
     /// </summary>
-    public readonly record struct Token(HjsonReader HjsonReader, JsonTokenType Type, long Position, long Length = 1, string Value = "") {
+    public readonly record struct Token(HjsonReader HjsonReader, JsonTokenType JsonType, long Position, long Length = 1, string Value = "") {
         /// <summary>
         /// Parses a single element at the token's position in the <see cref="HjsonReader"/>.
         /// </summary>
