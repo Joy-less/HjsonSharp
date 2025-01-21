@@ -1,5 +1,4 @@
-﻿using System.Buffers;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -20,6 +19,9 @@ public sealed class HjsonReader : RuneReader {
     /// The options used by the stream including feature switches.
     /// </summary>
     public HjsonReaderOptions Options { get; set; }
+
+    private static Rune[] NewlineRunes { get; } = [(Rune)'\n', (Rune)'\r', (Rune)'\u2028', (Rune)'\u2029'];
+    private static ReadOnlySpan<char> NewlineChars => ['\n', '\r', '\u2028', '\u2029'];
 
     /// <summary>
     /// Constructs a reader that reads HJSON from a rune reader.
@@ -612,7 +614,7 @@ public sealed class HjsonReader : RuneReader {
                     StringBuilder.Append((char)Result);
                 }
                 // Newline
-                else if (EscapedRune.Value is '\n' or '\r' or '\u2028' or '\u2029') {
+                else if (NewlineRunes.Contains(EscapedRune)) {
                     if (!Options.EscapedStringNewlines && !Options.InvalidStringEscapeSequences) {
                         return new Error("Escaped newlines are not allowed");
                     }
@@ -651,7 +653,7 @@ public sealed class HjsonReader : RuneReader {
             }
 
             // Newline
-            if (Rune.Value is '\n' or '\r') {
+            if (NewlineRunes.Contains(Rune)) {
                 break;
             }
             // Rune
@@ -690,7 +692,7 @@ public sealed class HjsonReader : RuneReader {
                 }
             }
             // Newline
-            else if (Rune.Value is '\n' or '\r') {
+            else if (NewlineRunes.Contains(Rune)) {
                 // Join CR LF
                 if (Rune.Value is '\r') {
                     TryRead('\n');
@@ -714,7 +716,7 @@ public sealed class HjsonReader : RuneReader {
         // Trim leading whitespace in multiline string
         if (OpeningQuoteCount > 1) {
             // Count leading whitespace preceding closing quotes
-            int LastNewlineIndex = StringBuilder.AsSpan().LastIndexOfAny('\n', '\r');
+            int LastNewlineIndex = StringBuilder.AsSpan().LastIndexOfAny(NewlineChars);
             if (LastNewlineIndex != -1) {
                 int LeadingWhitespaceCount = StringBuilder.Length - LastNewlineIndex;
 
@@ -727,7 +729,7 @@ public sealed class HjsonReader : RuneReader {
                         char Char = StringBuilder[Index];
 
                         // Newline
-                        if (Char is '\n' or '\r') {
+                        if (NewlineChars.Contains(Char)) {
                             // Reset leading whitespace counter
                             CurrentLeadingWhitespace = 0;
                             // Enter leading whitespace
@@ -761,10 +763,17 @@ public sealed class HjsonReader : RuneReader {
                     StringBuilder.Remove(StringBuilder.Length - LeadingWhitespaceCount, LeadingWhitespaceCount);
 
                     // Remove leading newline
-                    ReadOnlySpan<string> NewlineStrings = ["\n", "\r\n", "\r"];
-                    foreach (string NewlineString in NewlineStrings) {
-                        if (StringBuilder.AsSpan().StartsWith(NewlineString)) {
-                            StringBuilder.Remove(0, NewlineString.Length);
+                    foreach (char NewlineChar in NewlineChars) {
+                        // Found leading newline
+                        if (StringBuilder.AsSpan().StartsWith([NewlineChar])) {
+                            int NewlineLength = 1;
+                            // Join CR LF
+                            if (StringBuilder.AsSpan().StartsWith("\r\n")) {
+                                NewlineLength = 2;
+                            }
+
+                            // Remove leading newline
+                            StringBuilder.Remove(0, NewlineLength);
                             break;
                         }
                     }
@@ -1427,7 +1436,7 @@ public sealed class HjsonReader : RuneReader {
             }
             // Check end of line comment
             else {
-                if (CommentRune.Value is '\n' or '\r') {
+                if (NewlineRunes.Contains(CommentRune)) {
                     break;
                 }
             }
