@@ -670,9 +670,6 @@ public sealed class HjsonReader : RuneReader {
         ValueStringBuilder StringBuilder = new();
 
         int ClosingQuoteCounter = 0;
-        int LeadingWhitespaceCounter = 0;
-        bool IsLeadingWhitespace = false;
-        bool IsFirstLine = true;
 
         while (true) {
             // Read rune
@@ -699,105 +696,79 @@ public sealed class HjsonReader : RuneReader {
                     TryRead('\n');
                 }
 
-                // Start of leading whitespace
-                LeadingWhitespaceCounter = 0;
-                IsLeadingWhitespace = true;
-
-                // Skip whitespace on first line
-                if (IsFirstLine) {
-                    IsFirstLine = false;
-                    continue;
-                }
-
                 StringBuilder.Append(Rune);
             }
             // Whitespace
             else if (Rune.IsWhiteSpace(Rune)) {
-                // Build leading whitespace
-                if (IsLeadingWhitespace) {
-                    LeadingWhitespaceCounter++;
-                }
-
-                // Skip whitespace on first line
-                if (IsFirstLine && IsLeadingWhitespace) {
-                    continue;
-                }
-
                 StringBuilder.Append(Rune);
             }
             // Rune
             else {
                 // Reset closing triple-quote counter
                 ClosingQuoteCounter = 0;
-                // End of leading whitespace
-                IsLeadingWhitespace = false;
 
                 StringBuilder.Append(Rune);
             }
         }
 
-        // Trim leading whitespace preceding closing quotes
-        if (LeadingWhitespaceCounter > 0) {
-            int TrimLeadingWhitespaceCounter = 0;
-            int StartLeadingWhitespaceIndex = 0;
-            bool IsInLeadingWhitespace = true;
-            for (int Index = 0; Index < StringBuilder.Length;) {
-                // Get current rune
-                if (Rune.DecodeFromUtf16(StringBuilder.AsSpan()[Index..], out Rune CurrentRune, out int CurrentRuneLength) is not OperationStatus.Done) {
-                    throw new InvalidProgramException("Could not decode rune previously built when reading triple quoted string");
-                }
+        // Trim leading whitespace in multiline string
+        if (OpeningQuoteCount > 1) {
+            // Count leading whitespace preceding closing quotes
+            int LastNewlineIndex = StringBuilder.AsSpan().LastIndexOfAny('\n', '\r');
+            if (LastNewlineIndex != -1) {
+                int LeadingWhitespaceCount = StringBuilder.Length - LastNewlineIndex;
 
-                // Start of leading whitespace
-                if (CurrentRune.Value is '\n' or '\r') {
-                    // Join CR LF
-                    if (CurrentRune.Value is '\r') {
-                        TryRead('\n');
+                // Remove leading whitespace from each line
+                if (LeadingWhitespaceCount > 0) {
+                    int CurrentLeadingWhitespace = 0;
+                    bool IsLeadingWhitespace = true;
+
+                    for (int Index = 0; Index < StringBuilder.Length; Index++) {
+                        char Char = StringBuilder[Index];
+
+                        // Newline
+                        if (Char is '\n' or '\r') {
+                            // Reset leading whitespace counter
+                            CurrentLeadingWhitespace = 0;
+                            // Enter leading whitespace
+                            IsLeadingWhitespace = true;
+                        }
+                        // Leading whitespace
+                        else if (IsLeadingWhitespace && CurrentLeadingWhitespace <= LeadingWhitespaceCount) {
+                            // Whitespace
+                            if (char.IsWhiteSpace(Char)) {
+                                // Increment leading whitespace counter
+                                CurrentLeadingWhitespace++;
+                                // Maximum leading whitespace reached
+                                if (CurrentLeadingWhitespace == LeadingWhitespaceCount) {
+                                    // Remove leading whitespace
+                                    StringBuilder.Remove(Index - CurrentLeadingWhitespace, CurrentLeadingWhitespace);
+                                    // Exit leading whitespace
+                                    IsLeadingWhitespace = false;
+                                }
+                            }
+                            // Non-whitespace
+                            else {
+                                // Remove partial leading whitespace
+                                StringBuilder.Remove(Index - CurrentLeadingWhitespace, CurrentLeadingWhitespace);
+                                // Exit leading whitespace
+                                IsLeadingWhitespace = false;
+                            }
+                        }
                     }
 
-                    // Remove leading whitespace
-                    if (IsInLeadingWhitespace) {
-                        StringBuilder.Remove(StartLeadingWhitespaceIndex, Index - StartLeadingWhitespaceIndex);
-                        Index = StartLeadingWhitespaceIndex;
-                    }
+                    // Remove leading whitespace from last line
+                    StringBuilder.Remove(StringBuilder.Length - LeadingWhitespaceCount, LeadingWhitespaceCount);
 
-                    // Reset leading whitespace
-                    TrimLeadingWhitespaceCounter = 0;
-                    StartLeadingWhitespaceIndex = Index + CurrentRuneLength;
-                    IsInLeadingWhitespace = true;
-                }
-                // Whitespace
-                else if (Rune.IsWhiteSpace(CurrentRune)) {
-                    if (IsInLeadingWhitespace) {
-                        // Build leading whitespace
-                        TrimLeadingWhitespaceCounter++;
-
-                        // Remove leading whitespace when end reached
-                        if (TrimLeadingWhitespaceCounter > LeadingWhitespaceCounter) {
-                            IsInLeadingWhitespace = false;
-
-                            // Remove leading whitespace
-                            StringBuilder.Remove(StartLeadingWhitespaceIndex, Index - StartLeadingWhitespaceIndex);
-                            Index = StartLeadingWhitespaceIndex;
+                    // Remove leading newline
+                    ReadOnlySpan<string> NewlineStrings = ["\n", "\r\n", "\r"];
+                    foreach (string NewlineString in NewlineStrings) {
+                        if (StringBuilder.AsSpan().StartsWith(NewlineString)) {
+                            StringBuilder.Remove(0, NewlineString.Length);
+                            break;
                         }
                     }
                 }
-                // End of leading whitespace
-                else if (IsInLeadingWhitespace) {
-                    IsInLeadingWhitespace = false;
-
-                    // Remove leading whitespace
-                    StringBuilder.Remove(StartLeadingWhitespaceIndex, Index - StartLeadingWhitespaceIndex);
-                    Index = StartLeadingWhitespaceIndex;
-                }
-
-                // Move index to next rune
-                Index += CurrentRuneLength;
-            }
-            // Remove leading whitespace on last line
-            StringBuilder.Remove(StringBuilder.Length - LeadingWhitespaceCounter, LeadingWhitespaceCounter);
-            // Remove last newline
-            if (StringBuilder.Length >= 1 && StringBuilder[^1] is '\n' or '\r') {
-                StringBuilder.Remove(StringBuilder.Length - 1, 1);
             }
         }
 
