@@ -20,8 +20,8 @@ public sealed class HjsonReader : RuneReader {
     /// </summary>
     public HjsonReaderOptions Options { get; set; }
 
-    private static Rune[] NewlineRunes { get; } = [(Rune)'\n', (Rune)'\r', (Rune)'\u2028', (Rune)'\u2029'];
-    private static ReadOnlySpan<char> NewlineChars => ['\n', '\r', '\u2028', '\u2029'];
+    private static readonly Rune[] NewlineRunes = [(Rune)'\n', (Rune)'\r', (Rune)'\u2028', (Rune)'\u2029'];
+    private static readonly char[] NewlineChars = ['\n', '\r', '\u2028', '\u2029'];
 
     /// <summary>
     /// Constructs a reader that reads HJSON from a rune reader.
@@ -768,7 +768,7 @@ public sealed class HjsonReader : RuneReader {
                         if (StringBuilder.AsSpan().StartsWith([NewlineChar])) {
                             int NewlineLength = 1;
                             // Join CR LF
-                            if (StringBuilder.AsSpan().StartsWith("\r\n")) {
+                            if (NewlineChar is '\r' && StringBuilder.AsSpan().StartsWith("\r\n")) {
                                 NewlineLength = 2;
                             }
 
