@@ -1,5 +1,5 @@
-﻿using LinkDotNet.StringBuilder;
-using System.Text;
+﻿using System.Text;
+using LinkDotNet.StringBuilder;
 
 namespace HjsonSharp;
 
