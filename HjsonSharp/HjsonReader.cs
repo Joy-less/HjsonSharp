@@ -555,7 +555,7 @@ public sealed class HjsonReader : RuneReader {
         }
 
         // Create string builder
-        ValueStringBuilder StringBuilder = new();
+        using ValueStringBuilder StringBuilder = new();
 
         while (true) {
             // Read rune
@@ -670,7 +670,7 @@ public sealed class HjsonReader : RuneReader {
         long TokenPosition = Position;
 
         // Start token
-        ValueStringBuilder StringBuilder = new();
+        using ValueStringBuilder StringBuilder = new();
 
         while (true) {
             // Read rune
@@ -695,7 +695,7 @@ public sealed class HjsonReader : RuneReader {
         long TokenPosition = Position;
 
         // Create string builder
-        ValueStringBuilder StringBuilder = new();
+        using ValueStringBuilder StringBuilder = new();
 
         int ClosingQuoteCounter = 0;
 
@@ -815,7 +815,7 @@ public sealed class HjsonReader : RuneReader {
 
         Result<Token> ReadNumberNoFallback() {
             // Create string builder
-            ValueStringBuilder StringBuilder = new();
+            using ValueStringBuilder StringBuilder = new();
 
             bool ParsedExponent = false;
             bool ParsedDecimalPoint = false;
@@ -1184,7 +1184,7 @@ public sealed class HjsonReader : RuneReader {
         long TokenPosition = Position;
 
         // Start token
-        ValueStringBuilder StringBuilder = new();
+        using ValueStringBuilder StringBuilder = new();
 
         while (true) {
             // Peek rune
@@ -1267,7 +1267,7 @@ public sealed class HjsonReader : RuneReader {
         long TokenPosition = Position;
 
         // Start token
-        ValueStringBuilder StringBuilder = new();
+        using ValueStringBuilder StringBuilder = new();
 
         while (true) {
             // Peek rune
@@ -1436,7 +1436,7 @@ public sealed class HjsonReader : RuneReader {
         }
 
         // Create string builder
-        ValueStringBuilder StringBuilder = new();
+        using ValueStringBuilder StringBuilder = new();
 
         // Read comment
         while (true) {

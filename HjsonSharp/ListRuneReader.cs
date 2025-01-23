@@ -56,7 +56,7 @@ public class ListRuneReader : RuneReader {
     }
     /// <inheritdoc/>
     public override string ReadToEnd() {
-        ValueStringBuilder StringBuilder = new();
+        using ValueStringBuilder StringBuilder = new();
         for (; InnerListIndex < InnerList.Count; InnerListIndex++) {
             StringBuilder.Append(InnerList[InnerListIndex]);
         }
