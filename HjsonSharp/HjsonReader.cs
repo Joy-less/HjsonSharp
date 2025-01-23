@@ -16,7 +16,7 @@ public sealed class HjsonReader : RuneReader {
     /// </summary>
     public RuneReader InnerRuneReader { get; set; }
     /// <summary>
-    /// The options used by the stream including feature switches.
+    /// The options used by the reader including feature switches.
     /// </summary>
     public HjsonReaderOptions Options { get; set; }
 
@@ -64,7 +64,7 @@ public sealed class HjsonReader : RuneReader {
     }
 
     /// <summary>
-    /// Parses a single root element from the stream.
+    /// Parses a single root element from the byte stream.
     /// </summary>
     public static Result<T?> ParseElement<T>(Stream Stream, Encoding? Encoding = null, HjsonReaderOptions? Options = null) {
         using HjsonReader HjsonReader = new(Stream, Encoding, Options);
@@ -164,7 +164,7 @@ public sealed class HjsonReader : RuneReader {
     }
 
     /// <summary>
-    /// Parses a single element from the stream.
+    /// Parses a single element from the reader.
     /// </summary>
     public Result<T?> ParseElement<T>(bool IsRoot) {
         return ParseNode(IsRoot).Try(Value => Value.Deserialize<T>(JsonOptions.Mini));
@@ -174,7 +174,7 @@ public sealed class HjsonReader : RuneReader {
         return ParseElement<JsonElement>(IsRoot);
     }
     /// <summary>
-    /// Tries to parse a single element from the stream, returning <see langword="false"/> if an error occurs.
+    /// Tries to parse a single element from the reader, returning <see langword="false"/> if an error occurs.
     /// </summary>
     public bool TryParseElement<T>(out T? Result, bool IsRoot) {
         if (ParseElement<T>(IsRoot).TryGetValue(out T? Value)) {
@@ -191,7 +191,7 @@ public sealed class HjsonReader : RuneReader {
         return TryParseElement<JsonElement>(out Result, IsRoot);
     }
     /// <summary>
-    /// Parses a single <see cref="JsonNode"/> from the stream.
+    /// Parses a single <see cref="JsonNode"/> from the reader.
     /// </summary>
     public Result<JsonNode?> ParseNode(bool IsRoot) {
         JsonNode? CurrentNode = null;
@@ -302,7 +302,7 @@ public sealed class HjsonReader : RuneReader {
         return new Error("Expected token, got end of input");
     }
     /// <summary>
-    /// Tries to parse a single <see cref="JsonNode"/> from the stream, returning <see langword="false"/> if an exception occurs.
+    /// Tries to parse a single <see cref="JsonNode"/> from the reader, returning <see langword="false"/> if an exception occurs.
     /// </summary>
     public bool TryParseNode(out JsonNode? Result, bool IsRoot) {
         if (ParseNode(IsRoot).TryGetValue(out JsonNode? Value)) {
@@ -315,7 +315,7 @@ public sealed class HjsonReader : RuneReader {
         }
     }
     /// <summary>
-    /// Reads the tokens of a single element from the stream.
+    /// Reads the tokens of a single element from the reader.
     /// </summary>
     public IEnumerable<Result<Token>> ReadElement(bool IsRoot) {
         // Comments & whitespace
@@ -410,7 +410,7 @@ public sealed class HjsonReader : RuneReader {
         return false;
     }
     /// <summary>
-    /// Tries to find the given array index in the stream.<br/>
+    /// Tries to find the given array index in the reader.<br/>
     /// For example, to find <c>1</c>:
     /// <code>
     /// // Original position
