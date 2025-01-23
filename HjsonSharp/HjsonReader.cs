@@ -39,12 +39,20 @@ public sealed class HjsonReader : RuneReader {
     /// <summary>
     /// Constructs a reader that reads HJSON from a byte array.
     /// </summary>
+    public HjsonReader(byte[] Bytes, int Index, int Count, Encoding? Encoding = null, HjsonReaderOptions? Options = null)
+        : this(new MemoryStream(Bytes, Index, Count), Encoding, Options) {
+    }
+    /// <inheritdoc cref="HjsonReader(byte[], int, int, Encoding?, HjsonReaderOptions?)"/>
     public HjsonReader(byte[] Bytes, Encoding? Encoding = null, HjsonReaderOptions? Options = null)
         : this(new MemoryStream(Bytes), Encoding, Options) {
     }
     /// <summary>
     /// Constructs a reader that reads HJSON from a string.
     /// </summary>
+    public HjsonReader(string String, int Index, int Count, HjsonReaderOptions? Options = null)
+        : this(new StringRuneReader(String, Index, Count), Options) {
+    }
+    /// <inheritdoc cref="HjsonReader(string, int, int, HjsonReaderOptions?)"/>
     public HjsonReader(string String, HjsonReaderOptions? Options = null)
         : this(new StringRuneReader(String), Options) {
     }
@@ -77,6 +85,15 @@ public sealed class HjsonReader : RuneReader {
     public static Result<JsonElement> ParseElement(byte[] Bytes, Encoding? Encoding = null, HjsonReaderOptions? Options = null) {
         return ParseElement<JsonElement>(Bytes, Encoding, Options);
     }
+    /// <inheritdoc cref="ParseElement(byte[], Encoding?, HjsonReaderOptions?)"/>
+    public static Result<T?> ParseElement<T>(byte[] Bytes, int Index, int Count, Encoding? Encoding = null, HjsonReaderOptions? Options = null) {
+        using HjsonReader HjsonReader = new(Bytes, Index, Count, Encoding, Options);
+        return HjsonReader.ParseElement<T>(IsRoot: true);
+    }
+    /// <inheritdoc cref="ParseElement(byte[], int, int, Encoding?, HjsonReaderOptions?)"/>
+    public static Result<JsonElement> ParseElement(byte[] Bytes, int Index, int Count, Encoding? Encoding = null, HjsonReaderOptions? Options = null) {
+        return ParseElement<JsonElement>(Bytes, Index, Count, Encoding, Options);
+    }
     /// <summary>
     /// Parses a single root element from the string.
     /// </summary>
@@ -87,6 +104,15 @@ public sealed class HjsonReader : RuneReader {
     /// <inheritdoc cref="ParseElement{T}(string, HjsonReaderOptions?)"/>
     public static Result<JsonElement> ParseElement(string String, HjsonReaderOptions? Options = null) {
         return ParseElement<JsonElement>(String, Options);
+    }
+    /// <inheritdoc cref="ParseElement{T}(string, HjsonReaderOptions?)"/>
+    public static Result<T?> ParseElement<T>(string String, int Index, int Count, HjsonReaderOptions? Options = null) {
+        using HjsonReader HjsonReader = new(String, Index, Count, Options);
+        return HjsonReader.ParseElement<T>(IsRoot: true);
+    }
+    /// <inheritdoc cref="ParseElement(string, int, int, HjsonReaderOptions?)"/>
+    public static Result<JsonElement> ParseElement(string String, int Index, int Count, HjsonReaderOptions? Options = null) {
+        return ParseElement<JsonElement>(String, Index, Count, Options);
     }
     /// <summary>
     /// Parses a single root element from the list of runes.
