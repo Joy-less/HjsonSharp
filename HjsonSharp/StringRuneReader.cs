@@ -40,7 +40,7 @@ public class StringRuneReader : RuneReader {
 
     /// <inheritdoc/>
     public override long Position {
-        get => InnerStringIndex + InnerStringOffset;
+        get => InnerStringIndex - InnerStringOffset;
         set => InnerStringIndex = (int)(value - InnerStringOffset);
     }
     /// <inheritdoc/>
