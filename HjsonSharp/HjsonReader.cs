@@ -367,7 +367,19 @@ public sealed class HjsonReader : RuneReader {
         }
     }
     /// <summary>
-    /// Tries to find the given property name in the stream.<br/>
+    /// Reads the tokens of a single element from the reader and returns the length according to <see cref="Position"/>.
+    /// </summary>
+    public Result<long> ReadElementLength() {
+        long OriginalPosition = Position;
+        foreach (Result<Token> Token in ReadElement(IsRoot: true)) {
+            if (Token.IsError) {
+                return Token.Error;
+            }
+        }
+        return Position - OriginalPosition;
+    }
+    /// <summary>
+    /// Tries to find the given property name in the reader.<br/>
     /// For example, to find <c>c</c>:
     /// <code>
     /// // Original position
