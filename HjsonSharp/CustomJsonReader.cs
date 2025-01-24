@@ -8,9 +8,9 @@ using ResultZero;
 namespace HjsonSharp;
 
 /// <summary>
-/// A reader that can read JSON from a sequence of runes.
+/// A reader that can read custom JSON from a sequence of runes.
 /// </summary>
-public sealed class JsonReader : RuneReader {
+public sealed class CustomJsonReader : RuneReader {
     /// <summary>
     /// The rune reader to read runes from.
     /// </summary>
@@ -18,7 +18,7 @@ public sealed class JsonReader : RuneReader {
     /// <summary>
     /// The options used by the reader including feature switches.
     /// </summary>
-    public JsonReaderOptions Options { get; set; }
+    public CustomJsonReaderOptions Options { get; set; }
 
     private static readonly Rune[] NewlineRunes = [(Rune)'\n', (Rune)'\r', (Rune)'\u2028', (Rune)'\u2029'];
     private static readonly char[] NewlineChars = ['\n', '\r', '\u2028', '\u2029'];
@@ -26,103 +26,103 @@ public sealed class JsonReader : RuneReader {
     /// <summary>
     /// Constructs a reader that reads JSON from a rune reader.
     /// </summary>
-    public JsonReader(RuneReader RuneReader, JsonReaderOptions? Options = null) {
+    public CustomJsonReader(RuneReader RuneReader, CustomJsonReaderOptions? Options = null) {
         InnerRuneReader = RuneReader;
-        this.Options = Options ?? JsonReaderOptions.Json;
+        this.Options = Options ?? CustomJsonReaderOptions.Json;
     }
     /// <summary>
-    /// Constructs a reader that reads JSON from a byte stream.
+    /// Constructs a reader that reads custom JSON from a byte stream.
     /// </summary>
-    public JsonReader(Stream Stream, Encoding? Encoding = null, JsonReaderOptions? Options = null)
+    public CustomJsonReader(Stream Stream, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null)
         : this(new StreamRuneReader(Stream, Encoding), Options) {
     }
     /// <summary>
-    /// Constructs a reader that reads JSON from a byte array.
+    /// Constructs a reader that reads custom JSON from a byte array.
     /// </summary>
-    public JsonReader(byte[] Bytes, int Index, int Count, Encoding? Encoding = null, JsonReaderOptions? Options = null)
+    public CustomJsonReader(byte[] Bytes, int Index, int Count, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null)
         : this(new MemoryStream(Bytes, Index, Count), Encoding, Options) {
     }
-    /// <inheritdoc cref="JsonReader(byte[], int, int, Encoding?, JsonReaderOptions?)"/>
-    public JsonReader(byte[] Bytes, Encoding? Encoding = null, JsonReaderOptions? Options = null)
+    /// <inheritdoc cref="CustomJsonReader(byte[], int, int, Encoding?, CustomJsonReaderOptions?)"/>
+    public CustomJsonReader(byte[] Bytes, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null)
         : this(new MemoryStream(Bytes), Encoding, Options) {
     }
     /// <summary>
-    /// Constructs a reader that reads JSON from a string.
+    /// Constructs a reader that reads custom JSON from a string.
     /// </summary>
-    public JsonReader(string String, int Index, int Count, JsonReaderOptions? Options = null)
+    public CustomJsonReader(string String, int Index, int Count, CustomJsonReaderOptions? Options = null)
         : this(new StringRuneReader(String, Index, Count), Options) {
     }
-    /// <inheritdoc cref="JsonReader(string, int, int, JsonReaderOptions?)"/>
-    public JsonReader(string String, JsonReaderOptions? Options = null)
+    /// <inheritdoc cref="CustomJsonReader(string, int, int, CustomJsonReaderOptions?)"/>
+    public CustomJsonReader(string String, CustomJsonReaderOptions? Options = null)
         : this(new StringRuneReader(String), Options) {
     }
     /// <summary>
-    /// Constructs a reader that reads JSON from a list of runes.
+    /// Constructs a reader that reads custom JSON from a list of runes.
     /// </summary>
-    public JsonReader(IList<Rune> List, JsonReaderOptions? Options = null)
+    public CustomJsonReader(IList<Rune> List, CustomJsonReaderOptions? Options = null)
         : this(new ListRuneReader(List), Options) {
     }
 
     /// <summary>
     /// Parses a single element from the byte stream.
     /// </summary>
-    public static Result<T?> ParseElement<T>(Stream Stream, Encoding? Encoding = null, JsonReaderOptions? Options = null) {
-        using JsonReader Reader = new(Stream, Encoding, Options);
+    public static Result<T?> ParseElement<T>(Stream Stream, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null) {
+        using CustomJsonReader Reader = new(Stream, Encoding, Options);
         return Reader.ParseElement<T>();
     }
-    /// <inheritdoc cref="ParseElement{T}(Stream, Encoding?, JsonReaderOptions?)"/>
-    public static Result<JsonElement> ParseElement(Stream Stream, Encoding? Encoding = null, JsonReaderOptions? Options = null) {
+    /// <inheritdoc cref="ParseElement{T}(Stream, Encoding?, CustomJsonReaderOptions?)"/>
+    public static Result<JsonElement> ParseElement(Stream Stream, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null) {
         return ParseElement<JsonElement>(Stream, Encoding, Options);
     }
     /// <summary>
     /// Parses a single element from the byte array.
     /// </summary>
-    public static Result<T?> ParseElement<T>(byte[] Bytes, Encoding? Encoding = null, JsonReaderOptions? Options = null) {
-        using JsonReader Reader = new(Bytes, Encoding, Options);
+    public static Result<T?> ParseElement<T>(byte[] Bytes, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null) {
+        using CustomJsonReader Reader = new(Bytes, Encoding, Options);
         return Reader.ParseElement<T>();
     }
-    /// <inheritdoc cref="ParseElement{T}(byte[], Encoding?, JsonReaderOptions?)"/>
-    public static Result<JsonElement> ParseElement(byte[] Bytes, Encoding? Encoding = null, JsonReaderOptions? Options = null) {
+    /// <inheritdoc cref="ParseElement{T}(byte[], Encoding?, CustomJsonReaderOptions?)"/>
+    public static Result<JsonElement> ParseElement(byte[] Bytes, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null) {
         return ParseElement<JsonElement>(Bytes, Encoding, Options);
     }
-    /// <inheritdoc cref="ParseElement(byte[], Encoding?, JsonReaderOptions?)"/>
-    public static Result<T?> ParseElement<T>(byte[] Bytes, int Index, int Count, Encoding? Encoding = null, JsonReaderOptions? Options = null) {
-        using JsonReader Reader = new(Bytes, Index, Count, Encoding, Options);
+    /// <inheritdoc cref="ParseElement(byte[], Encoding?, CustomJsonReaderOptions?)"/>
+    public static Result<T?> ParseElement<T>(byte[] Bytes, int Index, int Count, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null) {
+        using CustomJsonReader Reader = new(Bytes, Index, Count, Encoding, Options);
         return Reader.ParseElement<T>();
     }
-    /// <inheritdoc cref="ParseElement(byte[], int, int, Encoding?, JsonReaderOptions?)"/>
-    public static Result<JsonElement> ParseElement(byte[] Bytes, int Index, int Count, Encoding? Encoding = null, JsonReaderOptions? Options = null) {
+    /// <inheritdoc cref="ParseElement(byte[], int, int, Encoding?, CustomJsonReaderOptions?)"/>
+    public static Result<JsonElement> ParseElement(byte[] Bytes, int Index, int Count, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null) {
         return ParseElement<JsonElement>(Bytes, Index, Count, Encoding, Options);
     }
     /// <summary>
     /// Parses a single element from the string.
     /// </summary>
-    public static Result<T?> ParseElement<T>(string String, JsonReaderOptions? Options = null) {
-        using JsonReader Reader = new(String, Options);
+    public static Result<T?> ParseElement<T>(string String, CustomJsonReaderOptions? Options = null) {
+        using CustomJsonReader Reader = new(String, Options);
         return Reader.ParseElement<T>();
     }
-    /// <inheritdoc cref="ParseElement{T}(string, JsonReaderOptions?)"/>
-    public static Result<JsonElement> ParseElement(string String, JsonReaderOptions? Options = null) {
+    /// <inheritdoc cref="ParseElement{T}(string, CustomJsonReaderOptions?)"/>
+    public static Result<JsonElement> ParseElement(string String, CustomJsonReaderOptions? Options = null) {
         return ParseElement<JsonElement>(String, Options);
     }
-    /// <inheritdoc cref="ParseElement{T}(string, JsonReaderOptions?)"/>
-    public static Result<T?> ParseElement<T>(string String, int Index, int Count, JsonReaderOptions? Options = null) {
-        using JsonReader Reader = new(String, Index, Count, Options);
+    /// <inheritdoc cref="ParseElement{T}(string, CustomJsonReaderOptions?)"/>
+    public static Result<T?> ParseElement<T>(string String, int Index, int Count, CustomJsonReaderOptions? Options = null) {
+        using CustomJsonReader Reader = new(String, Index, Count, Options);
         return Reader.ParseElement<T>();
     }
-    /// <inheritdoc cref="ParseElement(string, int, int, JsonReaderOptions?)"/>
-    public static Result<JsonElement> ParseElement(string String, int Index, int Count, JsonReaderOptions? Options = null) {
+    /// <inheritdoc cref="ParseElement(string, int, int, CustomJsonReaderOptions?)"/>
+    public static Result<JsonElement> ParseElement(string String, int Index, int Count, CustomJsonReaderOptions? Options = null) {
         return ParseElement<JsonElement>(String, Index, Count, Options);
     }
     /// <summary>
     /// Parses a single element from the list of runes.
     /// </summary>
-    public static Result<T?> ParseElement<T>(IList<Rune> List, JsonReaderOptions? Options = null) {
-        using JsonReader Reader = new(List, Options);
+    public static Result<T?> ParseElement<T>(IList<Rune> List, CustomJsonReaderOptions? Options = null) {
+        using CustomJsonReader Reader = new(List, Options);
         return Reader.ParseElement<T>();
     }
-    /// <inheritdoc cref="ParseElement{T}(IList{Rune}, JsonReaderOptions?)"/>
-    public static Result<JsonElement> ParseElement(IList<Rune> List, JsonReaderOptions? Options = null) {
+    /// <inheritdoc cref="ParseElement{T}(IList{Rune}, CustomJsonReaderOptions?)"/>
+    public static Result<JsonElement> ParseElement(IList<Rune> List, CustomJsonReaderOptions? Options = null) {
         return ParseElement<JsonElement>(List, Options);
     }
 
@@ -1641,7 +1641,7 @@ public sealed class JsonReader : RuneReader {
     /// <summary>
     /// A single token for a <see cref="JsonTokenType"/> in a <see cref="JsonReader"/>.
     /// </summary>
-    public readonly record struct Token(JsonReader JsonReader, JsonTokenType JsonType, long Position, long Length = 1, string Value = "") {
+    public readonly record struct Token(CustomJsonReader JsonReader, JsonTokenType JsonType, long Position, long Length = 1, string Value = "") {
         /// <summary>
         /// Parses a single element at the token's position in the <see cref="JsonReader"/>.
         /// </summary>

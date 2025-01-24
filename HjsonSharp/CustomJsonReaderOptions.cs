@@ -1,19 +1,19 @@
 ﻿namespace HjsonSharp;
 
 /// <summary>
-/// Options used by a <see cref="JsonReader"/> including feature switches.
+/// Options used by a <see cref="CustomJsonReader"/> including feature switches.
 /// </summary>
-public record struct JsonReaderOptions() {
+public record struct CustomJsonReaderOptions() {
     /// <summary>
     /// The standard, strict and simple JSON format.
     /// See <see href="https://json.org"/>.
     /// </summary>
-    public static JsonReaderOptions Json => new();
+    public static CustomJsonReaderOptions Json => new();
     /// <summary>
     /// A variant of JSON allowing line-style comments, block-style comments, and trailing commas.<br/>
     /// <see href="https://code.visualstudio.com/docs/languages/json#_json-with-comments"/>
     /// </summary>
-    public static JsonReaderOptions Jsonc => Json with {
+    public static CustomJsonReaderOptions Jsonc => Json with {
         LineStyleComments = true,
         BlockStyleComments = true,
         TrailingCommas = true,
@@ -24,7 +24,7 @@ public record struct JsonReaderOptions() {
     /// points, named floating-point literals, explicit plus-signs, line-style comments, block-style comments, and all whitespace.<br/>
     /// <see href="https://json5.org"/>
     /// </summary>
-    public static JsonReaderOptions Json5 => Json with {
+    public static CustomJsonReaderOptions Json5 => Json with {
         EcmaScriptPropertyNames = true,
         TrailingCommas = true,
         SingleQuotedStrings = true,
@@ -46,7 +46,7 @@ public record struct JsonReaderOptions() {
     /// root object braces.<br/>
     /// <see href="https://hjson.github.io"/>
     /// </summary>
-    public static JsonReaderOptions Hjson => Json with {
+    public static CustomJsonReaderOptions Hjson => Json with {
         QuotelessPropertyNames = true,
         TrailingCommas = true,
         OmittedCommas = true,

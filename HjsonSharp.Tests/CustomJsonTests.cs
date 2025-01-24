@@ -16,7 +16,7 @@ public class CustomJsonTests {
             }
             """;
 
-        JsonElement Element = JsonReader.ParseElement(Text, JsonReaderOptions.Json with {
+        JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Json with {
             NamedFloatingPointLiterals = true,
             QuotelessStrings = true,
             OmittedCommas = true,
@@ -36,7 +36,7 @@ public class CustomJsonTests {
               "key": "val
             """;
 
-        JsonElement Element = JsonReader.ParseElement(Text, JsonReaderOptions.Json with {
+        JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Json with {
             IncompleteInputs = true,
         }).Value;
         Assert.Equal(1, Element.GetPropertyCount());
@@ -52,7 +52,7 @@ public class CustomJsonTests {
                 10
             """;
 
-        JsonElement Element = JsonReader.ParseElement(Text, JsonReaderOptions.Json with {
+        JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Json with {
             IncompleteInputs = true,
         }).Value;
         Assert.Equal(1, Element.GetPropertyCount());
