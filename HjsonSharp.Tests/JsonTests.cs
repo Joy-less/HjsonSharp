@@ -180,7 +180,10 @@ public class JsonTests {
     }
     [Fact]
     public void ElementLengthTest() {
-        using HjsonReader Reader = new("\"abcde\"");
-        Assert.Equal(7, Reader.ReadElementLength(IsRoot: true));
+        using HjsonReader Reader1 = new("\"abcde\"");
+        Assert.Equal(7, Reader1.ReadElementLength(IsRoot: true));
+
+        using HjsonReader Reader2 = new("xyz\"abcde\"xyz", 3, "xyz\"abcde\"xyz".Length - 3);
+        Assert.Equal(7, Reader2.ReadElementLength(IsRoot: true));
     }
 }

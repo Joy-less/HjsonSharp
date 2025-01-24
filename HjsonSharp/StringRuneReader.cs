@@ -17,11 +17,11 @@ public class StringRuneReader : RuneReader {
     /// </summary>
     public int InnerStringOffset { get; set; }
     /// <summary>
-    /// The maximum count to read from <see cref="InnerString"/> offset by <see cref="InnerStringOffset"/>.
+    /// The maximum count to read from <see cref="InnerString"/>.
     /// </summary>
     public int InnerStringCount { get; set; }
     /// <summary>
-    /// The current index in <see cref="InnerString"/>.
+    /// The current actual index in <see cref="InnerString"/>.
     /// </summary>
     public int InnerStringIndex { get; set; }
 
@@ -32,6 +32,7 @@ public class StringRuneReader : RuneReader {
         InnerString = String;
         InnerStringOffset = Index;
         InnerStringCount = Count;
+        InnerStringIndex = Index;
     }
     /// <inheritdoc cref="StringRuneReader(string, int, int)"/>
     public StringRuneReader(string String)
@@ -40,8 +41,8 @@ public class StringRuneReader : RuneReader {
 
     /// <inheritdoc/>
     public override long Position {
-        get => InnerStringIndex;
-        set => InnerStringIndex = (int)value;
+        get => InnerStringIndex + InnerStringOffset;
+        set => InnerStringIndex = (int)(value - InnerStringOffset);
     }
     /// <inheritdoc/>
     public override long Length {
@@ -56,7 +57,7 @@ public class StringRuneReader : RuneReader {
             return null;
         }
         if (Rune.DecodeFromUtf16(AsSpan(), out Rune Result, out int CharsConsumed) is not OperationStatus.Done) {
-            throw new InvalidOperationException("Could not read rune from string");
+            throw new InvalidOperationException("Could not decode rune from string");
         }
         InnerStringIndex += CharsConsumed;
         return Result;
@@ -69,7 +70,7 @@ public class StringRuneReader : RuneReader {
             return null;
         }
         if (Rune.DecodeFromUtf16(AsSpan(), out Rune Result, out _) is not OperationStatus.Done) {
-            throw new InvalidOperationException("Could not read rune from string");
+            throw new InvalidOperationException("Could not decode rune from string");
         }
         return Result;
     }
@@ -86,6 +87,6 @@ public class StringRuneReader : RuneReader {
     /// Returns a span of the remaining characters in the reader.
     /// </summary>
     public ReadOnlySpan<char> AsSpan() {
-        return InnerString.AsSpan(InnerStringIndex, InnerStringCount + InnerStringOffset - InnerStringIndex);
+        return InnerString.AsSpan(InnerStringIndex..(InnerStringCount + InnerStringOffset));
     }
 }
