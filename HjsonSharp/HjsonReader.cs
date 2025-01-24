@@ -320,19 +320,21 @@ public sealed class HjsonReader : RuneReader {
     public IEnumerable<Result<Token>> ReadElement(bool IsRoot) {
         // Comments & whitespace
         foreach (Result<Token> Token in ReadCommentsAndWhitespace()) {
-            yield return Token;
             if (Token.IsError) {
+                yield return Token.Error;
                 yield break;
             }
+            yield return Token;
         }
 
         // Root object with omitted root braces
         if (IsRoot && Options.OmittedRootObjectBraces && DetectObjectWithOmittedBraces()) {
             foreach (Result<Token> Token in ReadObject(OmitBraces: true)) {
-                yield return Token;
                 if (Token.IsError) {
+                    yield return Token.Error;
                     yield break;
                 }
+                yield return Token;
             }
             yield break;
         }
@@ -346,19 +348,21 @@ public sealed class HjsonReader : RuneReader {
         // Object
         if (Rune.Value is '{') {
             foreach (Result<Token> Token in ReadObject(OmitBraces: false)) {
-                yield return Token;
                 if (Token.IsError) {
+                    yield return Token.Error;
                     yield break;
                 }
+                yield return Token;
             }
         }
         // Array
         else if (Rune.Value is '[') {
             foreach (Result<Token> Token in ReadArray()) {
-                yield return Token;
                 if (Token.IsError) {
+                    yield return Token.Error;
                     yield break;
                 }
+                yield return Token;
             }
         }
         // Primitive
@@ -1046,10 +1050,11 @@ public sealed class HjsonReader : RuneReader {
 
         // Comments & whitespace
         foreach (Result<Token> Token in ReadCommentsAndWhitespace()) {
-            yield return Token;
             if (Token.IsError) {
+                yield return Token.Error;
                 yield break;
             }
+            yield return Token;
         }
 
         bool PropertyLegal = true;
@@ -1102,34 +1107,38 @@ public sealed class HjsonReader : RuneReader {
 
                 // Property name
                 foreach (Result<Token> Token in ReadPropertyName()) {
-                    yield return Token;
                     if (Token.IsError) {
+                        yield return Token.Error;
                         yield break;
                     }
+                    yield return Token;
                 }
 
                 // Comments & whitespace
                 foreach (Result<Token> Token in ReadCommentsAndWhitespace()) {
-                    yield return Token;
                     if (Token.IsError) {
+                        yield return Token.Error;
                         yield break;
                     }
+                    yield return Token;
                 }
 
                 // Property value
                 foreach (Result<Token> Token in ReadElement(IsRoot: false)) {
-                    yield return Token;
                     if (Token.IsError) {
+                        yield return Token.Error;
                         yield break;
                     }
+                    yield return Token;
                 }
 
                 // Comments & whitespace
                 foreach (Result<Token> Token in ReadCommentsAndWhitespace()) {
-                    yield return Token;
                     if (Token.IsError) {
+                        yield return Token.Error;
                         yield break;
                     }
+                    yield return Token;
                 }
 
                 // Comma
@@ -1138,10 +1147,11 @@ public sealed class HjsonReader : RuneReader {
 
                 // Comments & whitespace
                 foreach (Result<Token> Token in ReadCommentsAndWhitespace()) {
-                    yield return Token;
                     if (Token.IsError) {
+                        yield return Token.Error;
                         yield break;
                     }
+                    yield return Token;
                 }
             }
         }
@@ -1154,10 +1164,11 @@ public sealed class HjsonReader : RuneReader {
             // ECMAScript property name
             if (Options.EcmaScriptPropertyNames) {
                 foreach (Result<Token> Token in ReadEcmaScriptPropertyName()) {
-                    yield return Token;
                     if (Token.IsError) {
+                        yield return Token.Error;
                         yield break;
                     }
+                    yield return Token;
                 }
                 yield break;
             }
@@ -1179,10 +1190,11 @@ public sealed class HjsonReader : RuneReader {
 
         // Comments & whitespace
         foreach (Result<Token> Token in ReadCommentsAndWhitespace()) {
-            yield return Token;
             if (Token.IsError) {
+                yield return Token.Error;
                 yield break;
             }
+            yield return Token;
         }
 
         // Colon
@@ -1215,10 +1227,11 @@ public sealed class HjsonReader : RuneReader {
                 IEnumerable<Result<Token>> ReadCommentsAndWhitespaceThenColon() {
                     // Comments & whitespace
                     foreach (Result<Token> Token in ReadCommentsAndWhitespace()) {
-                        yield return Token;
                         if (Token.IsError) {
+                            yield return Token.Error;
                             yield break;
                         }
+                        yield return Token;
                     }
 
                     // Colon
@@ -1316,10 +1329,11 @@ public sealed class HjsonReader : RuneReader {
 
         // Comments & whitespace
         foreach (Result<Token> Token in ReadCommentsAndWhitespace()) {
-            yield return Token;
             if (Token.IsError) {
+                yield return Token.Error;
                 yield break;
             }
+            yield return Token;
         }
 
         bool ItemLegal = true;
@@ -1362,18 +1376,20 @@ public sealed class HjsonReader : RuneReader {
 
                 // Item
                 foreach (Result<Token> Token in ReadElement(IsRoot: false)) {
-                    yield return Token;
                     if (Token.IsError) {
+                        yield return Token.Error;
                         yield break;
                     }
+                    yield return Token;
                 }
 
                 // Comments & whitespace
                 foreach (Result<Token> Token in ReadCommentsAndWhitespace()) {
-                    yield return Token;
                     if (Token.IsError) {
+                        yield return Token.Error;
                         yield break;
                     }
+                    yield return Token;
                 }
 
                 // Comma
@@ -1382,10 +1398,11 @@ public sealed class HjsonReader : RuneReader {
 
                 // Comments & whitespace
                 foreach (Result<Token> Token in ReadCommentsAndWhitespace()) {
-                    yield return Token;
                     if (Token.IsError) {
+                        yield return Token.Error;
                         yield break;
                     }
+                    yield return Token;
                 }
             }
         }
