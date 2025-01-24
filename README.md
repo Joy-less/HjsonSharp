@@ -72,9 +72,16 @@ See the [open issue](https://github.com/hjson/hjson/issues/132) for more informa
 
 For maximum portability, don't rely on significant leading whitespace in triple-quoted strings.
 
+### Omitted Braces In Non-Root Objects (HJSON)
+
+In HJSON, braces can only be omitted in the root object.
+However, HjsonSharp allows braces to be omitted for all objects using the rules of [JSONH](https://github.com/jsonh-org/Jsonh?tab=readme-ov-file#objects).
+
+For maximum portability, don't omit braces in nested objects.
+
 ### Carriage Returns And Non-Standard Newlines (HJSON)
 
-In the HJSON specification, carriage returns (`\r`) are ignored in favour of line feeds (`\n`).
+In HJSON, carriage returns (`\r`) are ignored in favour of line feeds (`\n`).
 However, HjsonSharp allows all newlines supported by JSON5 (`\n`, `\r`, `\r\n`, `\u2028`, `\u2029`).
 
 This affects unquoted strings, which are terminated by a newline, and triple-quoted strings, which trim the first and last newlines.

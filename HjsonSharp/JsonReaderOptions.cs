@@ -57,7 +57,7 @@ public record struct JsonReaderOptions() {
         LineStyleComments = true,
         BlockStyleComments = true,
         HashStyleComments = true,
-        OmittedRootObjectBraces = true,
+        OmittedObjectBraces = true,
     };
 
     /// <summary>
@@ -249,11 +249,11 @@ public record struct JsonReaderOptions() {
     /// </summary>
     public bool HexadecimalNumbers { get; set; }
     /// <summary>
-    /// Enables/disables omitted braces for root objects.
+    /// Enables/disables omitted braces for objects.
     /// <code>
     /// a: 5,
     /// b: "..."
     /// </code>
     /// </summary>
-    public bool OmittedRootObjectBraces { get; set; }
+    public bool OmittedObjectBraces { get; set; }
 }

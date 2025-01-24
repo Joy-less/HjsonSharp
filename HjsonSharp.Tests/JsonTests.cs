@@ -113,8 +113,8 @@ public class JsonTests {
             """;
 
         using JsonReader HjsonReader = new(Text, JsonReaderOptions.Json);
-        Assert.True(HjsonReader.FindPropertyValue("second", IsRoot: true));
-        JsonElement Element = HjsonReader.ParseElement(IsRoot: false).Value;
+        Assert.True(HjsonReader.FindPropertyValue("second"));
+        JsonElement Element = HjsonReader.ParseElement().Value;
         Assert.Equal(5, Element.GetProperty("third").Deserialize<int>(GlobalJsonOptions.Mini));
     }
     [Fact]
@@ -128,8 +128,8 @@ public class JsonTests {
             """;
 
         using JsonReader HjsonReader = new(Text, JsonReaderOptions.Json);
-        Assert.True(HjsonReader.FindArrayIndex(2, IsRoot: true));
-        JsonElement Element = HjsonReader.ParseElement(IsRoot: false).Value;
+        Assert.True(HjsonReader.FindArrayIndex(2));
+        JsonElement Element = HjsonReader.ParseElement().Value;
         Assert.Equal(5, Element.Deserialize<int>(GlobalJsonOptions.Mini));
     }
     [Fact]
@@ -181,9 +181,9 @@ public class JsonTests {
     [Fact]
     public void ElementLengthTest() {
         using JsonReader Reader1 = new("\"abcde\"");
-        Assert.Equal(7, Reader1.ReadElementLength(IsRoot: true));
+        Assert.Equal(7, Reader1.ReadElementLength());
 
         using JsonReader Reader2 = new("xyz\"abcde\"xyz", 3, "xyz\"abcde\"xyz".Length - 3);
-        Assert.Equal(7, Reader2.ReadElementLength(IsRoot: true));
+        Assert.Equal(7, Reader2.ReadElementLength());
     }
 }

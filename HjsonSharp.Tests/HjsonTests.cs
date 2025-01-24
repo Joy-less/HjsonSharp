@@ -158,7 +158,7 @@ public class HjsonTests {
     public void OneLineOmittedCommasTest() {
         string Text = """
             {
-              "a":"b"c:de:f
+              "a":"b" c: de
               "g": [
                 1 2
               ]
@@ -168,7 +168,7 @@ public class HjsonTests {
         JsonElement Element = JsonReader.ParseElement(Text, JsonReaderOptions.Hjson).Value;
         Assert.Equal(3, Element.GetPropertyCount());
         Assert.Equal("b", Element.GetProperty("a").Deserialize<string>(GlobalJsonOptions.Mini));
-        Assert.Equal("de:f", Element.GetProperty("c").Deserialize<string>(GlobalJsonOptions.Mini));
+        Assert.Equal("de", Element.GetProperty("c").Deserialize<string>(GlobalJsonOptions.Mini));
         Assert.Equal(["1 2"], Element.GetProperty("g").Deserialize<string[]>(GlobalJsonOptions.Mini)!);
     }
     [Fact]
