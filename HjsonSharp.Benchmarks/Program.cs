@@ -36,7 +36,7 @@ public class HjsonSharpVsHjsonCsBenchmarks {
     }
     [Benchmark]
     public void LongStringHjsonSharp() {
-        string Result = JsonReader.ParseElement<string>(LongStringJson).Value!;
+        string Result = JsonReader.ParseElement<string>(LongStringJson, JsonReaderOptions.Hjson).Value!;
         if (Result != LongString) {
             throw new Exception();
         }
@@ -58,7 +58,7 @@ public class HjsonSharpVsHjsonCsBenchmarks {
     }
     [Benchmark]
     public void ShortIntegerHjsonSharp() {
-        int Result = JsonReader.ParseElement<int>(ShortIntegerJson).Value!;
+        int Result = JsonReader.ParseElement<int>(ShortIntegerJson, JsonReaderOptions.Hjson).Value!;
         if (Result != ShortInteger) {
             throw new Exception();
         }
@@ -86,7 +86,7 @@ public class HjsonSharpVsHjsonCsBenchmarks {
     }
     [Benchmark]
     public void PersonHjsonSharp() {
-        Person Result = JsonReader.ParseElement<Person>(PersonJson).Value!;
+        Person Result = JsonReader.ParseElement<Person>(PersonJson, JsonReaderOptions.Hjson).Value!;
         if (Result != Person) {
             throw new Exception();
         }
