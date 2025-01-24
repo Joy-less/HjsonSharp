@@ -76,7 +76,7 @@ public class StringRuneReader : RuneReader {
     }
     /// <inheritdoc/>
     public override string ReadToEnd() {
-        using ValueStringBuilder StringBuilder = new();
+        using ValueStringBuilder StringBuilder = new(stackalloc char[32]);
         for (; InnerStringIndex < InnerStringCount + InnerStringOffset; InnerStringIndex++) {
             StringBuilder.Append(InnerString[InnerStringIndex]);
         }

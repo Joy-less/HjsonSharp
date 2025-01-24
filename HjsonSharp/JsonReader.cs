@@ -571,7 +571,7 @@ public sealed class JsonReader : RuneReader {
         }
 
         // Create string builder
-        using ValueStringBuilder StringBuilder = new();
+        using ValueStringBuilder StringBuilder = new(stackalloc char[32]);
 
         while (true) {
             // Read rune
@@ -686,7 +686,7 @@ public sealed class JsonReader : RuneReader {
         long TokenPosition = Position;
 
         // Start token
-        using ValueStringBuilder StringBuilder = new();
+        using ValueStringBuilder StringBuilder = new(stackalloc char[32]);
 
         while (true) {
             // Read rune
@@ -711,7 +711,7 @@ public sealed class JsonReader : RuneReader {
         long TokenPosition = Position;
 
         // Create string builder
-        using ValueStringBuilder StringBuilder = new();
+        using ValueStringBuilder StringBuilder = new(stackalloc char[32]);
 
         int ClosingQuoteCounter = 0;
 
@@ -831,7 +831,7 @@ public sealed class JsonReader : RuneReader {
 
         Result<Token> ReadNumberNoFallback() {
             // Create string builder
-            using ValueStringBuilder StringBuilder = new();
+            using ValueStringBuilder StringBuilder = new(stackalloc char[32]);
 
             bool ParsedExponent = false;
             bool ParsedDecimalPoint = false;
@@ -1219,7 +1219,7 @@ public sealed class JsonReader : RuneReader {
         long TokenPosition = Position;
 
         // Start token
-        using ValueStringBuilder StringBuilder = new();
+        using ValueStringBuilder StringBuilder = new(stackalloc char[32]);
 
         while (true) {
             // Peek rune
@@ -1303,7 +1303,7 @@ public sealed class JsonReader : RuneReader {
         long TokenPosition = Position;
 
         // Start token
-        using ValueStringBuilder StringBuilder = new();
+        using ValueStringBuilder StringBuilder = new(stackalloc char[32]);
 
         while (true) {
             // Peek rune
@@ -1476,7 +1476,7 @@ public sealed class JsonReader : RuneReader {
         }
 
         // Create string builder
-        using ValueStringBuilder StringBuilder = new();
+        using ValueStringBuilder StringBuilder = new(stackalloc char[32]);
 
         // Read comment
         while (true) {

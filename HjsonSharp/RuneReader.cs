@@ -58,7 +58,7 @@ public abstract class RuneReader : IDisposable {
     /// Reads every remaining rune in the reader and concatenates them to a string.
     /// </summary>
     public virtual string ReadToEnd() {
-        using ValueStringBuilder StringBuilder = new();
+        using ValueStringBuilder StringBuilder = new(stackalloc char[32]);
         while (Read() is Rune Rune) {
             StringBuilder.Append(Rune);
         }
