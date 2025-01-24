@@ -40,12 +40,12 @@ public class StringRuneReader : RuneReader {
 
     /// <inheritdoc/>
     public override long Position {
-        get => InnerStringIndex - InnerStringOffset;
-        set => InnerStringIndex = (int)(value - InnerStringOffset);
+        get => InnerStringIndex;
+        set => InnerStringIndex = (int)value;
     }
     /// <inheritdoc/>
     public override long Length {
-        get => InnerStringCount - InnerStringOffset;
+        get => InnerStringCount + InnerStringOffset;
     }
 
     /// <summary>

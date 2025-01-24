@@ -178,4 +178,9 @@ public class JsonTests {
             "\u00E7"
             """, HjsonReaderOptions.Json));
     }
+    [Fact]
+    public void ElementLengthTest() {
+        using HjsonReader Reader = new("\"abcde\"");
+        Assert.Equal(7, Reader.ReadElementLength(IsRoot: true));
+    }
 }
