@@ -18,7 +18,7 @@ public class CustomJsonTests {
 
         JsonElement Element = HjsonReader.ParseElement(Text, HjsonReaderOptions.Json with {
             NamedFloatingPointLiterals = true,
-            UnquotedStrings = true,
+            QuotelessStrings = true,
             OmittedCommas = true,
         }).Value;
         Assert.Equal(6, Element.GetPropertyCount());

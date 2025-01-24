@@ -47,12 +47,12 @@ public record struct HjsonReaderOptions() {
     /// <see href="https://hjson.github.io"/>
     /// </summary>
     public static HjsonReaderOptions Hjson => Json with {
-        UnquotedPropertyNames = true,
+        QuotelessPropertyNames = true,
         TrailingCommas = true,
         OmittedCommas = true,
         SingleQuotedStrings = true,
-        TripleQuotedStrings = true,
-        UnquotedStrings = true,
+        MultiQuotedStrings = true,
+        QuotelessStrings = true,
         EscapedStringNewlines = true,
         LineStyleComments = true,
         BlockStyleComments = true,
@@ -126,7 +126,7 @@ public record struct HjsonReaderOptions() {
     /// { a: "b" }
     /// </code>
     /// </summary>
-    public bool UnquotedPropertyNames { get; set; }
+    public bool QuotelessPropertyNames { get; set; }
     /// <summary>
     /// Enables/disables ECMAScript-style property names.
     /// <code>
@@ -161,7 +161,7 @@ public record struct HjsonReaderOptions() {
     /// triple quotes. However, since that would require reading backwards, this implementation uses the
     /// closing triple quotes instead (like C#). This is unlikely to make a difference.
     /// </remarks>
-    public bool TripleQuotedStrings { get; set; }
+    public bool MultiQuotedStrings { get; set; }
     /// <summary>
     /// Enables/disables unquoted strings.
     /// <code>
@@ -171,7 +171,7 @@ public record struct HjsonReaderOptions() {
     /// <remarks>
     /// Since unquoted strings are terminated by a newline, <see cref="OmittedCommas"/> should also be <see langword="true"/>.
     /// </remarks>
-    public bool UnquotedStrings { get; set; }
+    public bool QuotelessStrings { get; set; }
     /// <summary>
     /// Enables/disables escaped newlines in strings.
     /// <code>

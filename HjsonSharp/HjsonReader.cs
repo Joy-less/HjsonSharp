@@ -502,7 +502,7 @@ public sealed class HjsonReader : RuneReader {
             return ReadNumber();
         }
         // Unquoted string
-        else if (Options.UnquotedStrings) {
+        else if (Options.QuotelessStrings) {
             return ReadUnquotedString();
         }
         // Invalid rune
@@ -543,7 +543,7 @@ public sealed class HjsonReader : RuneReader {
                 if (TryRead('\'')) {
                     // Triple-quoted string
                     if (TryRead('\'')) {
-                        if (!Options.TripleQuotedStrings) {
+                        if (!Options.MultiQuotedStrings) {
                             return new Error("Triple-quoted strings are not allowed");
                         }
                         return ReadTripleQuotedString(new Rune('\''));
@@ -563,7 +563,7 @@ public sealed class HjsonReader : RuneReader {
             }
             // Unquoted string
             else {
-                if (!Options.UnquotedStrings) {
+                if (!Options.QuotelessStrings) {
                     return new Error("Unquoted strings are not allowed");
                 }
                 return ReadUnquotedString();
@@ -1008,7 +1008,7 @@ public sealed class HjsonReader : RuneReader {
                     }
 
                     // Detect unquoted string (e.g. `123 a`)
-                    if (Options.UnquotedStrings) {
+                    if (Options.QuotelessStrings) {
                         if (DetectFallbackToUnquotedString()) {
                             Position = TokenPosition;
                             return ReadUnquotedString();
@@ -1027,7 +1027,7 @@ public sealed class HjsonReader : RuneReader {
         Result<Token> NumberToken = ReadNumberNoFallback();
 
         // Fallback to unquoted string
-        if (NumberToken.IsError && Options.UnquotedStrings) {
+        if (NumberToken.IsError && Options.QuotelessStrings) {
             Position = TokenPosition;
             return ReadUnquotedString();
         }
@@ -1173,7 +1173,7 @@ public sealed class HjsonReader : RuneReader {
                 yield break;
             }
             // Unquoted property name
-            else if (Options.UnquotedPropertyNames) {
+            else if (Options.QuotelessPropertyNames) {
                 yield return ReadUnquotedPropertyName();
                 yield break;
             }
@@ -1542,7 +1542,7 @@ public sealed class HjsonReader : RuneReader {
             // Unquoted string
             else {
                 UnquotedStringFallback = true;
-                if (!Options.UnquotedStrings) {
+                if (!Options.QuotelessStrings) {
                     return new Error("Unquoted strings are not allowed");
                 }
                 Position = TokenPosition;
