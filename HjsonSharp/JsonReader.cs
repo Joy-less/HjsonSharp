@@ -8,9 +8,9 @@ using ResultZero;
 namespace HjsonSharp;
 
 /// <summary>
-/// A reader that can read HJSON from a sequence of runes.
+/// A reader that can read JSON from a sequence of runes.
 /// </summary>
-public sealed class HjsonReader : RuneReader {
+public sealed class JsonReader : RuneReader {
     /// <summary>
     /// The rune reader to read runes from.
     /// </summary>
@@ -18,111 +18,111 @@ public sealed class HjsonReader : RuneReader {
     /// <summary>
     /// The options used by the reader including feature switches.
     /// </summary>
-    public HjsonReaderOptions Options { get; set; }
+    public JsonReaderOptions Options { get; set; }
 
     private static readonly Rune[] NewlineRunes = [(Rune)'\n', (Rune)'\r', (Rune)'\u2028', (Rune)'\u2029'];
     private static readonly char[] NewlineChars = ['\n', '\r', '\u2028', '\u2029'];
 
     /// <summary>
-    /// Constructs a reader that reads HJSON from a rune reader.
+    /// Constructs a reader that reads JSON from a rune reader.
     /// </summary>
-    public HjsonReader(RuneReader RuneReader, HjsonReaderOptions? Options = null) {
+    public JsonReader(RuneReader RuneReader, JsonReaderOptions? Options = null) {
         InnerRuneReader = RuneReader;
-        this.Options = Options ?? HjsonReaderOptions.Hjson;
+        this.Options = Options ?? JsonReaderOptions.Json;
     }
     /// <summary>
-    /// Constructs a reader that reads HJSON from a byte stream.
+    /// Constructs a reader that reads JSON from a byte stream.
     /// </summary>
-    public HjsonReader(Stream Stream, Encoding? Encoding = null, HjsonReaderOptions? Options = null)
+    public JsonReader(Stream Stream, Encoding? Encoding = null, JsonReaderOptions? Options = null)
         : this(new StreamRuneReader(Stream, Encoding), Options) {
     }
     /// <summary>
-    /// Constructs a reader that reads HJSON from a byte array.
+    /// Constructs a reader that reads JSON from a byte array.
     /// </summary>
-    public HjsonReader(byte[] Bytes, int Index, int Count, Encoding? Encoding = null, HjsonReaderOptions? Options = null)
+    public JsonReader(byte[] Bytes, int Index, int Count, Encoding? Encoding = null, JsonReaderOptions? Options = null)
         : this(new MemoryStream(Bytes, Index, Count), Encoding, Options) {
     }
-    /// <inheritdoc cref="HjsonReader(byte[], int, int, Encoding?, HjsonReaderOptions?)"/>
-    public HjsonReader(byte[] Bytes, Encoding? Encoding = null, HjsonReaderOptions? Options = null)
+    /// <inheritdoc cref="JsonReader(byte[], int, int, Encoding?, JsonReaderOptions?)"/>
+    public JsonReader(byte[] Bytes, Encoding? Encoding = null, JsonReaderOptions? Options = null)
         : this(new MemoryStream(Bytes), Encoding, Options) {
     }
     /// <summary>
-    /// Constructs a reader that reads HJSON from a string.
+    /// Constructs a reader that reads JSON from a string.
     /// </summary>
-    public HjsonReader(string String, int Index, int Count, HjsonReaderOptions? Options = null)
+    public JsonReader(string String, int Index, int Count, JsonReaderOptions? Options = null)
         : this(new StringRuneReader(String, Index, Count), Options) {
     }
-    /// <inheritdoc cref="HjsonReader(string, int, int, HjsonReaderOptions?)"/>
-    public HjsonReader(string String, HjsonReaderOptions? Options = null)
+    /// <inheritdoc cref="JsonReader(string, int, int, JsonReaderOptions?)"/>
+    public JsonReader(string String, JsonReaderOptions? Options = null)
         : this(new StringRuneReader(String), Options) {
     }
     /// <summary>
-    /// Constructs a reader that reads HJSON from a list of runes.
+    /// Constructs a reader that reads JSON from a list of runes.
     /// </summary>
-    public HjsonReader(IList<Rune> List, HjsonReaderOptions? Options = null)
+    public JsonReader(IList<Rune> List, JsonReaderOptions? Options = null)
         : this(new ListRuneReader(List), Options) {
     }
 
     /// <summary>
     /// Parses a single root element from the byte stream.
     /// </summary>
-    public static Result<T?> ParseElement<T>(Stream Stream, Encoding? Encoding = null, HjsonReaderOptions? Options = null) {
-        using HjsonReader HjsonReader = new(Stream, Encoding, Options);
-        return HjsonReader.ParseElement<T>(IsRoot: true);
+    public static Result<T?> ParseElement<T>(Stream Stream, Encoding? Encoding = null, JsonReaderOptions? Options = null) {
+        using JsonReader Reader = new(Stream, Encoding, Options);
+        return Reader.ParseElement<T>(IsRoot: true);
     }
-    /// <inheritdoc cref="ParseElement{T}(Stream, Encoding?, HjsonReaderOptions?)"/>
-    public static Result<JsonElement> ParseElement(Stream Stream, Encoding? Encoding = null, HjsonReaderOptions? Options = null) {
+    /// <inheritdoc cref="ParseElement{T}(Stream, Encoding?, JsonReaderOptions?)"/>
+    public static Result<JsonElement> ParseElement(Stream Stream, Encoding? Encoding = null, JsonReaderOptions? Options = null) {
         return ParseElement<JsonElement>(Stream, Encoding, Options);
     }
     /// <summary>
     /// Parses a single root element from the byte array.
     /// </summary>
-    public static Result<T?> ParseElement<T>(byte[] Bytes, Encoding? Encoding = null, HjsonReaderOptions? Options = null) {
-        using HjsonReader HjsonReader = new(Bytes, Encoding, Options);
-        return HjsonReader.ParseElement<T>(IsRoot: true);
+    public static Result<T?> ParseElement<T>(byte[] Bytes, Encoding? Encoding = null, JsonReaderOptions? Options = null) {
+        using JsonReader Reader = new(Bytes, Encoding, Options);
+        return Reader.ParseElement<T>(IsRoot: true);
     }
-    /// <inheritdoc cref="ParseElement{T}(byte[], Encoding?, HjsonReaderOptions?)"/>
-    public static Result<JsonElement> ParseElement(byte[] Bytes, Encoding? Encoding = null, HjsonReaderOptions? Options = null) {
+    /// <inheritdoc cref="ParseElement{T}(byte[], Encoding?, JsonReaderOptions?)"/>
+    public static Result<JsonElement> ParseElement(byte[] Bytes, Encoding? Encoding = null, JsonReaderOptions? Options = null) {
         return ParseElement<JsonElement>(Bytes, Encoding, Options);
     }
-    /// <inheritdoc cref="ParseElement(byte[], Encoding?, HjsonReaderOptions?)"/>
-    public static Result<T?> ParseElement<T>(byte[] Bytes, int Index, int Count, Encoding? Encoding = null, HjsonReaderOptions? Options = null) {
-        using HjsonReader HjsonReader = new(Bytes, Index, Count, Encoding, Options);
-        return HjsonReader.ParseElement<T>(IsRoot: true);
+    /// <inheritdoc cref="ParseElement(byte[], Encoding?, JsonReaderOptions?)"/>
+    public static Result<T?> ParseElement<T>(byte[] Bytes, int Index, int Count, Encoding? Encoding = null, JsonReaderOptions? Options = null) {
+        using JsonReader Reader = new(Bytes, Index, Count, Encoding, Options);
+        return Reader.ParseElement<T>(IsRoot: true);
     }
-    /// <inheritdoc cref="ParseElement(byte[], int, int, Encoding?, HjsonReaderOptions?)"/>
-    public static Result<JsonElement> ParseElement(byte[] Bytes, int Index, int Count, Encoding? Encoding = null, HjsonReaderOptions? Options = null) {
+    /// <inheritdoc cref="ParseElement(byte[], int, int, Encoding?, JsonReaderOptions?)"/>
+    public static Result<JsonElement> ParseElement(byte[] Bytes, int Index, int Count, Encoding? Encoding = null, JsonReaderOptions? Options = null) {
         return ParseElement<JsonElement>(Bytes, Index, Count, Encoding, Options);
     }
     /// <summary>
     /// Parses a single root element from the string.
     /// </summary>
-    public static Result<T?> ParseElement<T>(string String, HjsonReaderOptions? Options = null) {
-        using HjsonReader HjsonReader = new(String, Options);
-        return HjsonReader.ParseElement<T>(IsRoot: true);
+    public static Result<T?> ParseElement<T>(string String, JsonReaderOptions? Options = null) {
+        using JsonReader Reader = new(String, Options);
+        return Reader.ParseElement<T>(IsRoot: true);
     }
-    /// <inheritdoc cref="ParseElement{T}(string, HjsonReaderOptions?)"/>
-    public static Result<JsonElement> ParseElement(string String, HjsonReaderOptions? Options = null) {
+    /// <inheritdoc cref="ParseElement{T}(string, JsonReaderOptions?)"/>
+    public static Result<JsonElement> ParseElement(string String, JsonReaderOptions? Options = null) {
         return ParseElement<JsonElement>(String, Options);
     }
-    /// <inheritdoc cref="ParseElement{T}(string, HjsonReaderOptions?)"/>
-    public static Result<T?> ParseElement<T>(string String, int Index, int Count, HjsonReaderOptions? Options = null) {
-        using HjsonReader HjsonReader = new(String, Index, Count, Options);
-        return HjsonReader.ParseElement<T>(IsRoot: true);
+    /// <inheritdoc cref="ParseElement{T}(string, JsonReaderOptions?)"/>
+    public static Result<T?> ParseElement<T>(string String, int Index, int Count, JsonReaderOptions? Options = null) {
+        using JsonReader Reader = new(String, Index, Count, Options);
+        return Reader.ParseElement<T>(IsRoot: true);
     }
-    /// <inheritdoc cref="ParseElement(string, int, int, HjsonReaderOptions?)"/>
-    public static Result<JsonElement> ParseElement(string String, int Index, int Count, HjsonReaderOptions? Options = null) {
+    /// <inheritdoc cref="ParseElement(string, int, int, JsonReaderOptions?)"/>
+    public static Result<JsonElement> ParseElement(string String, int Index, int Count, JsonReaderOptions? Options = null) {
         return ParseElement<JsonElement>(String, Index, Count, Options);
     }
     /// <summary>
     /// Parses a single root element from the list of runes.
     /// </summary>
-    public static Result<T?> ParseElement<T>(IList<Rune> List, HjsonReaderOptions? Options = null) {
-        using HjsonReader HjsonReader = new(List, Options);
-        return HjsonReader.ParseElement<T>(IsRoot: true);
+    public static Result<T?> ParseElement<T>(IList<Rune> List, JsonReaderOptions? Options = null) {
+        using JsonReader Reader = new(List, Options);
+        return Reader.ParseElement<T>(IsRoot: true);
     }
-    /// <inheritdoc cref="ParseElement{T}(IList{Rune}, HjsonReaderOptions?)"/>
-    public static Result<JsonElement> ParseElement(IList<Rune> List, HjsonReaderOptions? Options = null) {
+    /// <inheritdoc cref="ParseElement{T}(IList{Rune}, JsonReaderOptions?)"/>
+    public static Result<JsonElement> ParseElement(IList<Rune> List, JsonReaderOptions? Options = null) {
         return ParseElement<JsonElement>(List, Options);
     }
 
@@ -167,7 +167,7 @@ public sealed class HjsonReader : RuneReader {
     /// Parses a single element from the reader.
     /// </summary>
     public Result<T?> ParseElement<T>(bool IsRoot) {
-        return ParseNode(IsRoot).Try(Value => Value.Deserialize<T>(JsonOptions.Mini));
+        return ParseNode(IsRoot).Try(Value => Value.Deserialize<T>(GlobalJsonOptions.Mini));
     }
     /// <inheritdoc cref="ParseElement{T}(bool)"/>
     public Result<JsonElement> ParseElement(bool IsRoot) {
@@ -1628,23 +1628,23 @@ public sealed class HjsonReader : RuneReader {
     }
 
     /// <summary>
-    /// A single token for a <see cref="JsonTokenType"/> in a <see cref="HjsonReader"/>.
+    /// A single token for a <see cref="JsonTokenType"/> in a <see cref="JsonReader"/>.
     /// </summary>
-    public readonly record struct Token(HjsonReader HjsonReader, JsonTokenType JsonType, long Position, long Length = 1, string Value = "") {
+    public readonly record struct Token(JsonReader JsonReader, JsonTokenType JsonType, long Position, long Length = 1, string Value = "") {
         /// <summary>
-        /// Parses a single element at the token's position in the <see cref="HjsonReader"/>.
+        /// Parses a single element at the token's position in the <see cref="JsonReader"/>.
         /// </summary>
         public Result<T?> ParseElement<T>(bool IsRoot) {
             // Go to token position
-            long OriginalPosition = HjsonReader.Position;
-            HjsonReader.Position = Position;
+            long OriginalPosition = JsonReader.Position;
+            JsonReader.Position = Position;
             try {
                 // Parse element
-                return HjsonReader.ParseElement<T>(IsRoot);
+                return JsonReader.ParseElement<T>(IsRoot);
             }
             finally {
                 // Return to original position
-                HjsonReader.Position = OriginalPosition;
+                JsonReader.Position = OriginalPosition;
             }
         }
         /// <inheritdoc cref="ParseElement{T}(bool)"/>

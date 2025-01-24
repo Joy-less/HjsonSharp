@@ -7,7 +7,7 @@ namespace HjsonSharp;
 /// <summary>
 /// Presets for <see cref="JsonSerializerOptions"/>.
 /// </summary>
-public static class JsonOptions {
+public static class GlobalJsonOptions {
     /// <summary>
     /// A preset for reading and writing JSON with minimal formatting.<br/>
     /// <list type="bullet">

@@ -44,7 +44,7 @@ string Text = """
     """;
 
 // Parse to JsonElement
-JsonElement Element = HjsonReader.ParseElement(Text, HjsonReaderOptions.Hjson).Value;
+JsonElement Element = JsonReader.ParseElement(Text, JsonReaderOptions.Hjson).Value;
 
 // Serialize to JSON
 string Json = JsonSerializer.Serialize(Element);

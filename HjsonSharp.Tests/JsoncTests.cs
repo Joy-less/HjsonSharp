@@ -53,7 +53,7 @@ public class JsoncTests {
             },
         };
 
-        JsonElement Element = HjsonReader.ParseElement(Text, HjsonReaderOptions.Jsonc).Value;
+        JsonElement Element = JsonReader.ParseElement(Text, JsonReaderOptions.Jsonc).Value;
         Assert.Equal(JsonSerializer.Serialize(AnonymousObject), JsonSerializer.Serialize(Element));
     }
 }
