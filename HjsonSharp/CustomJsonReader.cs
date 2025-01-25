@@ -66,53 +66,53 @@ public sealed class CustomJsonReader : RuneReader {
     /// <summary>
     /// Parses a single element from the byte stream.
     /// </summary>
-    public static Result<T?> ParseElement<T>(Stream Stream, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null) {
+    public static Result<T?> ParseElement<T>(Stream Stream, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null, bool IsRoot = true) {
         using CustomJsonReader Reader = new(Stream, Encoding, Options);
-        return Reader.ParseElement<T>();
+        return Reader.ParseElement<T>(IsRoot);
     }
-    /// <inheritdoc cref="ParseElement{T}(Stream, Encoding?, CustomJsonReaderOptions?)"/>
-    public static Result<JsonElement> ParseElement(Stream Stream, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null) {
-        return ParseElement<JsonElement>(Stream, Encoding, Options);
+    /// <inheritdoc cref="ParseElement{T}(Stream, Encoding?, CustomJsonReaderOptions?, bool)"/>
+    public static Result<JsonElement> ParseElement(Stream Stream, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null, bool IsRoot = true) {
+        return ParseElement<JsonElement>(Stream, Encoding, Options, IsRoot);
     }
     /// <summary>
     /// Parses a single element from the byte array.
     /// </summary>
-    public static Result<T?> ParseElement<T>(byte[] Bytes, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null) {
+    public static Result<T?> ParseElement<T>(byte[] Bytes, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null, bool IsRoot = true) {
         using CustomJsonReader Reader = new(Bytes, Encoding, Options);
-        return Reader.ParseElement<T>();
+        return Reader.ParseElement<T>(IsRoot);
     }
-    /// <inheritdoc cref="ParseElement{T}(byte[], Encoding?, CustomJsonReaderOptions?)"/>
-    public static Result<JsonElement> ParseElement(byte[] Bytes, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null) {
-        return ParseElement<JsonElement>(Bytes, Encoding, Options);
+    /// <inheritdoc cref="ParseElement{T}(byte[], Encoding?, CustomJsonReaderOptions?, bool)"/>
+    public static Result<JsonElement> ParseElement(byte[] Bytes, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null, bool IsRoot = true) {
+        return ParseElement<JsonElement>(Bytes, Encoding, Options, IsRoot);
     }
-    /// <inheritdoc cref="ParseElement(byte[], Encoding?, CustomJsonReaderOptions?)"/>
-    public static Result<T?> ParseElement<T>(byte[] Bytes, int Index, int Count, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null) {
+    /// <inheritdoc cref="ParseElement(byte[], Encoding?, CustomJsonReaderOptions?, bool)"/>
+    public static Result<T?> ParseElement<T>(byte[] Bytes, int Index, int Count, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null, bool IsRoot = true) {
         using CustomJsonReader Reader = new(Bytes, Index, Count, Encoding, Options);
-        return Reader.ParseElement<T>();
+        return Reader.ParseElement<T>(IsRoot);
     }
-    /// <inheritdoc cref="ParseElement(byte[], int, int, Encoding?, CustomJsonReaderOptions?)"/>
-    public static Result<JsonElement> ParseElement(byte[] Bytes, int Index, int Count, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null) {
-        return ParseElement<JsonElement>(Bytes, Index, Count, Encoding, Options);
+    /// <inheritdoc cref="ParseElement(byte[], int, int, Encoding?, CustomJsonReaderOptions?, bool)"/>
+    public static Result<JsonElement> ParseElement(byte[] Bytes, int Index, int Count, Encoding? Encoding = null, CustomJsonReaderOptions? Options = null, bool IsRoot = true) {
+        return ParseElement<JsonElement>(Bytes, Index, Count, Encoding, Options, IsRoot);
     }
     /// <summary>
     /// Parses a single element from the string.
     /// </summary>
-    public static Result<T?> ParseElement<T>(string String, CustomJsonReaderOptions? Options = null) {
+    public static Result<T?> ParseElement<T>(string String, CustomJsonReaderOptions? Options = null, bool IsRoot = true) {
         using CustomJsonReader Reader = new(String, Options);
-        return Reader.ParseElement<T>();
+        return Reader.ParseElement<T>(IsRoot);
     }
-    /// <inheritdoc cref="ParseElement{T}(string, CustomJsonReaderOptions?)"/>
-    public static Result<JsonElement> ParseElement(string String, CustomJsonReaderOptions? Options = null) {
-        return ParseElement<JsonElement>(String, Options);
+    /// <inheritdoc cref="ParseElement{T}(string, CustomJsonReaderOptions?, bool)"/>
+    public static Result<JsonElement> ParseElement(string String, CustomJsonReaderOptions? Options = null, bool IsRoot = true) {
+        return ParseElement<JsonElement>(String, Options, IsRoot);
     }
-    /// <inheritdoc cref="ParseElement{T}(string, CustomJsonReaderOptions?)"/>
-    public static Result<T?> ParseElement<T>(string String, int Index, int Count, CustomJsonReaderOptions? Options = null) {
+    /// <inheritdoc cref="ParseElement{T}(string, CustomJsonReaderOptions?, bool)"/>
+    public static Result<T?> ParseElement<T>(string String, int Index, int Count, CustomJsonReaderOptions? Options = null, bool IsRoot = true) {
         using CustomJsonReader Reader = new(String, Index, Count, Options);
-        return Reader.ParseElement<T>();
+        return Reader.ParseElement<T>(IsRoot);
     }
-    /// <inheritdoc cref="ParseElement(string, int, int, CustomJsonReaderOptions?)"/>
-    public static Result<JsonElement> ParseElement(string String, int Index, int Count, CustomJsonReaderOptions? Options = null) {
-        return ParseElement<JsonElement>(String, Index, Count, Options);
+    /// <inheritdoc cref="ParseElement(string, int, int, CustomJsonReaderOptions?, bool)"/>
+    public static Result<JsonElement> ParseElement(string String, int Index, int Count, CustomJsonReaderOptions? Options = null, bool IsRoot = true) {
+        return ParseElement<JsonElement>(String, Index, Count, Options, IsRoot);
     }
     /// <summary>
     /// Parses a single element from the list of runes.
@@ -166,18 +166,18 @@ public sealed class CustomJsonReader : RuneReader {
     /// <summary>
     /// Parses a single element from the reader.
     /// </summary>
-    public Result<T?> ParseElement<T>() {
-        return ParseNode().Try(Value => Value.Deserialize<T>(GlobalJsonOptions.Mini));
+    public Result<T?> ParseElement<T>(bool IsRoot = true) {
+        return ParseNode(IsRoot).Try(Value => Value.Deserialize<T>(GlobalJsonOptions.Mini));
     }
-    /// <inheritdoc cref="ParseElement{T}()"/>
-    public Result<JsonElement> ParseElement() {
-        return ParseElement<JsonElement>();
+    /// <inheritdoc cref="ParseElement{T}(bool)"/>
+    public Result<JsonElement> ParseElement(bool IsRoot = true) {
+        return ParseElement<JsonElement>(IsRoot);
     }
     /// <summary>
     /// Tries to parse a single element from the reader, returning <see langword="false"/> if an error occurs.
     /// </summary>
-    public bool TryParseElement<T>(out T? Result) {
-        if (ParseElement<T>().TryGetValue(out T? Value)) {
+    public bool TryParseElement<T>(out T? Result, bool IsRoot = true) {
+        if (ParseElement<T>(IsRoot).TryGetValue(out T? Value)) {
             Result = Value;
             return true;
         }
@@ -186,14 +186,14 @@ public sealed class CustomJsonReader : RuneReader {
             return false;
         }
     }
-    /// <inheritdoc cref="TryParseElement{T}(out T)"/>
-    public bool TryParseElement(out JsonElement Result) {
-        return TryParseElement<JsonElement>(out Result);
+    /// <inheritdoc cref="TryParseElement{T}(out T, bool)"/>
+    public bool TryParseElement(out JsonElement Result, bool IsRoot = true) {
+        return TryParseElement<JsonElement>(out Result, IsRoot);
     }
     /// <summary>
     /// Parses a single <see cref="JsonNode"/> from the reader.
     /// </summary>
-    public Result<JsonNode?> ParseNode() {
+    public Result<JsonNode?> ParseNode(bool IsRoot = true) {
         JsonNode? CurrentNode = null;
         string? CurrentPropertyName = null;
 
@@ -219,7 +219,7 @@ public sealed class CustomJsonReader : RuneReader {
             CurrentNode = Node;
         }
 
-        foreach (Result<Token> TokenResult in ReadElement()) {
+        foreach (Result<Token> TokenResult in ReadElement(IsRoot)) {
             // Check error
             if (!TokenResult.TryGetValue(out Token Token, out Error Error)) {
                 return Error;
@@ -304,8 +304,8 @@ public sealed class CustomJsonReader : RuneReader {
     /// <summary>
     /// Tries to parse a single <see cref="JsonNode"/> from the reader, returning <see langword="false"/> if an exception occurs.
     /// </summary>
-    public bool TryParseNode(out JsonNode? Result) {
-        if (ParseNode().TryGetValue(out JsonNode? Value)) {
+    public bool TryParseNode(out JsonNode? Result, bool IsRoot = true) {
+        if (ParseNode(IsRoot).TryGetValue(out JsonNode? Value)) {
             Result = Value;
             return true;
         }
@@ -317,7 +317,7 @@ public sealed class CustomJsonReader : RuneReader {
     /// <summary>
     /// Reads the tokens of a single element from the reader.
     /// </summary>
-    public IEnumerable<Result<Token>> ReadElement() {
+    public IEnumerable<Result<Token>> ReadElement(bool IsRoot = true) {
         // Comments & whitespace
         foreach (Result<Token> Token in ReadCommentsAndWhitespace()) {
             if (Token.IsError) {
@@ -328,8 +328,8 @@ public sealed class CustomJsonReader : RuneReader {
         }
 
         // Root object with omitted root braces
-        if (Options.OmittedObjectBraces && DetectObjectWithOmittedBraces()) {
-            foreach (Result<Token> Token in ReadObject(OmitBraces: true)) {
+        if (IsRoot && Options.OmittedObjectBraces && DetectObjectWithOmittedBraces()) {
+            foreach (Result<Token> Token in ReadObject(OmitBraces: true, IsRoot)) {
                 if (Token.IsError) {
                     yield return Token.Error;
                     yield break;
@@ -347,7 +347,7 @@ public sealed class CustomJsonReader : RuneReader {
 
         // Object
         if (Rune.Value is '{') {
-            foreach (Result<Token> Token in ReadObject(OmitBraces: false)) {
+            foreach (Result<Token> Token in ReadObject(OmitBraces: false, IsRoot)) {
                 if (Token.IsError) {
                     yield return Token.Error;
                     yield break;
@@ -357,7 +357,7 @@ public sealed class CustomJsonReader : RuneReader {
         }
         // Array
         else if (Rune.Value is '[') {
-            foreach (Result<Token> Token in ReadArray()) {
+            foreach (Result<Token> Token in ReadArray(IsRoot)) {
                 if (Token.IsError) {
                     yield return Token.Error;
                     yield break;
@@ -373,9 +373,9 @@ public sealed class CustomJsonReader : RuneReader {
     /// <summary>
     /// Reads the tokens of a single element from the reader and returns the length according to <see cref="Position"/>.
     /// </summary>
-    public Result<long> ReadElementLength() {
+    public Result<long> ReadElementLength(bool IsRoot = true) {
         long OriginalPosition = Position;
-        foreach (Result<Token> Token in ReadElement()) {
+        foreach (Result<Token> Token in ReadElement(IsRoot)) {
             if (Token.IsError) {
                 return Token.Error;
             }
@@ -396,10 +396,10 @@ public sealed class CustomJsonReader : RuneReader {
     /// }
     /// </code>
     /// </summary>
-    public bool FindPropertyValue(string PropertyName) {
+    public bool FindPropertyValue(string PropertyName, bool IsRoot = true) {
         long CurrentDepth = 0;
 
-        foreach (Result<Token> TokenResult in ReadElement()) {
+        foreach (Result<Token> TokenResult in ReadElement(IsRoot)) {
             // Check error
             if (!TokenResult.TryGetValue(out Token Token)) {
                 return false;
@@ -440,12 +440,12 @@ public sealed class CustomJsonReader : RuneReader {
     /// ]
     /// </code>
     /// </summary>
-    public bool FindArrayIndex(long ArrayIndex) {
+    public bool FindArrayIndex(long ArrayIndex, bool IsRoot = true) {
         long CurrentDepth = 0;
         long CurrentIndex = -1;
         bool IsArray = false;
 
-        foreach (Result<Token> TokenResult in ReadElement()) {
+        foreach (Result<Token> TokenResult in ReadElement(IsRoot)) {
             // Check error
             if (!TokenResult.TryGetValue(out Token Token)) {
                 return false;
@@ -1034,7 +1034,7 @@ public sealed class CustomJsonReader : RuneReader {
 
         return NumberToken;
     }
-    private IEnumerable<Result<Token>> ReadObject(bool OmitBraces) {
+    private IEnumerable<Result<Token>> ReadObject(bool OmitBraces, bool IsRoot = true) {
         // Opening brace
         if (!OmitBraces) {
             if (!TryRead('{')) {
@@ -1135,7 +1135,7 @@ public sealed class CustomJsonReader : RuneReader {
                 }
 
                 // Property value
-                foreach (Result<Token> Token in ReadElement()) {
+                foreach (Result<Token> Token in ReadElement(IsRoot: false)) {
                     if (Token.IsError) {
                         yield return Token.Error;
                         yield break;
@@ -1330,7 +1330,7 @@ public sealed class CustomJsonReader : RuneReader {
         // End token
         return new Token(this, JsonTokenType.PropertyName, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
     }
-    private IEnumerable<Result<Token>> ReadArray() {
+    private IEnumerable<Result<Token>> ReadArray(bool IsRoot = true) {
         // Opening bracket
         if (!TryRead('[')) {
             yield return new Error("Expected `[` to start array");
@@ -1386,7 +1386,7 @@ public sealed class CustomJsonReader : RuneReader {
                 }
 
                 // Item
-                foreach (Result<Token> Token in ReadElement()) {
+                foreach (Result<Token> Token in ReadElement(IsRoot: false)) {
                     if (Token.IsError) {
                         yield return Token.Error;
                         yield break;
@@ -1645,22 +1645,22 @@ public sealed class CustomJsonReader : RuneReader {
         /// <summary>
         /// Parses a single element at the token's position in the <see cref="JsonReader"/>.
         /// </summary>
-        public Result<T?> ParseElement<T>() {
+        public Result<T?> ParseElement<T>(bool IsRoot = true) {
             // Go to token position
             long OriginalPosition = JsonReader.Position;
             JsonReader.Position = Position;
             try {
                 // Parse element
-                return JsonReader.ParseElement<T>();
+                return JsonReader.ParseElement<T>(IsRoot);
             }
             finally {
                 // Return to original position
                 JsonReader.Position = OriginalPosition;
             }
         }
-        /// <inheritdoc cref="ParseElement{T}()"/>
-        public Result<JsonElement> ParseElement() {
-            return ParseElement<JsonElement>();
+        /// <inheritdoc cref="ParseElement{T}(bool)"/>
+        public Result<JsonElement> ParseElement(bool IsRoot = true) {
+            return ParseElement<JsonElement>(IsRoot);
         }
     }
 }

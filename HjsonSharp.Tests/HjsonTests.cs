@@ -158,7 +158,7 @@ public class HjsonTests {
     public void OneLineOmittedCommasTest() {
         string Text = """
             {
-              "a":"b" c: de
+              "a":"b" c: de: f
               "g": [
                 1 2
               ]
@@ -168,8 +168,19 @@ public class HjsonTests {
         JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Hjson).Value;
         Assert.Equal(3, Element.GetPropertyCount());
         Assert.Equal("b", Element.GetProperty("a").Deserialize<string>(GlobalJsonOptions.Mini));
-        Assert.Equal("de", Element.GetProperty("c").Deserialize<string>(GlobalJsonOptions.Mini));
+        Assert.Equal("de: f", Element.GetProperty("c").Deserialize<string>(GlobalJsonOptions.Mini));
         Assert.Equal(["1 2"], Element.GetProperty("g").Deserialize<string[]>(GlobalJsonOptions.Mini)!);
+    }
+    [Fact]
+    public void UnquotedLinks() {
+        string Code = """
+            {
+                "Example": https://example.com/sub-example
+            }
+            """;
+        JsonElement Element = CustomJsonReader.ParseElement(Code, CustomJsonReaderOptions.Hjson).Value;
+        Assert.Equal(1, Element.GetPropertyCount());
+        Assert.Equal("https://example.com/sub-example", Element.GetProperty("Example").Deserialize<string>(GlobalJsonOptions.Mini));
     }
     [Fact]
     public void OmittedRootBracesTest() {
