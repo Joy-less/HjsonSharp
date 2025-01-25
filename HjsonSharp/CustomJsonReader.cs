@@ -328,7 +328,7 @@ public sealed class CustomJsonReader : RuneReader {
         }
 
         // Root object with omitted root braces
-        if (IsRoot && Options.OmittedObjectBraces && DetectObjectWithOmittedBraces()) {
+        if (IsRoot && Options.OmittedRootObjectBraces && DetectObjectWithOmittedBraces()) {
             foreach (Result<Token> Token in ReadObject(OmitBraces: true, IsRoot)) {
                 if (Token.IsError) {
                     yield return Token.Error;
