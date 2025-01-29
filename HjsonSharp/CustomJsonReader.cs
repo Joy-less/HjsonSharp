@@ -329,7 +329,7 @@ public sealed class CustomJsonReader : RuneReader {
 
         // Root object with omitted root braces
         if (IsRoot && Options.OmittedRootObjectBraces && DetectObjectWithOmittedBraces()) {
-            foreach (Result<Token> Token in ReadObject(OmitBraces: true, IsRoot)) {
+            foreach (Result<Token> Token in ReadObject(OmitBraces: true)) {
                 if (Token.IsError) {
                     yield return Token.Error;
                     yield break;
@@ -347,7 +347,7 @@ public sealed class CustomJsonReader : RuneReader {
 
         // Object
         if (Rune.Value is '{') {
-            foreach (Result<Token> Token in ReadObject(OmitBraces: false, IsRoot)) {
+            foreach (Result<Token> Token in ReadObject(OmitBraces: false)) {
                 if (Token.IsError) {
                     yield return Token.Error;
                     yield break;
@@ -357,7 +357,7 @@ public sealed class CustomJsonReader : RuneReader {
         }
         // Array
         else if (Rune.Value is '[') {
-            foreach (Result<Token> Token in ReadArray(IsRoot)) {
+            foreach (Result<Token> Token in ReadArray()) {
                 if (Token.IsError) {
                     yield return Token.Error;
                     yield break;
@@ -1033,7 +1033,7 @@ public sealed class CustomJsonReader : RuneReader {
 
         return NumberToken;
     }
-    private IEnumerable<Result<Token>> ReadObject(bool OmitBraces, bool IsRoot = true) {
+    private IEnumerable<Result<Token>> ReadObject(bool OmitBraces) {
         // Opening brace
         if (!OmitBraces) {
             if (!TryRead('{')) {
@@ -1329,7 +1329,7 @@ public sealed class CustomJsonReader : RuneReader {
         // End token
         return new Token(this, JsonTokenType.PropertyName, TokenPosition, Position - TokenPosition, StringBuilder.ToString());
     }
-    private IEnumerable<Result<Token>> ReadArray(bool IsRoot = true) {
+    private IEnumerable<Result<Token>> ReadArray() {
         // Opening bracket
         if (!TryRead('[')) {
             yield return new Error("Expected `[` to start array");
