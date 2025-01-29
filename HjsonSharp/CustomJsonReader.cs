@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Buffers;
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -20,8 +21,7 @@ public sealed class CustomJsonReader : RuneReader {
     /// </summary>
     public CustomJsonReaderOptions Options { get; set; }
 
-    private static readonly Rune[] NewlineRunes = [(Rune)'\n', (Rune)'\r', (Rune)'\u2028', (Rune)'\u2029'];
-    private static readonly char[] NewlineChars = ['\n', '\r', '\u2028', '\u2029'];
+    private static readonly SearchValues<char> NewlineChars = SearchValues.Create(['\n', '\r', '\u2028', '\u2029']);
 
     /// <summary>
     /// Constructs a reader that reads JSON from a rune reader.
@@ -656,7 +656,7 @@ public sealed class CustomJsonReader : RuneReader {
                     StringBuilder.Append((char)Result);
                 }
                 // Newline
-                else if (NewlineRunes.Contains(EscapedRune)) {
+                else if (IsNewline(EscapedRune)) {
                     if (!Options.EscapedStringNewlines && !Options.InvalidStringEscapeSequences) {
                         return new Error("Escaped newlines are not allowed");
                     }
@@ -695,7 +695,7 @@ public sealed class CustomJsonReader : RuneReader {
             }
 
             // Newline
-            if (NewlineRunes.Contains(Rune)) {
+            if (IsNewline(Rune)) {
                 break;
             }
             // Rune
@@ -734,7 +734,7 @@ public sealed class CustomJsonReader : RuneReader {
                 }
             }
             // Newline
-            else if (NewlineRunes.Contains(Rune)) {
+            else if (IsNewline(Rune)) {
                 // Join CR LF
                 if (Rune.Value is '\r') {
                     TryRead('\n');
@@ -805,18 +805,17 @@ public sealed class CustomJsonReader : RuneReader {
                     StringBuilder.Remove(StringBuilder.Length - LeadingWhitespaceCount, LeadingWhitespaceCount);
 
                     // Remove leading newline
-                    foreach (char NewlineChar in NewlineChars) {
-                        // Found leading newline
-                        if (StringBuilder.AsSpan().StartsWith([NewlineChar])) {
+                    if (StringBuilder.Length >= 1) {
+                        char LeadingChar = StringBuilder[0];
+                        if (NewlineChars.Contains(LeadingChar)) {
                             int NewlineLength = 1;
                             // Join CR LF
-                            if (NewlineChar is '\r' && StringBuilder.AsSpan().StartsWith("\r\n")) {
+                            if (LeadingChar is '\r' && StringBuilder.Length >= 2 && StringBuilder[1] is '\n') {
                                 NewlineLength = 2;
                             }
 
                             // Remove leading newline
                             StringBuilder.Remove(0, NewlineLength);
-                            break;
                         }
                     }
                 }
@@ -1502,7 +1501,7 @@ public sealed class CustomJsonReader : RuneReader {
             }
             // Check end of line comment
             else {
-                if (NewlineRunes.Contains(CommentRune)) {
+                if (IsNewline(CommentRune)) {
                     break;
                 }
             }
@@ -1636,6 +1635,10 @@ public sealed class CustomJsonReader : RuneReader {
         finally {
             Position = StartTestPosition;
         }
+    }
+
+    private static bool IsNewline(Rune Rune) {
+        return Rune.IsBmp && NewlineChars.Contains((char)Rune.Value);
     }
 
     /// <summary>
