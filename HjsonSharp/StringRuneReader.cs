@@ -74,6 +74,33 @@ public class StringRuneReader : RuneReader {
         }
         return Result;
     }
+    /// <summary>
+    /// Peeks the rune at the next index and checks if it matches the expected rune.
+    /// </summary>
+    public override bool TryRead(Rune? Expected) {
+        if (InnerStringIndex >= InnerStringCount + InnerStringOffset) {
+            return Expected is null;
+        }
+        if (Rune.DecodeFromUtf16(AsSpan(), out Rune Result, out int CharsConsumed) is not OperationStatus.Done) {
+            throw new InvalidOperationException("Could not decode rune from string");
+        }
+        if (Result != Expected) {
+            return false;
+        }
+        InnerStringIndex += CharsConsumed;
+        return true;
+    }
+    /// <inheritdoc cref="TryRead(Rune?)"/>
+    public override bool TryRead(char Expected) {
+        if (InnerStringIndex >= InnerStringCount + InnerStringOffset) {
+            return false;
+        }
+        if (InnerString[InnerStringIndex] != Expected) {
+            return false;
+        }
+        InnerStringIndex++;
+        return true;
+    }
     /// <inheritdoc/>
     public override string ReadToEnd() {
         ReadOnlySpan<char> CharsRead = AsSpan();
