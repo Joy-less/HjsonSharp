@@ -60,6 +60,7 @@ public class ListRuneReader : RuneReader {
         for (; InnerListIndex < InnerList.Count; InnerListIndex++) {
             StringBuilder.Append(InnerList[InnerListIndex]);
         }
+        InnerListIndex = InnerList.Count;
         return StringBuilder.ToString();
     }
 }
