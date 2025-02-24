@@ -55,7 +55,7 @@ public abstract class RuneReader : IDisposable {
         return TryRead(new Rune(Expected));
     }
     /// <summary>
-    /// Reads every remaining rune in the reader and concatenates them to a string.
+    /// Reads every remaining rune in the reader and advances the position to the end.
     /// </summary>
     public virtual string ReadToEnd() {
         using ValueStringBuilder StringBuilder = new(stackalloc char[32]);
