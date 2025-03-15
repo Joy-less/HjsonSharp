@@ -11,7 +11,7 @@ A customisable streaming parser for [HJSON](https://hjson.github.io), with suppo
 - **Feature switches:** Pick and choose your desired non-JSON features, with presets for HJSON, JSONC and JSON5.
 - **Unicode compatible:** Compatible with UTF-8, UTF-16, UTF-32 and ASCII encodings.
 - **Incomplete inputs:** Parse incomplete values, such as `{"key": "val`.
-- **Result pattern:** Uses `HjsonResult` to avoid the overhead of exceptions.
+- **Result pattern:** Uses `Result` to avoid the overhead of exceptions.
 
 ## Example
 
