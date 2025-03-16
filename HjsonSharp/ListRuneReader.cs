@@ -56,7 +56,7 @@ public class ListRuneReader : RuneReader {
     }
     /// <inheritdoc/>
     public override string ReadToEnd() {
-        using ValueStringBuilder StringBuilder = new(stackalloc char[32]);
+        using ValueStringBuilder StringBuilder = new(stackalloc char[64]);
         for (; InnerListIndex < InnerList.Count; InnerListIndex++) {
             StringBuilder.Append(InnerList[InnerListIndex]);
         }

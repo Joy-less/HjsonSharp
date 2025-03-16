@@ -574,7 +574,7 @@ public sealed class CustomJsonReader : RuneReader {
         }
 
         // Create string builder
-        using ValueStringBuilder StringBuilder = new(stackalloc char[32]);
+        using ValueStringBuilder StringBuilder = new(stackalloc char[64]);
 
         while (true) {
             // Read rune
@@ -689,7 +689,7 @@ public sealed class CustomJsonReader : RuneReader {
         long TokenPosition = Position;
 
         // Start token
-        using ValueStringBuilder StringBuilder = new(stackalloc char[32]);
+        using ValueStringBuilder StringBuilder = new(stackalloc char[64]);
 
         while (true) {
             // Read rune
@@ -714,7 +714,7 @@ public sealed class CustomJsonReader : RuneReader {
         long TokenPosition = Position;
 
         // Create string builder
-        using ValueStringBuilder StringBuilder = new(stackalloc char[32]);
+        using ValueStringBuilder StringBuilder = new(stackalloc char[64]);
 
         int ClosingQuoteCounter = 0;
 
@@ -833,7 +833,7 @@ public sealed class CustomJsonReader : RuneReader {
 
         Result<Token> ReadNumberNoFallback() {
             // Create string builder
-            using ValueStringBuilder StringBuilder = new(stackalloc char[32]);
+            using ValueStringBuilder StringBuilder = new(stackalloc char[64]);
 
             bool ParsedExponent = false;
             bool ParsedDecimalPoint = false;
@@ -1221,7 +1221,7 @@ public sealed class CustomJsonReader : RuneReader {
         long TokenPosition = Position;
 
         // Start token
-        using ValueStringBuilder StringBuilder = new(stackalloc char[32]);
+        using ValueStringBuilder StringBuilder = new(stackalloc char[64]);
 
         while (true) {
             // Peek rune
@@ -1305,7 +1305,7 @@ public sealed class CustomJsonReader : RuneReader {
         long TokenPosition = Position;
 
         // Start token
-        using ValueStringBuilder StringBuilder = new(stackalloc char[32]);
+        using ValueStringBuilder StringBuilder = new(stackalloc char[64]);
 
         while (true) {
             // Peek rune
@@ -1478,7 +1478,7 @@ public sealed class CustomJsonReader : RuneReader {
         }
 
         // Create string builder
-        using ValueStringBuilder StringBuilder = new(stackalloc char[32]);
+        using ValueStringBuilder StringBuilder = new(stackalloc char[64]);
 
         // Read comment
         while (true) {
