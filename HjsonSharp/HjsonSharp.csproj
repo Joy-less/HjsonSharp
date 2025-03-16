@@ -5,19 +5,25 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <NoWarn>IDE0290;CS1573</NoWarn>
-    <Title>HjsonSharp</Title>
+
+    <!-- IDE0290: Use primary constructor -->
+    <NoWarn>IDE0290</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>HjsonSharp</Title>
     <Authors>Joyless</Authors>
     <PackageProjectUrl>https://github.com/Joy-less/HjsonSharp</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/Joy-less/HjsonSharp</RepositoryUrl>
     <PackageTags>HJSON; JSON; JSON5; JSONC; Stream</PackageTags>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <Description>A customisable streaming parser for HJSON, JSON, JSONC and JSON5.</Description>
   </PropertyGroup>
+
   <ItemGroup>
     <None Include="..\README.md">
       <Pack>True</Pack>

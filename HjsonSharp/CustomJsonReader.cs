@@ -21,6 +21,9 @@ public sealed class CustomJsonReader : RuneReader {
     /// </summary>
     public CustomJsonReaderOptions Options { get; set; }
 
+    /// <summary>
+    /// The characters representing newlines.
+    /// </summary>
     private static readonly SearchValues<char> NewlineChars = SearchValues.Create(['\n', '\r', '\u2028', '\u2029']);
 
     /// <summary>
