@@ -7,7 +7,7 @@ namespace HjsonSharp.Benchmarks;
 
 public class Program {
     public static void Main() {
-        BenchmarkRunner.Run<HjsonSharpVsHjsonCsBenchmarks>();
+        BenchmarkSwitcher.FromAssemblies(AppDomain.CurrentDomain.GetAssemblies()).Run();
         //ProfilePerformance();
     }
     public static void ProfilePerformance() {
