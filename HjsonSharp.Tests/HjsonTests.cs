@@ -58,7 +58,7 @@ public class HjsonTests {
         };
 
         JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Hjson).Value;
-        Assert.Equal(JsonSerializer.Serialize(AnonymousObject), JsonSerializer.Serialize(Element));
+        JsonSerializer.Serialize(Element).ShouldBe(JsonSerializer.Serialize(AnonymousObject));
     }
 
     [Fact]
@@ -71,9 +71,9 @@ public class HjsonTests {
             """;
 
         JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Hjson).Value;
-        Assert.Equal(2, Element.GetPropertyCount());
-        Assert.Equal(1, Element.GetProperty("first").Deserialize<int>(GlobalJsonOptions.Mini));
-        Assert.Equal(2, Element.GetProperty("second").Deserialize<int>(GlobalJsonOptions.Mini));
+        Element.GetPropertyCount().ShouldBe(2);
+        Element.GetProperty("first").Deserialize<int>(GlobalJsonOptions.Mini).ShouldBe(1);
+        Element.GetProperty("second").Deserialize<int>(GlobalJsonOptions.Mini).ShouldBe(2);
     }
     [Fact]
     public void UnquotedPropertyNamesTest() {
@@ -84,8 +84,8 @@ public class HjsonTests {
             """;
 
         JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Hjson).Value;
-        Assert.Equal(1, Element.GetPropertyCount());
-        Assert.Equal("b", Element.GetProperty("abcdef12345_!$%").Deserialize<string>(GlobalJsonOptions.Mini));
+        Element.GetPropertyCount().ShouldBe(1);
+        Element.GetProperty("abcdef12345_!$%").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe("b");
     }
     [Fact]
     public void SingleQuotedStringsTest() {
@@ -96,8 +96,8 @@ public class HjsonTests {
             """;
 
         JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Hjson).Value;
-        Assert.Equal(1, Element.GetPropertyCount());
-        Assert.Equal("b", Element.GetProperty("a").Deserialize<string>(GlobalJsonOptions.Mini));
+        Element.GetPropertyCount().ShouldBe(1);
+        Element.GetProperty("a").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe("b");
     }
     [Fact]
     public void UnquotedStringsTest() {
@@ -116,15 +116,15 @@ public class HjsonTests {
             """;
 
         JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Hjson).Value;
-        Assert.Equal(8, Element.GetPropertyCount());
-        Assert.Equal("b,", Element.GetProperty("a").Deserialize<string>(GlobalJsonOptions.Mini));
-        Assert.Equal("d{}e", Element.GetProperty("c").Deserialize<string>(GlobalJsonOptions.Mini));
-        Assert.Equal("g h  i", Element.GetProperty("f").Deserialize<string>(GlobalJsonOptions.Mini));
-        Assert.Equal("k", Element.GetProperty("j").Deserialize<string>(GlobalJsonOptions.Mini));
-        Assert.Equal("123m", Element.GetProperty("l").Deserialize<string>(GlobalJsonOptions.Mini));
-        Assert.Equal(12, Element.GetProperty("m").Deserialize<int>(GlobalJsonOptions.Mini));
-        Assert.Equal(".a", Element.GetProperty("n").Deserialize<string>(GlobalJsonOptions.Mini));
-        Assert.Equal("5.", Element.GetProperty("o").Deserialize<string>(GlobalJsonOptions.Mini));
+        Element.GetPropertyCount().ShouldBe(8);
+        Element.GetProperty("a").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe("b,");
+        Element.GetProperty("c").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe("d{}e");
+        Element.GetProperty("f").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe("g h  i");
+        Element.GetProperty("j").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe("k");
+        Element.GetProperty("l").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe("123m");
+        Element.GetProperty("m").Deserialize<int>(GlobalJsonOptions.Mini).ShouldBe(12);
+        Element.GetProperty("n").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe(".a");
+        Element.GetProperty("o").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe("5.");
     }
     [Fact]
     public void TripleQuotedStringsTest() {
@@ -147,12 +147,12 @@ public class HjsonTests {
             """;
 
         JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Hjson).Value;
-        Assert.Equal(5, Element.GetPropertyCount());
-        Assert.Equal("qwerty", Element.GetProperty("a").Deserialize<string>(GlobalJsonOptions.Mini));
-        Assert.Equal("qwerty", Element.GetProperty("b").Deserialize<string>(GlobalJsonOptions.Mini));
-        Assert.Equal(" qwerty", Element.GetProperty("c").Deserialize<string>(GlobalJsonOptions.Mini));
-        Assert.Equal("qwerty", Element.GetProperty("d").Deserialize<string>(GlobalJsonOptions.Mini));
-        Assert.Equal("  qwerty  ", Element.GetProperty("e").Deserialize<string>(GlobalJsonOptions.Mini));
+        Element.GetPropertyCount().ShouldBe(5);
+        Element.GetProperty("a").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe("qwerty");
+        Element.GetProperty("b").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe("qwerty");
+        Element.GetProperty("c").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe(" qwerty");
+        Element.GetProperty("d").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe("qwerty");
+        Element.GetProperty("e").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe("  qwerty  ");
     }
     [Fact]
     public void OneLineOmittedCommasTest() {
@@ -166,10 +166,10 @@ public class HjsonTests {
             """;
 
         JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Hjson).Value;
-        Assert.Equal(3, Element.GetPropertyCount());
-        Assert.Equal("b", Element.GetProperty("a").Deserialize<string>(GlobalJsonOptions.Mini));
-        Assert.Equal("de: f", Element.GetProperty("c").Deserialize<string>(GlobalJsonOptions.Mini));
-        Assert.Equal(["1 2"], Element.GetProperty("g").Deserialize<string[]>(GlobalJsonOptions.Mini)!);
+        Element.GetPropertyCount().ShouldBe(3);
+        Element.GetProperty("a").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe("b");
+        Element.GetProperty("c").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe("de: f");
+        Element.GetProperty("g").Deserialize<string[]>(GlobalJsonOptions.Mini).ShouldBe(["1 2"]);
     }
     [Fact]
     public void UnquotedLinks() {
@@ -179,8 +179,8 @@ public class HjsonTests {
             }
             """;
         JsonElement Element = CustomJsonReader.ParseElement(Code, CustomJsonReaderOptions.Hjson).Value;
-        Assert.Equal(1, Element.GetPropertyCount());
-        Assert.Equal("https://example.com/sub-example", Element.GetProperty("Example").Deserialize<string>(GlobalJsonOptions.Mini));
+        Element.GetPropertyCount().ShouldBe(1);
+        Element.GetProperty("Example").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe("https://example.com/sub-example");
     }
     [Fact]
     public void OmittedRootBracesTest() {
@@ -196,20 +196,20 @@ public class HjsonTests {
             """;
         JsonElement Element1 = CustomJsonReader.ParseElement(Text1, CustomJsonReaderOptions.Hjson).Value;
         JsonElement Element2 = CustomJsonReader.ParseElement(Text2, CustomJsonReaderOptions.Hjson).Value;
-        Assert.Equal(Element1.ToString(), Element2.ToString());
+        Element1.ToString().ShouldBe(Element2.ToString());
 
         string Text3 = """
             null
             """;
         JsonElement Element3 = CustomJsonReader.ParseElement(Text3, CustomJsonReaderOptions.Hjson).Value;
-        Assert.Null(Element3.Deserialize<string>(GlobalJsonOptions.Mini));
+        Element3.Deserialize<string>(GlobalJsonOptions.Mini).ShouldBeNull();
 
         string Text4 = """
             null: 5
             """;
         JsonElement Element4 = CustomJsonReader.ParseElement(Text4, CustomJsonReaderOptions.Hjson).Value;
-        Assert.Equal(1, Element4.GetPropertyCount());
-        Assert.Equal(5, Element4.GetProperty("null").Deserialize<int>(GlobalJsonOptions.Mini));
+        Element4.GetPropertyCount().ShouldBe(1);
+        Element4.GetProperty("null").Deserialize<int>(GlobalJsonOptions.Mini).ShouldBe(5);
     }
     [Fact]
     public void SurrogatePairsTest() {
@@ -217,6 +217,6 @@ public class HjsonTests {
         string GrinningFaceEmojiString = "\uD83D\uDE04"; // 😀
 
         JsonElement Element = CustomJsonReader.ParseElement(GrinningFaceEmojiHjson, CustomJsonReaderOptions.Hjson).Value;
-        Assert.Equal(GrinningFaceEmojiString, Element.Deserialize<string>(GlobalJsonOptions.Mini));
+        Element.Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe(GrinningFaceEmojiString);
     }
 }

@@ -21,13 +21,13 @@ public class CustomJsonTests {
             QuotelessStrings = true,
             OmittedCommas = true,
         }).Value;
-        Assert.Equal(6, Element.GetPropertyCount());
-        Assert.Equal(double.PositiveInfinity, Element.GetProperty("a").Deserialize<double>(GlobalJsonOptions.Mini));
-        Assert.Equal(double.NegativeInfinity, Element.GetProperty("b").Deserialize<double>(GlobalJsonOptions.Mini));
-        Assert.Equal(double.NaN, Element.GetProperty("c").Deserialize<double>(GlobalJsonOptions.Mini));
-        Assert.Equal("Infinit5", Element.GetProperty("d").Deserialize<string>(GlobalJsonOptions.Mini));
-        Assert.Equal("-Infinit5", Element.GetProperty("e").Deserialize<string>(GlobalJsonOptions.Mini));
-        Assert.Equal("Na5", Element.GetProperty("f").Deserialize<string>(GlobalJsonOptions.Mini));
+        Element.GetPropertyCount().ShouldBe(6);
+        Element.GetProperty("a").Deserialize<double>(GlobalJsonOptions.Mini).ShouldBe(double.PositiveInfinity);
+        Element.GetProperty("b").Deserialize<double>(GlobalJsonOptions.Mini).ShouldBe(double.NegativeInfinity);
+        Element.GetProperty("c").Deserialize<double>(GlobalJsonOptions.Mini).ShouldBe(double.NaN);
+        Element.GetProperty("d").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe("Infinit5");
+        Element.GetProperty("e").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe("-Infinit5");
+        Element.GetProperty("f").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe("Na5");
     }
     [Fact]
     public void BasicIncompleteInputsTest() {
@@ -39,8 +39,8 @@ public class CustomJsonTests {
         JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Json with {
             IncompleteInputs = true,
         }).Value;
-        Assert.Equal(1, Element.GetPropertyCount());
-        Assert.Equal("val", Element.GetProperty("key").Deserialize<string>(GlobalJsonOptions.Mini));
+        Element.GetPropertyCount().ShouldBe(1);
+        Element.GetProperty("key").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe("val");
     }
     [Fact]
     public void ComplexIncompleteInputsTest() {
@@ -55,7 +55,7 @@ public class CustomJsonTests {
         JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Json with {
             IncompleteInputs = true,
         }).Value;
-        Assert.Equal(1, Element.GetPropertyCount());
-        Assert.Equal("apple,orange,10", string.Join(',', Element.GetProperty("items").EnumerateArray()));
+        Element.GetPropertyCount().ShouldBe(1);
+        string.Join(',', Element.GetProperty("items").EnumerateArray()).ShouldBe("apple,orange,10");
     }
 }

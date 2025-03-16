@@ -34,7 +34,7 @@ public class Json5Tests {
         };
 
         JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Json5).Value;
-        Assert.Equal(JsonSerializer.Serialize(AnonymousObject), JsonSerializer.Serialize(Element));
+        JsonSerializer.Serialize(Element).ShouldBe(JsonSerializer.Serialize(AnonymousObject));
     }
     [Fact]
     public void UnicodeWhitespaceTest() {
@@ -49,23 +49,23 @@ public class Json5Tests {
             """;
 
         JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Json5).Value;
-        Assert.Equal(2, Element.GetPropertyCount());
-        Assert.Equal(1, Element.GetProperty("first").Deserialize<int>(GlobalJsonOptions.Mini));
-        Assert.Equal(2, Element.GetProperty("second").Deserialize<int>(GlobalJsonOptions.Mini));
+        Element.GetPropertyCount().ShouldBe(2);
+        Element.GetProperty("first").Deserialize<int>(GlobalJsonOptions.Mini).ShouldBe(1);
+        Element.GetProperty("second").Deserialize<int>(GlobalJsonOptions.Mini).ShouldBe(2);
     }
     [Fact]
     public void LeadingDecimalPointTest() {
         string Text = ".3";
 
         JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Json5).Value;
-        Assert.Equal(0.3, Element.Deserialize<double>(GlobalJsonOptions.Mini));
+        Element.Deserialize<double>(GlobalJsonOptions.Mini).ShouldBe(0.3);
     }
     [Fact]
     public void TrailingDecimalPointTest() {
         string Text = "3.";
 
         JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Json5).Value;
-        Assert.Equal(3.0, Element.Deserialize<double>(GlobalJsonOptions.Mini));
+        Element.Deserialize<double>(GlobalJsonOptions.Mini).ShouldBe(3.0);
     }
     [Fact]
     public void LineAndBlockStyleCommentsTest() {
@@ -77,9 +77,9 @@ public class Json5Tests {
             """;
 
         JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Json5).Value;
-        Assert.Equal(2, Element.GetPropertyCount());
-        Assert.Equal(1, Element.GetProperty("first").Deserialize<int>(GlobalJsonOptions.Mini));
-        Assert.Equal(2, Element.GetProperty("second").Deserialize<int>(GlobalJsonOptions.Mini));
+        Element.GetPropertyCount().ShouldBe(2);
+        Element.GetProperty("first").Deserialize<int>(GlobalJsonOptions.Mini).ShouldBe(1);
+        Element.GetProperty("second").Deserialize<int>(GlobalJsonOptions.Mini).ShouldBe(2);
     }
     [Fact]
     public void TrailingCommasTest() {
@@ -93,9 +93,9 @@ public class Json5Tests {
             """;
 
         JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Json5).Value;
-        Assert.Equal(2, Element.GetPropertyCount());
-        Assert.Equal(1, Element.GetProperty("a").Deserialize<int>(GlobalJsonOptions.Mini));
-        Assert.Equal([2], Element.GetProperty("b").Deserialize<int[]>(GlobalJsonOptions.Mini)!);
+        Element.GetPropertyCount().ShouldBe(2);
+        Element.GetProperty("a").Deserialize<int>(GlobalJsonOptions.Mini).ShouldBe(1);
+        Element.GetProperty("b").Deserialize<int[]>(GlobalJsonOptions.Mini).ShouldBe([2]);
     }
     [Fact]
     public void EcmaScriptPropertyNamesTest() {
@@ -106,8 +106,8 @@ public class Json5Tests {
             """;
 
         JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Json5).Value;
-        Assert.Equal(1, Element.GetPropertyCount());
-        Assert.Equal("b", Element.GetProperty("a$_b\u0065").Deserialize<string>(GlobalJsonOptions.Mini));
+        Element.GetPropertyCount().ShouldBe(1);
+        Element.GetProperty("a$_b\u0065").Deserialize<string>(GlobalJsonOptions.Mini).ShouldBe("b");
     }
     [Fact]
     public void NamedFloatingPointLiteralsTest() {
@@ -120,10 +120,10 @@ public class Json5Tests {
             """;
 
         JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Json5).Value;
-        Assert.Equal(3, Element.GetPropertyCount());
-        Assert.Equal(double.PositiveInfinity, Element.GetProperty("a").Deserialize<double>(GlobalJsonOptions.Mini));
-        Assert.Equal(double.NegativeInfinity, Element.GetProperty("b").Deserialize<double>(GlobalJsonOptions.Mini));
-        Assert.Equal(double.NaN, Element.GetProperty("c").Deserialize<double>(GlobalJsonOptions.Mini));
+        Element.GetPropertyCount().ShouldBe(3);
+        Element.GetProperty("a").Deserialize<double>(GlobalJsonOptions.Mini).ShouldBe(double.PositiveInfinity);
+        Element.GetProperty("b").Deserialize<double>(GlobalJsonOptions.Mini).ShouldBe(double.NegativeInfinity);
+        Element.GetProperty("c").Deserialize<double>(GlobalJsonOptions.Mini).ShouldBe(double.NaN);
     }
     [Fact]
     public void HexadecimalNumbers() {
@@ -136,22 +136,22 @@ public class Json5Tests {
             """;
 
         JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Json5).Value;
-        Assert.Equal(3, Element.GetPropertyCount());
-        Assert.Equal("0X50", Element.GetProperty("a").ToString());
-        Assert.Equal("0xDECAF", Element.GetProperty("b").ToString());
-        Assert.Equal("-0xC0FFEE", Element.GetProperty("c").ToString());
+        Element.GetPropertyCount().ShouldBe(3);
+        Element.GetProperty("a").ToString().ShouldBe("0X50");
+        Element.GetProperty("b").ToString().ShouldBe("0xDECAF");
+        Element.GetProperty("c").ToString().ShouldBe("-0xC0FFEE");
     }
     [Fact]
     public void EscapedStringShortHexSequences() {
         string Text1 = """
             "\xE7"
             """;
-        Assert.Equal("ç", CustomJsonReader.ParseElement<string>(Text1, CustomJsonReaderOptions.Json5));
+        CustomJsonReader.ParseElement<string>(Text1, CustomJsonReaderOptions.Json5).ShouldBe("ç");
 
         string Text2 = """
             "\xE700"
             """;
-        Assert.Equal("ç00", CustomJsonReader.ParseElement<string>(Text2, CustomJsonReaderOptions.Json5));
+        CustomJsonReader.ParseElement<string>(Text2, CustomJsonReaderOptions.Json5).ShouldBe("ç00");
     }
     [Fact]
     public void EscapedStringNewlines() {
@@ -159,9 +159,9 @@ public class Json5Tests {
                 "a\
                 b"
             """;
-        Assert.Equal("a    b", CustomJsonReader.ParseElement<string>(Text1, CustomJsonReaderOptions.Json5));
+        CustomJsonReader.ParseElement<string>(Text1, CustomJsonReaderOptions.Json5).ShouldBe("a    b");
 
         string Text2 = "\"a\\\r\\\nb\"";
-        Assert.Equal("ab", CustomJsonReader.ParseElement<string>(Text2, CustomJsonReaderOptions.Json5));
+        CustomJsonReader.ParseElement<string>(Text2, CustomJsonReaderOptions.Json5).ShouldBe("ab");
     }
 }

@@ -54,6 +54,6 @@ public class JsoncTests {
         };
 
         JsonElement Element = CustomJsonReader.ParseElement(Text, CustomJsonReaderOptions.Jsonc).Value;
-        Assert.Equal(JsonSerializer.Serialize(AnonymousObject), JsonSerializer.Serialize(Element));
+        JsonSerializer.Serialize(Element).ShouldBe(JsonSerializer.Serialize(AnonymousObject));
     }
 }
