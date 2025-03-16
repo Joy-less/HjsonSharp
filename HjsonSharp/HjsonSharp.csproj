@@ -30,6 +30,7 @@
       <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="LinkDotNet.StringBuilder" Version="2.4.0" />
     <PackageReference Include="ResultZero" Version="3.0.0" />

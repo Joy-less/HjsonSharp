@@ -102,6 +102,9 @@ public class StringRuneReader : RuneReader {
     }
     /// <inheritdoc/>
     public override string ReadToEnd() {
+        if (InnerStringIndex == 0) {
+            return InnerString;
+        }
         ReadOnlySpan<char> CharsRead = AsSpan();
         InnerStringIndex += CharsRead.Length;
         return CharsRead.ToString();
