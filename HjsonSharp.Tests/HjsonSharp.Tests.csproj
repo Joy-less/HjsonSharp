@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HjsonSharp\HjsonSharp.csproj" />
+    <ProjectReference Include="../HjsonSharp/HjsonSharp.csproj" />
   </ItemGroup>
 
   <ItemGroup>
