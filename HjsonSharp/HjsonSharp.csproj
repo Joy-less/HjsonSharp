@@ -32,7 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="LinkDotNet.StringBuilder" Version="2.4.0" />
+    <PackageReference Include="LinkDotNet.StringBuilder" Version="2.4.1" />
     <PackageReference Include="ResultZero" Version="3.0.0" />
     <PackageReference Include="System.Text.Json" Version="9.0.3" />
   </ItemGroup>
