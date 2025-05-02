@@ -4,6 +4,9 @@
 
 A customisable streaming parser for [HJSON](https://hjson.github.io), with support for [JSON](https://json.org), [JSONC](https://code.visualstudio.com/docs/languages/json#_json-with-comments) and [JSON5](https://json5.org).
 
+> [!NOTE]
+> This repository is now in maintenance mode. For a newer and more powerful format, try [JSONH](https://github.com/jsonh-org/JsonhCs)!
+
 ## Features
 
 - **System.Text.Json integrated:** Parse directly to `System.Text.JsonElement`.
